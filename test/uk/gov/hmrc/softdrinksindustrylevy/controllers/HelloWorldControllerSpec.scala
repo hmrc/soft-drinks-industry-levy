@@ -17,7 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -32,13 +33,17 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
 
-class MicroserviceHelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
+class HelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockDesConnector: DesConnector = mock[DesConnector]
-  val microserviceHelloWorldController = new MicroserviceHelloWorld(mockDesSubmissionService, mockDesConnector)
+  val microserviceHelloWorldController = new HelloWorldController(mockDesSubmissionService, mockDesConnector)
 
-  "MicroserviceHelloWorld controller" should {
-    "return a happy response from des" in {
+  override def beforeEach() {
+    reset(mockDesSubmissionService, mockDesConnector)
+  }
+
+  "HelloWorldController" should {
+    "return Status: OK Body: DesSubmissionResult(true) for successful valid submitDesRequest" in {
       implicit val hc = new HeaderCarrier
 
       when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(true)))
@@ -47,6 +52,17 @@ class MicroserviceHelloWorldControllerSpec extends PlaySpec with MockitoSugar wi
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
       Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) mustBe DesSubmissionResult(true)
+    }
+
+    "return Status: OK Body: DesSubmissionResult(false) for successful invalid submitDesRequest" in {
+      implicit val hc = new HeaderCarrier
+
+      when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(false)))
+      val response = microserviceHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
+
+      status(response) mustBe OK
+      verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
+      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(true)) mustBe DesSubmissionResult(false)
     }
   }
 }
