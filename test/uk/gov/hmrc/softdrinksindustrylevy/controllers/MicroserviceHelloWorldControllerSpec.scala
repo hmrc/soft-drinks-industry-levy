@@ -16,23 +16,23 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play.OneAppPerSuite
+import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.DesSubmissionResult
-import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 import uk.gov.hmrc.softdrinksindustrylevy.modelsFormat._
+import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
 
-class MicroserviceHelloWorldControllerSpec extends UnitSpec with MockitoSugar with OneAppPerSuite {
+class MicroserviceHelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val microserviceHelloWorldController = new MicroserviceHelloWorld(mockDesSubmissionService, mockDesConnector)
@@ -44,9 +44,9 @@ class MicroserviceHelloWorldControllerSpec extends UnitSpec with MockitoSugar wi
       when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(true)))
       val response = microserviceHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
 
-      status(response) shouldBe OK
+      status(response) mustBe OK
       verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
-      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) shouldBe DesSubmissionResult(true)
+      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) mustBe DesSubmissionResult(true)
     }
   }
 }
