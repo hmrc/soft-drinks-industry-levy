@@ -22,7 +22,6 @@ import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models.{DesSubmissionRequest, DesSubmissionResult}
-import uk.gov.hmrc.softdrinksindustrylevy.modelsFormat._
 
 import scala.concurrent.Future
 

@@ -22,8 +22,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.modelsFormat._
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton

@@ -16,10 +16,9 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy
 
-import uk.gov.hmrc.softdrinksindustrylevy.models._
 import play.api.libs.json._
 
-package object modelsFormat {
+package object models {
   implicit val desSubmissionRequestFormatter: Format[DesSubmissionRequest] = Json.format[DesSubmissionRequest]
   implicit val desSubmissionResultFormatter: Format[DesSubmissionResult] = Json.format[DesSubmissionResult]
 }

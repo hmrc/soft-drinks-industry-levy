@@ -28,7 +28,6 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.DesSubmissionResult
-import uk.gov.hmrc.softdrinksindustrylevy.modelsFormat._
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
