@@ -36,7 +36,7 @@ import scala.concurrent.Future
 class HelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockDesConnector: DesConnector = mock[DesConnector]
-  val microserviceHelloWorldController = new HelloWorldController(mockDesSubmissionService, mockDesConnector)
+  val mockHelloWorldController = new HelloWorldController(mockDesSubmissionService, mockDesConnector)
 
   override def beforeEach() {
     reset(mockDesSubmissionService, mockDesConnector)
@@ -47,7 +47,7 @@ class HelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneA
       implicit val hc = new HeaderCarrier
 
       when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(true)))
-      val response = microserviceHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
+      val response = mockHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
@@ -58,7 +58,7 @@ class HelloWorldControllerSpec extends PlaySpec with MockitoSugar with GuiceOneA
       implicit val hc = new HeaderCarrier
 
       when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(false)))
-      val response = microserviceHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
+      val response = mockHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
