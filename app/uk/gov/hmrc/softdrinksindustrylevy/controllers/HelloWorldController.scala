@@ -27,8 +27,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class HelloWorldController @Inject()(val desSubmissionService: DesSubmissionService,
-																		 val desConnector: DesConnector) extends BaseController {
+class HelloWorldController @Inject()(desSubmissionService: DesSubmissionService,
+																		 desConnector: DesConnector) extends BaseController {
 
 	def hello() = Action.async { implicit request =>
 		desConnector.submitDesRequest(desSubmissionService.buildDesSubmission()).map {
