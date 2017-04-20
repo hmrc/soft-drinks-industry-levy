@@ -13,20 +13,20 @@ class MainSpec extends IntegrationSpec {
   "Visiting Google address" should "return a 200 OK response" in {
     WsTestClient.withClient { client =>
       val result = Await.result(
-        new SDILActions(client).call(), 10.seconds)
+        new SDILActions(client).call(), 50000.milliseconds)
       result.statusText shouldBe "OK"
       result.status shouldBe 200
     }
   }
 
-  "BARS" should "return a 200 OK response with a valid sort code and account number" in {
-    WsTestClient.withClient { client =>
-      val result = Await.result(
-        new SDILActions(client).getBank("123456", "12345678"), 10.seconds)
-      result.statusText shouldBe "OK"
-      result.status shouldBe 200
-    }
-  }
+//  "BARS" should "return a 200 OK response with a valid sort code and account number" in {
+//    WsTestClient.withClient { client =>
+//      val result = Await.result(
+//        new SDILActions(client).getBank("123456", "12345678"), 10.seconds)
+//      result.statusText shouldBe "OK"
+//      result.status shouldBe 200
+//    }
+//  }
 
 }
 
