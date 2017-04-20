@@ -13,7 +13,7 @@ class MainSpec extends IntegrationSpec {
   "Visiting Google address" should "return a 200 OK response" in {
     WsTestClient.withClient { client =>
       val result = Await.result(
-        new SDILActions(client).call(), 10000.milliseconds)
+        new SDILActions(client).call(), 50000.milliseconds)
       result.statusText shouldBe "OK"
       result.status shouldBe 200
     }
