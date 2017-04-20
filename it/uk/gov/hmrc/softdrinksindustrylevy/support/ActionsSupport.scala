@@ -1,4 +1,4 @@
-package uk.gov.hmrc.softdrinksindustryley.support
+package uk.gov.hmrc.softdrinksindustrylevy.support
 
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures

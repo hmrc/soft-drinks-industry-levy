@@ -1,4 +1,4 @@
-package uk.gov.hmrc.softdrinksindustryley.support
+package uk.gov.hmrc.softdrinksindustrylevy.support
 
 import play.api.libs.json.Json
 import play.api.libs.json.Json._
