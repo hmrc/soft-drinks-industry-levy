@@ -27,7 +27,23 @@ trait MicroService {
   lazy val microservice = Project(appName, file("."))
     .enablePlugins(Seq(play.sbt.PlayScala,SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin) ++ plugins : _*)
     .settings(playSettings : _*)
-    .settings(scalaSettings: _*)
+    .settings( Seq(
+      scalaVersion := "2.11.11",
+      scalacOptions ++= Seq(
+        "-Xlint",
+        "-target:" + targetJvm.value,
+        "-Xmax-classfile-name", "100",
+        "-encoding", "UTF-8"
+      ),
+
+      javacOptions ++= Seq(
+        "-Xlint",
+        "-source", targetJvm.value.stripPrefix("jvm-"),
+        "-target", targetJvm.value.stripPrefix("jvm-"),
+        "-encoding", "UTF-8"
+      )
+    )
+  )
     .settings(publishingSettings: _*)
     .settings(defaultSettings(): _*)
     .settings(
