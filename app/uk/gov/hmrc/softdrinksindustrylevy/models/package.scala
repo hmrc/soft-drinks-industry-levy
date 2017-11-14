@@ -19,6 +19,20 @@ package uk.gov.hmrc.softdrinksindustrylevy
 import play.api.libs.json._
 
 package object models {
-  implicit val desSubmissionRequestFormatter: Format[DesSubmissionRequest] = Json.format[DesSubmissionRequest]
-  implicit val desSubmissionResultFormatter: Format[DesSubmissionResult] = Json.format[DesSubmissionResult]
+
+  // SDIL create and retrieve subscription formatters
+  implicit val addressFormat: OFormat[Address] = Json.format[Address]
+  implicit val contactDetailsFormat: OFormat[ContactDetails] = Json.format[ContactDetails]
+  implicit val businessContactFormat: OFormat[BusinessContact] = Json.format[BusinessContact]
+  implicit val correspondenceContactFormat: OFormat[CorrespondenceContact] = Json.format[CorrespondenceContact]
+  implicit val primaryContactFormat: OFormat[PrimaryPersonContact] = Json.format[PrimaryPersonContact]
+  implicit val litresProducedFormat: OFormat[LitresProduced] = Json.format[LitresProduced]
+  implicit val producerDetailsFormat: OFormat[ProducerDetails] = Json.format[ProducerDetails]
+  implicit val detailsFormat: OFormat[Details] = Json.format[Details]
+  implicit val siteFormat: OFormat[Site] = Json.format[Site]
+  implicit val registrationFormat: OFormat[SubscriptionRequest] = Json.format[SubscriptionRequest]
+  implicit val entityActionFormat: OFormat[EntityAction] = Json.format[EntityAction]
+  implicit val createSubscriptionRequestFormat: OFormat[CreateSubscriptionRequest] = Json.format[CreateSubscriptionRequest]
+  implicit val createSubscriptionResponseFormat: OFormat[CreateSubscriptionResponse] = Json.format[CreateSubscriptionResponse]
+
 }

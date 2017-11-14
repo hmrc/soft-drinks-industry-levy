@@ -22,17 +22,20 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class HelloWorldController @Inject()(desSubmissionService: DesSubmissionService,
-																		 desConnector: DesConnector) extends BaseController {
+class SdilController @Inject()(desSubmissionService: DesSubmissionService,
+															 desConnector: DesConnector) extends BaseController {
 
-	def hello() = Action.async { implicit request =>
-		desConnector.submitDesRequest(desSubmissionService.buildDesSubmission()).map {
-			response => Ok(Json.toJson(response))
-		}
+	def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
+		withJsonBody[CreateSubscriptionRequest](data =>
+			desConnector.createSubscription(data, idType, idNumber).map {
+				response => Ok(Json.toJson(response))
+			}
+		)
 	}
 }

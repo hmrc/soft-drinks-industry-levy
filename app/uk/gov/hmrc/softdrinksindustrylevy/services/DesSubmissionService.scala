@@ -17,9 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import com.google.inject.Singleton
-import uk.gov.hmrc.softdrinksindustrylevy.models.DesSubmissionRequest
 
 @Singleton
 class DesSubmissionService {
-  def buildDesSubmission(): DesSubmissionRequest = DesSubmissionRequest(1)
 }

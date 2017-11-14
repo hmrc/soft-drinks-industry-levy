@@ -1,3 +1,3 @@
 # microservice specific routes
 
-GET        /hello-world             @uk.gov.hmrc.softdrinksindustrylevy.controllers.HelloWorldController.hello()
+POST       /create-subscription/:idType/:idNumber    @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.submitRegistration(idType, idNumber)
