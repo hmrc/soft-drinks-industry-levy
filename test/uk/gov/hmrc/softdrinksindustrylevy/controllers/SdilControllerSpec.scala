@@ -16,20 +16,15 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.LocalDateTime
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.CreateSubscriptionResponse
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
@@ -39,24 +34,25 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockSdilController = new SdilController(mockDesSubmissionService, mockDesConnector)
 
+  implicit val hc = new HeaderCarrier
+
   override def beforeEach() {
     reset(mockDesSubmissionService, mockDesConnector)
   }
 
-  val validSubscriptionResponse = CreateSubscriptionResponse(LocalDateTime.parse("2017-11-13T13:48:21.81"), "814892841918")
 
   "HelloWorldController" should {
     "return Status: OK Body: DesSubmissionResult(true) for successful valid submitDesRequest" in {
-      implicit val hc = new HeaderCarrier
 
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber"))
+      val response = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+        .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any(), any())
-//      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) mustBe DesSubmissionResult(true)
+      //      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) mustBe DesSubmissionResult(true)
     }
 
 

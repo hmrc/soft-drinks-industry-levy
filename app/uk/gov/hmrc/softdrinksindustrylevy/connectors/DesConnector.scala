@@ -21,9 +21,7 @@ import javax.inject.Singleton
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class DesConnector extends ServicesConfig {
