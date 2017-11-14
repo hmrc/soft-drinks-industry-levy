@@ -43,7 +43,6 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     reset(mockDesSubmissionService, mockDesConnector)
   }
 
-
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid submitDesRequest" in {
 
@@ -58,29 +57,12 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       contentAsJson(response) mustBe Json.toJson(validSubscriptionResponse)
     }
 
-
-    //    "return Status: OK Body: DesSubmissionResult(false) for successful invalid submitDesRequest" in {
-    //      implicit val hc = new HeaderCarrier
-    //
-    //      when(mockDesConnector.submitDesRequest(any())(any())).thenReturn(Future.successful(DesSubmissionResult(false)))
-    //      val response = mockHelloWorldController.hello()(FakeRequest("GET", "/hello-world"))
-    //
-    //      status(response) mustBe OK
-    //      verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
-    //      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(true)) mustBe DesSubmissionResult(false)
-    //    }
-
-
     "return Status: BAD_REQUEST and redirect to error page for any other exception" in {
 
-      val mockBadResponse = Future failed new BadRequestException("broked")
-
-      when(mockDesConnector.createSubscription(any(), any(), any())(any(), any())).thenReturn(mockBadResponse)
       val result = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
-        .withBody(validCreateSubscriptionRequest))
+        .withBody(invalidCreateSubscriptionRequest))
 
       status(result) mustBe BAD_REQUEST
-
     }
   }
 }

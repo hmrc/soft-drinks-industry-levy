@@ -23,6 +23,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.CreateSubscriptionResponse
 
 package object controllers {
 
+  val invalidCreateSubscriptionRequest: JsValue = Json.parse(
+"""{
+  |"test": "bad"
+  |}
+""".stripMargin
+  )
   val validCreateSubscriptionRequest: JsValue = Json.parse(
     """{
       |    "registration": {
