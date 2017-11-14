@@ -22,9 +22,12 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.models.CreateSubscriptionResponse
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
@@ -41,8 +44,8 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   }
 
 
-  "HelloWorldController" should {
-    "return Status: OK Body: DesSubmissionResult(true) for successful valid submitDesRequest" in {
+  "SdilController" should {
+    "return Status: OK Body: CreateSubscriptionResponse for successful valid submitDesRequest" in {
 
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
@@ -52,7 +55,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any(), any())
-      //      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(false)) mustBe DesSubmissionResult(true)
+      contentAsJson(response) mustBe Json.toJson(validSubscriptionResponse)
     }
 
 
@@ -66,5 +69,18 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     //      verify(mockDesConnector, times(1)).submitDesRequest(any())(any())
     //      Json.fromJson[DesSubmissionResult](contentAsJson(response)).getOrElse(DesSubmissionResult(true)) mustBe DesSubmissionResult(false)
     //    }
+
+
+    "return Status: BAD_REQUEST and redirect to error page for any other exception" in {
+
+      val mockBadResponse = Future failed new BadRequestException("broked")
+
+      when(mockDesConnector.createSubscription(any(), any(), any())(any(), any())).thenReturn(mockBadResponse)
+      val result = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+        .withBody(validCreateSubscriptionRequest))
+
+      status(result) mustBe BAD_REQUEST
+
+    }
   }
 }
