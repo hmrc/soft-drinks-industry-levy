@@ -1,0 +1,687 @@
+{
+   "$schema": "http://json-schema.org/draft-04/schema#",
+   "title": "04BZ - SDIL - API 1203 v1.0 Subscription Create - Request Schema",
+   "description": "SDIL Subscription request from MDTP to ETMP",
+   "type": "object",
+   "required": [
+      "registration"
+   ],
+   "properties": {
+      "registration": {
+         "type": "object",
+         "required": [
+            "organisationType",
+            "applicationDate",
+            "taxStartDate",
+            "cin",
+            "tradingName",
+            "businessContact",
+            "primaryPersonContact",
+            "details",
+            "estimatedTaxAmount",
+            "taxObligationStartDate"
+         ],
+         "properties": {
+            "organisationType": {
+               "$ref": "#/definitions/organisationType"
+            },
+            "applicationDate": {
+               "$ref": "#/definitions/dateString"
+            },
+            "taxStartDate": {
+               "$ref": "#/definitions/dateString"
+            },
+            "cin": {
+               "description": "Customer Identifcation Number",
+               "$ref": "#/definitions/cinType"         
+            },
+            "tradingName": {
+               "$ref": "#/definitions/tradingNameType"         
+            },
+            "businessContact": {
+               "type": "object",
+               "required": [
+                  "addressDetails",
+                  "contactDetails"
+               ],
+               "properties": {
+                  "addressDetails": {
+                     "$ref": "#/definitions/addressType"
+                  },
+                  "contactDetails": {
+                     "$ref": "#/definitions/contactDetailsType"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "correspondenceContact": {
+               "type": "object",
+               "required": [
+                  "addressDetails",
+                  "contactDetails"
+               ],
+               "properties": {
+                  "addressDetails": {
+                     "$ref": "#/definitions/addressType"
+                  },
+                  "contactDetails": {
+                     "$ref": "#/definitions/contactDetailsType"
+                  },
+                  "differentAddress": {
+                     "description": "Is the correspondence address different to the address provided above? true - If correspondence address is different to other address, false - If correspondence address is not different to other address",
+                     "type": "boolean"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "primaryPersonContact": {
+               "type": "object",
+               "required": [
+                  "name",
+                  "telephone",
+                  "email"
+               ],
+               "properties": {
+                  "name": {
+                     "type": "string",
+                     "minLength": 1,
+                     "maxLength": 40
+                  },
+                  "positionInCompany": {
+                     "type": "string",
+                     "minLength": 1,
+                     "maxLength": 155
+                  },
+                  "telephone": {
+                     "type": "string",
+                     "minLength": 1,
+                     "maxLength": 24
+                  },
+                  "mobile": {
+                     "type": "string",
+                     "minLength": 1,
+                     "maxLength": 24
+                  },
+                  "email": {
+                     "type": "string",
+                     "format": "email"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "details": {
+               "description": "SDIL Details",
+               "type": "object",
+               "required": [
+                  "producer",
+                  "importer",
+                  "contractPacker"
+               ],
+               "properties": {
+                  "producer": {
+                     "description": "This field is known as the SDIL Producer Actor for further reference elsewhere in this schema. true = Producer false = Not",
+                     "type": "boolean"
+                  },
+                  "producerDetails": {
+                     "description": "If SDIL Producer Actor = true then this structure is mandatory",
+                     "$ref": "#/definitions/producerDetailsType"
+                  },
+                  "importer": {
+                     "description": "This field is known as the SDIL Importer Actor for further reference elsewhere in this schema. true = Importer false = Not",
+                     "type": "boolean"
+                  },
+                  "contractPacker": {
+                     "description": "This field is known as the SDIL Contract Packer Actor for further reference elsewhere in this schema. true = Contract Packer false = Not",
+                     "type": "boolean"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "activityQuestions": {
+               "description": "SDIL activity dependent questions",
+               "type": "object",
+               "properties": {
+                  "litresProducedUKHigher": {
+                     "description": "Litres Produced in UK – Higher, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  },
+                  "litresProducedUKLower": {
+                     "description": "Litres Produced in UK – Lower, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  },
+                  "litresImportedUKHigher": {
+                     "description": "Litres Imported in UK – Higher, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  },
+                  "litresImportedUKLower": {
+                     "description": "Litres Imported in UK – Lower, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  },
+                  "litresPackagedUKHigher": {
+                     "description": "Litres Packaged in UK – Higher, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  },
+                  "litresPackagedUKLower": {
+                     "description": "Litres Packaged in UK – Lower, Maximum Possible Value: 9999999999999",
+                     "$ref": "#/definitions/wholeLitres"
+                  }
+               },
+               "additionalProperties": false
+            },
+            "estimatedTaxAmount": {
+               "description": "SDIL FURTHER RETURNS; Estimated amount of tax in the next 12 months; Maximum Possible Value:99999999999.99; Where VOL_REG = True, then the value should always be 0.00",
+               "$ref": "#/definitions/monetaryPos"
+            },
+            "taxObligationStartDate": {
+               "description": "Where VOL_REG = True, must send System Date",
+               "$ref": "#/definitions/dateString"
+            }
+         },
+         "additionalProperties": false
+      },
+      "sites": {
+         "type": "array",
+         "minItems": 0,
+         "items": {
+            "type": "object",
+            "required": [
+               "action",
+               "tradingName",
+               "newSiteRef",
+               "siteAddress",
+               "siteType"
+            ],
+            "properties": {
+               "action": {
+                  "description": "1 = New site",
+                  "type": "string",
+                  "pattern": "^[1]{1}$"
+               },
+               "tradingName": {
+                  "$ref": "#/definitions/tradingNameType"         
+               },
+               "newSiteRef": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20
+               },
+               "siteAddress": {
+                  "type": "object",
+                  "required": [
+                     "addressDetails",
+                     "contactDetails"
+                  ],
+                  "properties": {
+                     "addressDetails": {
+                        "$ref": "#/definitions/addressType"
+                     },
+                     "contactDetails": {
+                        "$ref": "#/definitions/contactDetailsType"
+                     }
+                  },
+                  "additionalProperties": false
+               },
+               "siteType": {
+                  "description": "Type of Site 1 = Warehouse 2 = Production Site",
+                  "type": "string",
+                  "pattern": "^[1-2]{1}$"
+               }
+            },
+            "additionalProperties": false
+         }
+      },
+      "entityAction": {
+         "type": "array",
+         "minItems": 0,
+         "items": {
+            "type": "object",
+            "required": [
+               "action",
+               "entityType",
+               "organisationType",
+               "cin",
+               "tradingName",
+               "businessContact"
+            ],
+            "properties": {
+               "action": {
+                  "description": "1 = Add",
+                  "type": "string",
+                  "pattern": "^[1]{1}$" "1"
+               },
+               "entityType": {
+                  "description": "Type of Entity Possible Value 4 - Partner",
+                  "type": "string",
+                  "pattern": "^4$"
+               },
+               "organisationType": {
+                  "$ref": "#/definitions/organisationType"
+               },
+               "cin": {
+                  "description": "Customer Identifcation Number",
+                  "$ref": "#/definitions/cinType"         
+               },
+               "tradingName": {
+                  "$ref": "#/definitions/tradingNameType"         
+               },
+               "businessContact": {
+                  "type": "object",
+                  "required": [
+                     "addressDetails",
+                     "contactDetails"
+                  ],
+                  "properties": {
+                     "addressDetails": {
+                        "$ref": "#/definitions/addressType"
+                     },
+                     "contactDetails": {
+                        "$ref": "#/definitions/contactDetailsType"
+                     }
+                  },
+                  "additionalProperties": false
+               }
+            },
+            "additionalProperties": false
+         }
+      }
+   },
+   "additionalProperties": false,
+
+   "definitions": {
+      "organisationType": {
+         "description": "1 = Sole proprietor 2 = Limited Company 3 = LLP 4 = Unincorporated body 5 = Partnership",
+         "type": "string",
+         "pattern": "^[1-5]{1}$"
+      },
+      "cinType": {
+         "description": "Customer Identifcation Number",
+         "type": "string",
+         "minLength": 1,
+         "maxLength": 15
+      },
+      "wholeLitres": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 9999999999999,
+         "multipleOf": 1.0,
+         "description": "Defines number of litres, between 0 and 9999999999999"
+      },
+      "monetaryPos": {
+         "type": "number",
+         "minimum": 0,
+         "maximum": 99999999999.99,
+         "multipleOf": 0.01,
+         "description": "Defines a monetary value (to 2 decimal places), between 0 and 99999999999.99"
+      },
+      "tradingNameType": {
+         "type": "string",
+         "minLength": 1,
+         "maxLength": 160
+      },
+      "producerDetailsType": {
+         "type": "object",
+         "required": [
+            "produceMillionLitres",
+            "producerClassification"
+         ],
+         "properties": {
+            "produceMillionLitres": {
+               "description": "Do you produce less than 1 million litres of leviable product per annum true ( Yes) false ( No)",
+               "type": "boolean"
+            },
+            "producerClassification": {
+               "description": "Mandatory if SDIL Producer Actor (producer) field is true. 1 = Large Producer 0 = Small Producer",
+               "type": "string",
+               "pattern": "^[0-1]{1}$"
+            },
+            "smallProducerExemption": {
+               "description": "Are you requesting Small Producer Exemption? true (Yes) false (No)",
+               "type": "boolean"
+            },
+            "useContractPacker": {
+               "description": "Do you use a Contract Packer? true (Yes) false (No)",
+               "type": "boolean"
+            },
+            "voluntarilyRegistered": {
+               "description": "Customer is accepted as voluntarily registered? true (Yes) false (No)",
+               "type": "boolean"
+            }
+         },
+         "additionalProperties": false
+      },
+      "contactDetailsType": {
+         "type": "object",
+         "required": [
+            "telephone",
+            "email"
+         ],
+         "properties": {
+            "telephone": {
+               "type": "string",
+               "pattern": "^[0-9 ()+--]{1,24}$"
+            },
+            "mobile": {
+               "type": "string",
+               "pattern": "^[0-9 ()+--]{1,24}$"
+            },
+            "fax": {
+               "type": "string",
+               "pattern": "^[0-9 ()+--]{1,24}$"
+            },
+            "email": {
+               "type": "string",
+               "format": "email",
+               "maxLength": 132
+            }
+         },
+         "additionalProperties": false
+      },
+      "dateString": {
+         "type": "string",
+         "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
+         "description": "YYYY-MM-DD"
+      },
+      "addressType": {
+         "type": "object",
+         "required": [
+            "notUKAddress",
+            "line1",
+            "line2"
+         ],
+         "properties": {
+            "notUKAddress": {
+               "description": "true - If address is NOT in UK false - Address is in the UK",
+               "type": "boolean"
+            },
+            "line1": {
+               "$ref": "#/definitions/addressLineType"
+            },
+            "line2": {
+               "$ref": "#/definitions/addressLineType"
+            },
+            "line3": {
+               "$ref": "#/definitions/addressLineType"
+            },
+            "line4": {
+               "$ref": "#/definitions/addressLineType"
+            },
+            "postCode": {
+               "type": "string",
+               "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
+            },
+            "country": {
+               "$ref": "#/definitions/countryCodes"
+            }
+         },
+         "additionalProperties": false
+      },
+      "addressLineType": {
+         "type": "string",
+         "pattern": "^[A-Za-z0-9 \\-,.&'\\/]{1,35}$"
+      },
+      "countryCodes": {
+         "type": "string",
+         "enum": [
+            "AD",
+            "AE",
+            "AF",
+            "AG",
+            "AI",
+            "AL",
+            "AM",
+            "AN",
+            "AO",
+            "AQ",
+            "AR",
+            "AS",
+            "AT",
+            "AU",
+            "AW",
+            "AX",
+            "AZ",
+            "BA",
+            "BB",
+            "BD",
+            "BE",
+            "BF",
+            "BG",
+            "BH",
+            "BI",
+            "BJ",
+            "BL",
+            "BM",
+            "BN",
+            "BO",
+            "BQ",
+            "BR",
+            "BS",
+            "BT",
+            "BV",
+            "BW",
+            "BY",
+            "BZ",
+            "CA",
+            "CC",
+            "CD",
+            "CF",
+            "CG",
+            "CH",
+            "CI",
+            "CK",
+            "CL",
+            "CM",
+            "CN",
+            "CO",
+            "CR",
+            "CS",
+            "CU",
+            "CV",
+            "CW",
+            "CX",
+            "CY",
+            "CZ",
+            "DE",
+            "DJ",
+            "DK",
+            "DM",
+            "DO",
+            "DZ",
+            "EC",
+            "EE",
+            "EG",
+            "EH",
+            "ER",
+            "ES",
+            "ET",
+            "EU",
+            "FC",
+            "FI",
+            "FJ",
+            "FK",
+            "FM",
+            "FO",
+            "FR",
+            "GA",
+            "GB",
+            "GD",
+            "GE",
+            "GF",
+            "GG",
+            "GH",
+            "GI",
+            "GL",
+            "GM",
+            "GN",
+            "GP",
+            "GQ",
+            "GR",
+            "GS",
+            "GT",
+            "GU",
+            "GW",
+            "GY",
+            "HK",
+            "HM",
+            "HN",
+            "HR",
+            "HT",
+            "HU",
+            "ID",
+            "IE",
+            "IL",
+            "IM",
+            "IN",
+            "IO",
+            "IQ",
+            "IR",
+            "IS",
+            "IT",
+            "JE",
+            "JM",
+            "JO",
+            "JP",
+            "KE",
+            "KG",
+            "KH",
+            "KI",
+            "KM",
+            "KN",
+            "KP",
+            "KR",
+            "KW",
+            "KY",
+            "KZ",
+            "LA",
+            "LB",
+            "LC",
+            "LI",
+            "LK",
+            "LR",
+            "LS",
+            "LT",
+            "LU",
+            "LV",
+            "LY",
+            "MA",
+            "MC",
+            "MD",
+            "ME",
+            "MF",
+            "MG",
+            "MH",
+            "MK",
+            "ML",
+            "MM",
+            "MN",
+            "MO",
+            "MP",
+            "MQ",
+            "MR",
+            "MS",
+            "MT",
+            "MU",
+            "MV",
+            "MW",
+            "MX",
+            "MY",
+            "MZ",
+            "NA",
+            "NC",
+            "NE",
+            "NF",
+            "NG",
+            "NI",
+            "NL",
+            "NO",
+            "NP",
+            "NR",
+            "NT",
+            "NU",
+            "NZ",
+            "OM",
+            "OR",
+            "PA",
+            "PE",
+            "PF",
+            "PG",
+            "PH",
+            "PK",
+            "PL",
+            "PM",
+            "PN",
+            "PR",
+            "PS",
+            "PT",
+            "PW",
+            "PY",
+            "QA",
+            "RE",
+            "RO",
+            "RS",
+            "RU",
+            "RW",
+            "SA",
+            "SB",
+            "SC",
+            "SD",
+            "SE",
+            "SG",
+            "SH",
+            "SI",
+            "SJ",
+            "SK",
+            "SL",
+            "SM",
+            "SN",
+            "SO",
+            "SR",
+            "SS",
+            "ST",
+            "SV",
+            "SX",
+            "SY",
+            "SZ",
+            "TC",
+            "TD",
+            "TF",
+            "TG",
+            "TH",
+            "TJ",
+            "TK",
+            "TL",
+            "TM",
+            "TN",
+            "TO",
+            "TP",
+            "TR",
+            "TT",
+            "TV",
+            "TW",
+            "TZ",
+            "UA",
+            "UG",
+            "UM",
+            "UN",
+            "US",
+            "UY",
+            "UZ",
+            "VA",
+            "VC",
+            "VE",
+            "VG",
+            "VI",
+            "VN",
+            "VU",
+            "WF",
+            "WS",
+            "YE",
+            "YT",
+            "ZA",
+            "ZM",
+            "ZW",
+            "ZZ"
+         ]
+
+      }
+   }
+}

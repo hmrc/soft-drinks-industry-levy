@@ -21,7 +21,12 @@ object MicroServiceBuild extends Build with MicroService {
     "org.pegdown" % "pegdown" % "1.6.0" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.mockito" % "mockito-core" % "2.7.22" % scope,
-    "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope
+    "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope,
+    "org.scalacheck" %% "scalacheck" % "1.13.4" % scope,
+    "uk.gov.hmrc" %% "stub-data-generator" % "0.4.0" % scope,
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.8.1" % scope,
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.1" % scope,
+    "com.github.fge" % "json-schema-validator" % "2.2.6" % scope
   )
 
 }

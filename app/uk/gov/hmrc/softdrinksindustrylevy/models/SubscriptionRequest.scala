@@ -127,7 +127,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
                            primaryPersonContact: PrimaryPersonContact,
                            details: Details,
                            activityQuestions: LitresProduced,
-                           estimatedTaxAmount: Option[BigDecimal],
+                           estimatedTaxAmount: BigDecimal,
                            taxObligationStartDate: Date
                          )
 
