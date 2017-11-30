@@ -31,7 +31,7 @@ class DesConnector extends ServicesConfig {
   val serviceURL: String = "soft-drinks"
   val http = WSHttp
 
-  def createSubscription(request: CreateSubscriptionRequest, idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] ={
-    http.POST[CreateSubscriptionRequest, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
+  def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] ={
+    http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
   }
 }

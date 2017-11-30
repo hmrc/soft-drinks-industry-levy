@@ -32,7 +32,7 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 															 desConnector: DesConnector) extends BaseController {
 
 	def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
-		withJsonBody[CreateSubscriptionRequest](data =>
+		withJsonBody[Subscription](data =>
 			desConnector.createSubscription(data, idType, idNumber).map {
 				response => Ok(Json.toJson(response))
 			}
