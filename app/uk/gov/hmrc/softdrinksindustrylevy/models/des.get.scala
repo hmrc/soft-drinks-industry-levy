@@ -21,6 +21,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object get {
 
-  implicit val subscriptionFormat: OFormat[Subscription] = ???
+  implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
+
+    override def writes(o: Subscription): JsValue = ???
+
+    override def reads(json: JsValue): JsResult[Subscription] = ???
+
+
+  }
     
 }
