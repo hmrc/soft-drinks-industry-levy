@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy
+package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
 import play.api.libs.json._
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 
-package object models {
+package object get {
 
-  type Litres = Long
-  type PhoneNo = String
-  type EmailAddress = String
-  type LitreBands = (Litres, Litres)
-  type Activity = Map[ActivityType.Value, LitreBands]
+  implicit val subscriptionFormat: OFormat[Subscription] = ???
     
-  implicit def addressToSite(ad: Address): Site = Site(ad)
 }

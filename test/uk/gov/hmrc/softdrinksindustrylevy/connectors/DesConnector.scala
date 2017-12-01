@@ -33,6 +33,8 @@ import scala.collection.JavaConverters._
 
 class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
 
+  import json.internal._
+
   private val nonEmptyString =
     Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
 

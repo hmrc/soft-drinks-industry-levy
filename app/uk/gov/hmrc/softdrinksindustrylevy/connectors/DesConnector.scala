@@ -32,6 +32,9 @@ class DesConnector extends ServicesConfig {
   val http = WSHttp
 
   def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] ={
+
+    import json.des.create._
+
     http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
   }
 }
