@@ -26,8 +26,16 @@ package object internal {
     lazy val ukAddressFormat = Json.format[UkAddress]
     lazy val foreignAddressFormat = Json.format[ForeignAddress]
 
-    def reads(json: JsValue): JsResult[Address] = ???
-    def writes(address: Address): JsValue = ???
+    def reads(json: JsValue): JsResult[Address] =
+      (json \ "country").asOpt[String].map(_.toLowerCase) match {
+        case Some("uk") | None => ukAddressFormat.reads(json)
+        case _ => foreignAddressFormat.reads(json)
+      }
+    
+    def writes(address: Address): JsValue = address match {
+      case uk: UkAddress => ukAddressFormat.writes(uk)
+      case foreign: ForeignAddress => foreignAddressFormat.writes(foreign)
+    }
   }
 
   implicit val litreBandsFormat: Format[LitreBands] = new Format[LitreBands] {

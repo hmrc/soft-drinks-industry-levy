@@ -29,31 +29,22 @@ import com.fasterxml.jackson.databind.JsonNode
 import java.time._
 import gen._
 
-class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
-  import json.internal._
+  test("∀ Subscription: toJson(x) is valid") {
+    import json.des.create._
+    
+    val validator = JsonSchemaFactory.byDefault.getValidator
 
-  test("∀ Activity: parse(toJson(x)) = x") {
-    forAll { r: Activity =>
-      Json.toJson(r).as[Activity] should be (r)
-    }
-  }
-
-  test("∀ UkAddress: parse(toJson(x)) = x") {
-    forAll { r: Address =>
-      Json.toJson(r).as[Address] should be (r)
-    }
-  }
-
-  test("∀ Contact: parse(toJson(x)) = x") {
-    forAll { r: Contact =>
-      Json.toJson(r).as[Contact] should be (r)
+    val stream = getClass.getResourceAsStream(
+      "/test/des-create-subscription.schema.json")
+    val schemaText = scala.io.Source.fromInputStream( stream ).getLines.mkString
+    stream.close
+    val schema = JsonLoader.fromString(schemaText)
+    forAll { r: Subscription =>
+      val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
+      val report = validator.validate(schema, json)
+      assert(report.isSuccess, report)
     }
   }  
-
-  test("∀ Subscription: parse(toJson(x)) = x") {
-    forAll { r: Subscription =>
-      Json.toJson(r).as[Subscription] should be (r)
-    }
-  }
 }

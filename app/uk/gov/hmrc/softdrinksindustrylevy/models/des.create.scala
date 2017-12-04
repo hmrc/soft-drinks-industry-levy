@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import java.time.{LocalDate => Date}
 
 package object create {
 
@@ -64,7 +65,79 @@ package object create {
     }
   }
 
-  implicit val subscriptionFormat: OFormat[Subscription] = ???
+  implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
+    def reads(json: JsValue): JsResult[Subscription] = ???
+    def writes(s: Subscription): JsValue = {
+
+      def isProducer: Boolean = {
+        import ActivityType._
+        List(ProducedOwnBrand, CopackerAll, CopackerSmall).
+          foldLeft(false){ case (acc, t) =>
+            acc || s.activity.contains(t)
+          }
+      }
+
+      def isLarge: Boolean =
+        s.upperLitres + s.lowerLitres >= 1000000
+
+      def activityMap = {
+        import ActivityType._
+        Map(
+          "Produced" -> ((s.lowerLitres, s.upperLitres)),
+          "Imported" -> s.activity.getOrElse(Imported, (0L,0L)),
+          "Packaged" -> s.activity.getOrElse(ProducedOwnBrand, (0L,0L))
+        ).flatMap {
+          case (_,(0L,0L)) => Map.empty[String,JsValue]
+          case (k,(l,h))   => Map(
+            s"litres${k}UKLower" -> JsNumber(l),
+            s"litres${k}UKHigher" -> JsNumber(h)
+          )
+        }
+      }
+
+      JsObject(Map(
+        "registration" -> JsObject(Map(
+          "organisationType" -> JsString("1"), // TODO!
+          "applicationDate" -> JsString(Date.now.toString),
+          "taxStartDate" -> JsString(s.liabilityDate.toString), 
+          "cin" -> JsString(s.utr),
+          "tradingName" -> JsString(s.orgName),
+          "businessContact" -> JsObject(Map(
+            "addressDetails" -> Json.toJson(s.address),
+            "contactDetails" -> JsObject(Map(
+              "telephone" -> JsString(s.contact.phoneNumber),
+              "email" -> JsString(s.contact.email)
+            ))
+          )),
+          "primaryPersonContact" -> JsObject(Map(
+            "name" -> Json.toJson(s.contact.name),
+            "telephone" -> JsString(s.contact.phoneNumber),
+            "email" -> JsString(s.contact.email),
+            "positionInCompany" -> JsString(s.contact.positionInCompany)
+          )),
+          "details" -> JsObject(Map(
+            "producer" -> JsBoolean{isProducer},
+            "producerDetails" -> JsObject(Map(
+              "produceMillionLitres" ->
+                JsBoolean(isLarge), 
+              "producerClassification" ->
+                JsString(if (isLarge) "1" else "0"),
+              "smallProducerExemption" ->
+                JsBoolean(!isLarge)
+            )),
+            "importer" ->
+              JsBoolean(s.activity.contains(ActivityType.Imported)),
+            "contractPacker" ->
+              JsBoolean(s.activity.contains(ActivityType.Copackee))
+          )),
+          "activityQuestions" -> JsObject(activityMap),
+          "estimatedTaxAmount" -> JsNumber(s.taxEstimatePounds),
+          "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
+        ))
+      ))
+    }
+  }
+
   implicit val createSubscriptionResponseFormat: OFormat[CreateSubscriptionResponse] =
     Json.format[CreateSubscriptionResponse]
     

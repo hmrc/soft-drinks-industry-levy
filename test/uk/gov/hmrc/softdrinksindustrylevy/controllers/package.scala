@@ -35,10 +35,8 @@ package object controllers {
       |  "utr" : "7674173564",
       |  "orgName" : "fgdiukxkTwyrorGj",
       |  "address" : {
-      |    "notUKAddress" : false,
       |    "postCode" : "ZE13 8JG",
-      |    "line1" : "137 Crooked S Road",
-      |    "line2" : "Lerwick"
+      |    "lines" : ["137 Crooked S Road", "Lerwick"]
       |  },
       |  "activity" : {
       |    "CopackerAll" : {
@@ -53,35 +51,27 @@ package object controllers {
       |  "liabilityDate" : "1977-07-08",
       |  "productionSites" : [ {
       |    "address" : {
-      |      "notUKAddress" : false,
       |      "postCode" : "PL39 9DF",
-      |      "line1" : "6 Lageonan Road",
-      |      "line2" : "Plymouth"
+      |      "lines" : ["6 Lageonan Road", "Plymouth"]
       |    },
       |    "ref" : "46f9cafe-d7bd-49c0-9c46-64ee5505fdb2"
       |  }, {
       |    "address" : {
-      |      "notUKAddress" : false,
       |      "postCode" : "DY96 0BX",
-      |      "line1" : "92 The Commons",
-      |      "line2" : "Dudley"
+      |      "lines" : ["92 The Commons", "Dudley"]
       |    },
       |    "ref" : "d594e118-63ac-49eb-a48e-1a8d9e377533"
       |  }],
       |  "warehouseSites" : [ {
       |    "address" : {
-      |      "notUKAddress" : false,
       |      "postCode" : "EX40 4WB",
-      |      "line1" : "45 Wine Street",
-      |      "line2" : "Exeter"
+      |      "lines" : ["45 Wine Street", "Exeter"]
       |    },
       |    "ref" : "01972ba0-4cd3-4be4-9a97-3c1a727d54a5"
       |  }, {
       |    "address" : {
-      |      "notUKAddress" : false,
       |      "postCode" : "WD06 1ZL",
-      |      "line1" : "65 High Cedar Drive",
-      |      "line2" : "Watford"
+      |      "lines" : ["65 High Cedar Drive", "Watford"]
       |    },
       |    "ref" : "8a9e17f9-6d93-44b2-a2f0-9dab3781f1b6"
       |  } ],
