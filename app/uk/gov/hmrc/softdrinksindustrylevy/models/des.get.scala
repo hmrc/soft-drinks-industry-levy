@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
 package object get {
 
@@ -26,6 +27,14 @@ package object get {
     override def writes(o: Subscription): JsValue = ???
 
     override def reads(json: JsValue): JsResult[Subscription] = ???
+//    override def reads(json: JsValue): JsResult[Subscription] = {
+//      val subscription = Subscription(
+//        utr = (json \ "utr").as[String],
+//        orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
+//        address = addressFormat.reads(json \ "businessAddress"),
+//        activity = activityMapFormat.reads()
+//      )
+//    }
 
 
   }
