@@ -31,7 +31,7 @@ object ActivityType extends Enumeration {
 
 case class Contact(
   name: String,
-  positionInCompany: String,
+  positionInCompany: String, // could be made optional
   phoneNumber: String,
   email: String
 )
@@ -45,7 +45,22 @@ case class Subscription (
   productionSites: List[Site],
   warehouseSites: List[Site],
   contact: Contact
-)
+) {
+  lazy val (lowerLitres,upperLitres) =
+    activity.values.foldLeft((0L,0L)){
+      case ((aL,aH), (pL,pH)) => (aL+pL, aH+pH)
+    }
+
+  val lowerRate: Long = 6
+  val upperRate: Long = 8
+
+  lazy val taxEstimatePence: Long =
+    lowerLitres * lowerRate + upperLitres * upperRate
+
+  lazy val taxEstimatePounds: BigDecimal =
+    BigDecimal(taxEstimatePence.toString) / 100
+  
+}
 
 /* Probably overkill */
 case class CreateSubscriptionResponse(
