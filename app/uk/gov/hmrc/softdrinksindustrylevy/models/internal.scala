@@ -64,6 +64,22 @@ package object internal {
     )
   }
 
+  implicit val betterActivityMapFormat: Format[BetterActivity] = new Format[BetterActivity] {
+    def reads(json: JsValue): JsResult[BetterActivity] = JsSuccess {
+
+      InternalActivity(Map(ActivityType.ProducedOwnBrand ->  ((1L, 1L)))) // TODO figure this out
+
+    }
+    def writes(activity: BetterActivity): JsValue = JsObject(
+      activity match {
+        case InternalActivity(a) => a.map{ case (t, lb) =>
+          t.toString -> litreBandsFormat.writes(lb)
+        }
+          // TODO match the other cases
+      }
+    )
+  }
+
   implicit val subscriptionFormat: OFormat[Subscription] = Json.format[Subscription]
     
 }

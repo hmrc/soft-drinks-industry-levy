@@ -50,24 +50,35 @@ package object gen {
     h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-  val genActivity: Gen[Activity] = for {
+  val genActivity: Gen[BetterActivity] = for {
     types <- subset(ActivityType)
 
     // TODO: Rewrite this shamefull mess
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
-    typeTuples.asScala.toMap
+    InternalActivity(typeTuples.asScala.toMap)
   }
 
-  val genContact: Gen[Contact] = for {
+  val genRetrievedActivity: Gen[BetterActivity] = for {
+    isProducer <- Gen.boolean
+    isLarge <- Gen.boolean
+    isContractPacker <- Gen.boolean
+    isImporter <- Gen.boolean
+  } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
+
+  val genName: Gen[String] = for {
     fname <- Gen.forename
     sname <- Gen.surname
-    positionInCompany <- nonEmptyString
+  } yield s"$fname $sname"
+
+  val genContact: Gen[Contact] = for {
+    fullName <- genName
+    positionInCompany <- nonEmptyString // TODO could use sector Gen stuff here.
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(s"$fname $sname", positionInCompany, phoneNumber, email)
+      Contact(Some(fullName), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
@@ -81,9 +92,31 @@ package object gen {
   } yield Subscription(utr, orgName, address, activity, liabilityDate,
     productionSites, warehouseSites, contact)
 
+  val genSite: Gen[Site] = for {
+    ref <- nonEmptyString
+    address <- genAddress
+  } yield Site(address, ref)
+
+  implicit val arbSite = Arbitrary(genSite)
   implicit val arbActivity = Arbitrary(genActivity)
   implicit val arbAddress = Arbitrary(genAddress)
   implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)  
+  implicit val arbSubRequest = Arbitrary(genSubscription)
+
+  def genRetrievedSubscription: Gen[Subscription] = {
+  for {
+    utr <- Enumerable.instances.utrEnum.gen
+    orgName <- nonEmptyString
+    address <- genUkAddress
+    activity <- genRetrievedActivity
+    liabilityDate <- Gen.date
+    productionSites <- Gen.listOf(genUkAddress map addressToSite)
+    warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
+    contact <- genContact
+  } yield Subscription(utr, orgName, address, activity, liabilityDate,
+    productionSites, warehouseSites, contact)
+  }
+
+  implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   
 }

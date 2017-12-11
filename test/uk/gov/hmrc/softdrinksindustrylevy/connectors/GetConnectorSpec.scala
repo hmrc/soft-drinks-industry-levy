@@ -16,40 +16,27 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import controllers._
-import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import uk.gov.hmrc.softdrinksindustrylevy.models._
 import play.api.libs.json._
-import com.github.fge.jsonschema.core.report.ProcessingReport
-import com.github.fge.jsonschema.main._
-import com.github.fge.jackson.JsonLoader
-import com.fasterxml.jackson.databind.JsonNode
-import java.time._
-import gen._
+import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbSite, arbAddress, arbSubGet}
 
-class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+class GetConnectorSpec extends FunSuite with PropertyChecks with Matchers {
 
-  import json.internal._
+  import json.des.get._
 
-  test("∀ Activity: parse(toJson(x)) = x") {
-    forAll { r: BetterActivity =>
-      Json.toJson(r).as[BetterActivity] should be (r)
+  test("∀ Site: parse(toJson(x)) = x") {
+    forAll { r: Site =>
+      Json.toJson(r).as[Site] should be (r)
     }
   }
 
-  test("∀ UkAddress: parse(toJson(x)) = x") {
+  test("∀ Address: parse(toJson(x)) = x") {
     forAll { r: Address =>
       Json.toJson(r).as[Address] should be (r)
     }
   }
-
-  test("∀ Contact: parse(toJson(x)) = x") {
-    forAll { r: Contact =>
-      Json.toJson(r).as[Contact] should be (r)
-    }
-  }  
 
   test("∀ Subscription: parse(toJson(x)) = x") {
     forAll { r: Subscription =>

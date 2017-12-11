@@ -89,4 +89,105 @@ package object controllers {
     "814892841918"
   )
 
+  val validSubscriptionRetrieve: JsValue =  Json.parse(
+    """{
+      |	"safeId": "XA0000000000000",
+      |	"nino": "AA000000A",
+      |	"utr": "9876543210",
+      |	"subscriptionDetails": {
+      |		"sdilRegistrationNumber": "a",
+      |		"taxObligationStartDate": "2017-07-29",
+      |		"taxObligationEndDate": "2017-10-29",
+      |		"tradingName": "a",
+      |		"deregistrationDate": "1920-02-29",
+      |		"voluntaryRegistration": true,
+      |		"smallProducer": true,
+      |		"largeProducer": true,
+      |		"contractPacker": true,
+      |		"importer": true,
+      |		"primaryContactName": "Joe Bloggs",
+      |		"primaryPositionInCompany": "Master Brewer",
+      |		"primaryTelephone": "01234567890",
+      |		"primaryMobile": "07777666555",
+      |		"primaryEmail": "a@bcd.com"
+      |	},
+      |	"businessAddress": {
+      |		"line1": "1 Here",
+      |		"line2": "There",
+      |		"line3": "Everywhere",
+      |		"postCode": "SK12AB",
+      |		"country": "AD"
+      |	},
+      |	"businessContact": {
+      |		"telephone": "01234567890",
+      |		"mobile": "07777666444",
+      |		"email": "a@bcd.com"
+      |	},
+      |	"correspondenceAddress": {
+      |		"line1": "2 Here",
+      |		"line2": "There",
+      |		"line3": "Overthere",
+      |		"line4": "Near Here",
+      |		"postCode": "A00AA",
+      |		"country": "AD"
+      |	},
+      |	"correspondenceContact": {
+      |		"telephone": "09876543210",
+      |		"mobile": "07654321098",
+      |		"fax": "09876543211",
+      |		"email": "a@bcd.com"
+      |	},
+      |	"partners": [
+      |        {
+      |		    "partnerName": "Fab Drinks",
+      |		    "partnerName": "Fantastic Drinks",
+      |		    "partnerName": "Zing Drinks",
+      |		    "partnerName": "Zappo Drinks"
+      |        }
+      |	],
+      |	"sites": [
+      |		{
+      |			"siteReference": "a",
+      |			"tradingName": "Some Company",
+      |			"siteAddress": {
+      |				"line1": "1 Some Street",
+      |				"line2": "Some Town",
+      |				"line3": "Some District",
+      |				"line4": "Shropshire",
+      |				"postCode": "TF37RT",
+      |				"country": "GB"
+      |			},
+      |			"siteContact": {
+      |				"telephone": "01234567890",
+      |				"mobile": "07891234567",
+      |				"fax": "01234567891",
+      |				"email": "a@bcd.com"
+      |			},
+      |			"closerDate": "1920-02-29",
+      |			"validFromDate": "1920-02-29",
+      |			"validToDate": "1920-02-29",
+      |			"siteType": "1"
+      |		},
+      |		{
+      |			"siteReference": "b",
+      |			"tradingName": "Some Other Company",
+      |			"siteAddress": {
+      |				"line1": "1 Some Street",
+      |				"line2": "Some Town",
+      |				"postCode": "TF34NT",
+      |				"country": "GB"
+      |			},
+      |			"siteContact": {
+      |				"telephone": "01234567890",
+      |				"mobile": "07891234567",
+      |				"email": "a@bcd.com"
+      |			},
+      |			"closerDate": "1920-02-29",
+      |			"validFromDate": "1920-02-29",
+      |			"validToDate": "1920-02-29",
+      |			"siteType": "2"
+      |		}
+      |	]
+      |}""".stripMargin)
+
 }

@@ -69,23 +69,33 @@ package object create {
     def reads(json: JsValue): JsResult[Subscription] = ???
     def writes(s: Subscription): JsValue = {
 
-      def isProducer: Boolean = {
-        import ActivityType._
-        List(ProducedOwnBrand, CopackerAll, CopackerSmall).
-          foldLeft(false){ case (acc, t) =>
-            acc || s.activity.contains(t)
-          }
-      }
+//      def isProducer: Boolean = {
+//        import ActivityType._
+//        List(ProducedOwnBrand, CopackerAll, CopackerSmall).
+//          foldLeft(false){ case (acc, t) =>
+//            acc || s.activity.contains(t)
+//          }
+//      }
 
-      def isLarge: Boolean =
-        s.upperLitres + s.lowerLitres >= 1000000
+//      def isLarge: Boolean =
+//        s.upperLitres + s.lowerLitres >= 1000000  // TODO tell Luke Stephen says he's wrong
 
       def activityMap = {
         import ActivityType._
         Map(
           "Produced" -> ((s.lowerLitres, s.upperLitres)),
-          "Imported" -> s.activity.getOrElse(Imported, (0L,0L)),
-          "Packaged" -> s.activity.getOrElse(ProducedOwnBrand, (0L,0L))
+          "Imported" -> {
+            s.activity match {
+              case InternalActivity(x) => x.getOrElse(Imported, (0L, 0L))
+              case _ => (0L, 0L)
+            }
+          },
+          "Packaged" -> {
+            s.activity match {
+              case InternalActivity(x) => x.getOrElse(ProducedOwnBrand, (0L, 0L))
+              case _ => (0L, 0L)
+            }
+          }
         ).flatMap {
           case (_,(0L,0L)) => Map.empty[String,JsValue]
           case (k,(l,h))   => Map(
@@ -113,24 +123,24 @@ package object create {
             "name" -> Json.toJson(s.contact.name),
             "telephone" -> JsString(s.contact.phoneNumber),
             "email" -> JsString(s.contact.email),
-            "positionInCompany" -> JsString(s.contact.positionInCompany)
+            "positionInCompany" -> JsString(s.contact.positionInCompany.getOrElse(""))
           )),
           "details" -> JsObject(Map(
-            "producer" -> JsBoolean{isProducer},
+            "producer" -> JsBoolean{s.activity.isProducer},
             "producerDetails" -> JsObject(Map(
               "produceMillionLitres" ->
-                JsBoolean(isLarge), 
+                JsBoolean(s.activity.isLarge),
               "producerClassification" ->
-                JsString(if (isLarge) "1" else "0"),
+                JsString(if (s.activity.isLarge) "1" else "0"),
               "smallProducerExemption" ->
-                JsBoolean(!isLarge)
+                JsBoolean(!s.activity.isLarge)
             )),
             "importer" ->
-              JsBoolean(s.activity.contains(ActivityType.Imported)),
+              JsBoolean(s.activity.isImporter),
             "contractPacker" ->
-              JsBoolean(s.activity.contains(ActivityType.Copackee))
+              JsBoolean(s.activity.isContractPacker)
           )),
-          "activityQuestions" -> JsObject(activityMap),
+          "activityQuestions" -> JsObject(activityMap), // TODO here...
           "estimatedTaxAmount" -> JsNumber(s.taxEstimatePounds),
           "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
         ))
