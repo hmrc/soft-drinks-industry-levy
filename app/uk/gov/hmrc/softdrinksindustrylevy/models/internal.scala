@@ -21,7 +21,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object internal {
 
-  // SDIL create and retrieve subscription formatters
   implicit val addressFormat = new Format[Address] {
     lazy val ukAddressFormat = Json.format[UkAddress]
     lazy val foreignAddressFormat = Json.format[ForeignAddress]

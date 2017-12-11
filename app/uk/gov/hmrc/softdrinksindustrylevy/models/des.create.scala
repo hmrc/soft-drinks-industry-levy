@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import java.time.{LocalDate => Date}
+import scala.language.implicitConversions
 
 package object create {
 
@@ -66,11 +67,49 @@ package object create {
   }
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
-    def reads(json: JsValue): JsResult[Subscription] = ???
-    def writes(s: Subscription): JsValue = {
+    def reads(json: JsValue): JsResult[Subscription] = {
 
-      def isProducer: Boolean = {
+      val reg = json \ "registration"
+      
+      val activity: Activity = {
         import ActivityType._
+        def litres(field: String) =
+          {reg \ "activityQuestions" \ field}.as[Litres]
+
+        Map (
+          Imported -> "Imported",
+          ProducedOwnBrand -> "Produced"
+        ) mapValues {
+          k => (
+            litres(s"litres${k}UKLower"),
+            litres(s"litres${k}UKHigher")
+          )
+        }
+      }
+
+      val primaryPerson = reg \ "primaryPersonContact"
+
+      JsSuccess(Subscription(
+        {reg \ "cin"}.as[String],
+        {reg \ "tradingName"}.as[String],
+        {reg \ "businessContact" \ "addressDetails"}.as[Address],
+        activity,
+        {reg \ "taxStartDate"}.as[Date],
+        Nil: List[Site], // TODO
+        Nil: List[Site], // TODO
+        Contact(
+          {primaryPerson \ "name"}.as[String],
+          {primaryPerson \ "positionInCompany"}.as[String],
+          {primaryPerson \ "telephone"}.as[String],
+          {primaryPerson \ "email"}.as[String]
+        )
+      ))
+    }
+
+    def writes(s: Subscription): JsValue = {
+      import ActivityType._
+      def isProducer: Boolean = {
+
         List(ProducedOwnBrand, CopackerAll, CopackerSmall).
           foldLeft(false){ case (acc, t) =>
             acc || s.activity.contains(t)
@@ -80,61 +119,57 @@ package object create {
       def isLarge: Boolean =
         s.upperLitres + s.lowerLitres >= 1000000
 
-      def activityMap = {
-        import ActivityType._
+      def activityMap = 
         Map(
           "Produced" -> ((s.lowerLitres, s.upperLitres)),
           "Imported" -> s.activity.getOrElse(Imported, (0L,0L)),
           "Packaged" -> s.activity.getOrElse(ProducedOwnBrand, (0L,0L))
         ).flatMap {
-          case (_,(0L,0L)) => Map.empty[String,JsValue]
+          case (_,(0L,0L)) => Map.empty[String,Litres]
           case (k,(l,h))   => Map(
-            s"litres${k}UKLower" -> JsNumber(l),
-            s"litres${k}UKHigher" -> JsNumber(h)
+            s"litres${k}UKLower" -> l,
+            s"litres${k}UKHigher" -> h
           )
         }
-      }
+      
 
-      JsObject(Map(
-        "registration" -> JsObject(Map(
-          "organisationType" -> JsString("1"), // TODO!
-          "applicationDate" -> JsString(Date.now.toString),
-          "taxStartDate" -> JsString(s.liabilityDate.toString), 
-          "cin" -> JsString(s.utr),
-          "tradingName" -> JsString(s.orgName),
-          "businessContact" -> JsObject(Map(
-            "addressDetails" -> Json.toJson(s.address),
-            "contactDetails" -> JsObject(Map(
-              "telephone" -> JsString(s.contact.phoneNumber),
-              "email" -> JsString(s.contact.email)
-            ))
-          )),
-          "primaryPersonContact" -> JsObject(Map(
-            "name" -> Json.toJson(s.contact.name),
-            "telephone" -> JsString(s.contact.phoneNumber),
-            "email" -> JsString(s.contact.email),
-            "positionInCompany" -> JsString(s.contact.positionInCompany)
-          )),
-          "details" -> JsObject(Map(
-            "producer" -> JsBoolean{isProducer},
-            "producerDetails" -> JsObject(Map(
-              "produceMillionLitres" ->
-                JsBoolean(isLarge), 
-              "producerClassification" ->
-                JsString(if (isLarge) "1" else "0"),
-              "smallProducerExemption" ->
-                JsBoolean(!isLarge)
-            )),
+      Json.obj(
+        "registration" -> Json.obj(
+          "organisationType" -> "1", // TODO!
+          "applicationDate" -> Date.now.toString, // ???
+          "taxStartDate" -> s.liabilityDate.toString, 
+          "cin" -> s.utr,
+          "tradingName" -> s.orgName,
+          "businessContact" -> Json.obj(
+            "addressDetails" -> s.address,
+            "contactDetails" -> Json.obj(
+              "telephone" -> s.contact.phoneNumber,
+              "email" -> s.contact.email
+            )
+          ),
+          "primaryPersonContact" -> Json.obj(
+            "name" -> s.contact.name,
+            "telephone" -> s.contact.phoneNumber,
+            "email" -> s.contact.email,
+            "positionInCompany" -> s.contact.positionInCompany
+          ),
+          "details" -> Json.obj(
+            "producer" -> isProducer,
+            "producerDetails" -> Json.obj(
+              "produceMillionLitres"   -> isLarge, 
+              "producerClassification" -> {if (isLarge) "1" else "0"},
+              "smallProducerExemption" -> !isLarge
+            ),
             "importer" ->
-              JsBoolean(s.activity.contains(ActivityType.Imported)),
+              s.activity.contains(ActivityType.Imported),
             "contractPacker" ->
-              JsBoolean(s.activity.contains(ActivityType.Copackee))
-          )),
-          "activityQuestions" -> JsObject(activityMap),
+              s.activity.contains(ActivityType.Copackee)
+          ),
+          "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> JsNumber(s.taxEstimatePounds),
-          "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
-        ))
-      ))
+          "taxObligationStartDate" -> Date.now.toString
+        )
+      )
     }
   }
 

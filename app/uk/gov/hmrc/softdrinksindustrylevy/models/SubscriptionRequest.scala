@@ -41,18 +41,22 @@ case class Subscription (
   orgName: String,
   address: Address,
   activity: Activity,
+
+  /**
+    * can be up to 30 days into the future
+    */
   liabilityDate: Date,
   productionSites: List[Site],
   warehouseSites: List[Site],
   contact: Contact
 ) {
   lazy val (lowerLitres,upperLitres) =
-    activity.values.foldLeft((0L,0L)){
+    activity.values.foldLeft((0L,0L)) {
       case ((aL,aH), (pL,pH)) => (aL+pL, aH+pH)
     }
 
-  val lowerRate: Long = 6
-  val upperRate: Long = 8
+  val lowerRate: Long = 18
+  val upperRate: Long = 24
 
   lazy val taxEstimatePence: Long =
     lowerLitres * lowerRate + upperLitres * upperRate
