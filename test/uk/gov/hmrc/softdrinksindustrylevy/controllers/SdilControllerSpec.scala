@@ -27,7 +27,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.CreateSubscriptionResponse
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
 
 import scala.concurrent.Future
@@ -45,7 +45,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid submitDesRequest" in {
-
+      import json.des.create._
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
@@ -58,7 +58,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: BAD_REQUEST and redirect to error page for any other exception" in {
-
+      import json.des.create._
       val result = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
         .withBody(invalidCreateSubscriptionRequest))
 

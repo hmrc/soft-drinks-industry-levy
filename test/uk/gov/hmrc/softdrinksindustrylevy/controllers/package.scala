@@ -29,175 +29,64 @@ package object controllers {
   |}
 """.stripMargin
   )
+
   val validCreateSubscriptionRequest: JsValue = Json.parse(
     """{
-      |    "registration": {
-      |        "organisationType": "1",
-      |        "applicationDate": "1920-02-29",
-      |        "taxStartDate": "1920-02-29",
-      |        "cin": "111111111111111",
-      |        "tradingName": "a",
-      |        "businessContact": {
-      |            "addressDetails": {
-      |                "notUKAddress": false,
-      |                "line1": "Juicey Juices",
-      |                "line2": "Some Street",
-      |                "line3": " ",
-      |                "line4": " ",
-      |                "postCode": "AB012AA",
-      |                "country": "GB"
-      |            },
-      |            "contactDetails": {
-      |                "telephone": "01234567890",
-      |                "mobile": "07890123456",
-      |                "fax": "01234567111",
-      |                "email": "a.b@c.com"
-      |            }
-      |        },
-      |        "correspondenceContact": {
-      |            "addressDetails": {
-      |                "notUKAddress": false,
-      |                "line1": "Juicey Juices",
-      |                "line2": "Someother Street",
-      |                "line3": " ",
-      |                "line4": "Somewhere Else",
-      |                "postCode": "AB012CC",
-      |                "country": "GB"
-      |            },
-      |            "contactDetails": {
-      |                "telephone": " ",
-      |                "mobile": " ",
-      |                "email": "a.b@c.com"
-      |            },
-      |            "differentAddress": true
-      |        },
-      |        "primaryPersonContact": {
-      |            "name": "a",
-      |            "positionInCompany": "a",
-      |            "telephone": "(+44",
-      |            "mobile": "a",
-      |            "email": "a.b@c.com"
-      |        },
-      |        "details": {
-      |            "producer": true,
-      |            "producerDetails": {
-      |                "produceMillionLitres": true,
-      |                "producerClassification": "1",
-      |                "smallProducerExemption": true,
-      |                "useContractPacker": true,
-      |                "voluntarilyRegistered": true
-      |            },
-      |            "importer": true,
-      |            "contractPacker": true
-      |        },
-      |        "activityQuestions": {
-      |            "litresProducedUKHigher": 2,
-      |            "litresProducedUKLower": 2,
-      |            "litresImportedUKHigher": 2,
-      |            "litresImportedUKLower": 2,
-      |            "litresPackagedUKHigher": 2,
-      |            "litresPackagedUKLower": 2
-      |        },
-      |        "estimatedTaxAmount": 0.02,
-      |        "taxObligationStartDate": "1920-02-29"
+      |  "utr" : "7674173564",
+      |  "orgName" : "fgdiukxkTwyrorGj",
+      |  "address" : {
+      |    "postCode" : "ZE13 8JG",
+      |    "lines" : ["137 Crooked S Road", "Lerwick"]
+      |  },
+      |  "activity" : {
+      |    "CopackerAll" : {
+      |      "lower" : 677551,
+      |      "upper" : 491823
       |    },
-      |    "sites": [
-      |        {
-      |            "action": "1",
-      |            "tradingName": "a",
-      |            "newSiteRef": "a",
-      |            "siteAddress": {
-      |                "addressDetails": {
-      |                    "notUKAddress": true,
-      |                    "line1": " ",
-      |                    "line2": " ",
-      |                    "line3": " ",
-      |                    "line4": " ",
-      |                    "postCode": "A00AA",
-      |                    "country": "FR"
-      |                },
-      |                "contactDetails": {
-      |                    "telephone": " ",
-      |                    "mobile": " ",
-      |                    "email": "a.b@c.com"
-      |                }
-      |            },
-      |            "siteType": "2"
-      |        },
-      |        {
-      |            "action": "1",
-      |            "tradingName": "a",
-      |            "newSiteRef": "a",
-      |            "siteAddress": {
-      |                "addressDetails": {
-      |                    "notUKAddress": true,
-      |                    "line1": " ",
-      |                    "line2": " ",
-      |                    "line3": " ",
-      |                    "line4": " ",
-      |                    "postCode": "A00AA",
-      |                    "country": "DE"
-      |                },
-      |                "contactDetails": {
-      |                    "telephone": " ",
-      |                    "mobile": " ",
-      |                    "email": "a.b@c.com"
-      |                }
-      |            },
-      |            "siteType": "2"
-      |        }
-      |    ],
-      |    "entityAction": [
-      |        {
-      |            "action": "1",
-      |            "entityType": "4",
-      |            "organisationType": "1",
-      |            "cin": "a",
-      |            "tradingName": "a",
-      |            "businessContact": {
-      |                "addressDetails": {
-      |                    "notUKAddress": false,
-      |                    "line1": " ",
-      |                    "line2": " ",
-      |                    "line3": " ",
-      |                    "line4": " ",
-      |                    "postCode": "A00AA",
-      |                    "country": "GB"
-      |                },
-      |                "contactDetails": {
-      |                    "telephone": " ",
-      |                    "mobile": " ",
-      |                    "email": "a.b@c.com"
-      |                }
-      |            }
-      |        },
-      |        {
-      |            "action": "1",
-      |            "entityType": "4",
-      |            "organisationType": "1",
-      |            "cin": "a",
-      |            "tradingName": "a",
-      |            "businessContact": {
-      |                "addressDetails": {
-      |                    "notUKAddress": false,
-      |                    "line1": " ",
-      |                    "line2": " ",
-      |                    "line3": " ",
-      |                    "line4": " ",
-      |                    "postCode": "A00AA",
-      |                    "country": "GB"
-      |                },
-      |                "contactDetails": {
-      |                    "telephone": " ",
-      |                    "mobile": " ",
-      |                    "email": "a.b@c.com"
-      |                }
-      |            }
-      |        }
-      |    ]
-      |}""".stripMargin)
+      |    "CopackerSmall" : {
+      |      "lower" : 272828,
+      |      "upper" : 168877
+      |    }
+      |  },
+      |  "liabilityDate" : "1977-07-08",
+      |  "productionSites" : [ {
+      |    "address" : {
+      |      "postCode" : "PL39 9DF",
+      |      "lines" : ["6 Lageonan Road", "Plymouth"]
+      |    },
+      |    "ref" : "46f9cafe-d7bd-49c0-9c46-64ee5505fdb2"
+      |  }, {
+      |    "address" : {
+      |      "postCode" : "DY96 0BX",
+      |      "lines" : ["92 The Commons", "Dudley"]
+      |    },
+      |    "ref" : "d594e118-63ac-49eb-a48e-1a8d9e377533"
+      |  }],
+      |  "warehouseSites" : [ {
+      |    "address" : {
+      |      "postCode" : "EX40 4WB",
+      |      "lines" : ["45 Wine Street", "Exeter"]
+      |    },
+      |    "ref" : "01972ba0-4cd3-4be4-9a97-3c1a727d54a5"
+      |  }, {
+      |    "address" : {
+      |      "postCode" : "WD06 1ZL",
+      |      "lines" : ["65 High Cedar Drive", "Watford"]
+      |    },
+      |    "ref" : "8a9e17f9-6d93-44b2-a2f0-9dab3781f1b6"
+      |  } ],
+      |  "contact" : {
+      |    "name" : "Alexander",
+      |    "positionInCompany" : "Pearson",
+      |    "phoneNumber" : "Yfsdpygfvv",
+      |    "email" : "kmxjmvuhyJcndpkLhcdeqgv@Cxb.co.uk"
+      |  }
+      |}
+      |""".stripMargin)
 
-  val validSubscriptionResponse = CreateSubscriptionResponse(LocalDateTime.parse("2017-11-13T13:48:21.81"), "814892841918")
-
+  val validSubscriptionResponse = CreateSubscriptionResponse(
+    LocalDateTime.parse("2017-11-13T13:48:21.81"),
+    "814892841918"
+  )
 
 }

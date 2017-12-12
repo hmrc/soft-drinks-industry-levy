@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy
+package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import play.api.libs.json._
-
-package object models {
-
-  type Litres = Long
-  type PhoneNo = String
-  type EmailAddress = String
-  type LitreBands = (Litres, Litres)
-  type Activity = Map[ActivityType.Value, LitreBands]
-    
-  implicit def addressToSite(ad: Address): Site = Site(ad)
+trait Address {
+  def lines: List[String]
+  def country: String
 }
+
+case class UkAddress(
+  lines: List[String],
+  postCode: String
+) extends Address {
+  val country = "GB"
+}
+
+case class ForeignAddress(
+  lines: List[String],
+  country: String
+) extends Address 
