@@ -114,11 +114,11 @@ package object get {
         "utr" -> o.utr,
         "subscriptionDetails" -> Json.obj(
           "sdilRegistrationNumber" -> "unknown",
-          "taxObligationStartDate" -> o.liabilityDate.toString, // TODO check date format
-          "taxObligationEndDate" -> o.liabilityDate.toString, // TODO this isn't optional!
+          "taxObligationStartDate" -> o.liabilityDate.toString,
+          "taxObligationEndDate" -> o.liabilityDate.toString, // TODO this isn't optional! work out default
           "tradingName" -> o.orgName,
-          "voluntaryRegistration" -> "true",// TODO fix this
-          "smallProducer" -> (o.activity.isProducer && !o.activity.isLarge), // TODO check this
+          "voluntaryRegistration" -> o.activity.isVoluntaryRegistration,
+          "smallProducer" -> o.activity.isSmallProducer,
           "largeProducer" -> o.activity.isLarge,
           "contractPacker" -> o.activity.isContractPacker,
           "importer" -> o.activity.isImporter,
@@ -152,7 +152,7 @@ package object get {
         )
       }
       def getSites(siteType: String): List[Site] =
-        (json \ "sites") match {
+        json \ "sites" match {
           case JsDefined(JsArray(arr)) => arr.toList.collect {
             case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
           }

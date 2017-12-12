@@ -50,7 +50,7 @@ package object gen {
     h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-  val genActivity: Gen[BetterActivity] = for {
+  val genActivity: Gen[Activity] = for {
     types <- subset(ActivityType)
 
     // TODO: Rewrite this shamefull mess
@@ -60,7 +60,7 @@ package object gen {
     InternalActivity(typeTuples.asScala.toMap)
   }
 
-  val genRetrievedActivity: Gen[BetterActivity] = for {
+  val genRetrievedActivity: Gen[Activity] = for {
     isProducer <- Gen.boolean
     isLarge <- Gen.boolean
     isContractPacker <- Gen.boolean

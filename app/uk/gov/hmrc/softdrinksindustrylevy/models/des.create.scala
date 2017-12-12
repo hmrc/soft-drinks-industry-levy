@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import java.time.{LocalDate => Date}
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
 package object create {
 
@@ -66,44 +67,84 @@ package object create {
   }
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
-    def reads(json: JsValue): JsResult[Subscription] = ???
-    def writes(s: Subscription): JsValue = {
-
-//      def isProducer: Boolean = {
-//        import ActivityType._
-//        List(ProducedOwnBrand, CopackerAll, CopackerSmall).
-//          foldLeft(false){ case (acc, t) =>
-//            acc || s.activity.contains(t)
-//          }
+    def reads(json: JsValue): JsResult[Subscription] = {
+//      def activityType = {
+//
+//        InternalActivity(ActivityType.values.map{ at =>
+//          (json \ at.toString).asOpt[LitreBands].map{at -> _}
+//        }.flatten.toMap)
+//
+//
+////        json \ "activity" match {
+////          case JsDefined(JsArray(arr)) => arr.toList.collect {
+////            case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
+////          }
+////          case _ => List.empty[Site]
+////        }
+////
+////
+////        val smallProducer =(json \ "subscriptionDetails" \ "smallProducer").as[Boolean]
+////        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").as[Boolean]
+////        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
+////        val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
+////        InternalActivity()
 //      }
 
-//      def isLarge: Boolean =
-//        s.upperLitres + s.lowerLitres >= 1000000  // TODO tell Luke Stephen says he's wrong
+      JsSuccess(Subscription(
+        utr = (json \ "utr").as[String],
+        orgName = (json \ "orgName").as[String],
+        address = (json \ "address").as[Address],
+        activity = (json \ "activity").as[Activity],
+        liabilityDate = (json \ "liabilityDate").as[Date],
+        productionSites = (json \ "productionSites").as[List[Site]],
+        warehouseSites = (json \ "warehouseSites").as[List[Site]],
+        contact = (json).as[Contact]
+      ))
+
+    }
+
+
+    def writes(s: Subscription): JsValue = {
 
       def activityMap = {
         import ActivityType._
-        Map(
-          "Produced" -> ((s.lowerLitres, s.upperLitres)),
-          "Imported" -> {
-            s.activity match {
-              case InternalActivity(x) => x.getOrElse(Imported, (0L, 0L))
-              case _ => (0L, 0L)
-            }
-          },
-          "Packaged" -> {
-            s.activity match {
-              case InternalActivity(x) => x.getOrElse(ProducedOwnBrand, (0L, 0L))
-              case _ => (0L, 0L)
-            }
+        s.activity match {
+          case a: InternalActivity => Map(
+            "Produced" -> a.sumOfLiableLitreRates,
+            "Imported" -> a.activity.getOrElse(Imported, (0L, 0L)),
+            "Packaged" -> a.activity.getOrElse(ProducedOwnBrand, (0L, 0L))
+          ).flatMap {
+            case (k, (l, h)) => Map(
+              s"litres${k}UKLower" -> JsNumber(l),
+              s"litres${k}UKHigher" -> JsNumber(h)
+            )
           }
-        ).flatMap {
-          case (_,(0L,0L)) => Map.empty[String,JsValue]
-          case (k,(l,h))   => Map(
-            s"litres${k}UKLower" -> JsNumber(l),
-            s"litres${k}UKHigher" -> JsNumber(h)
-          )
+          case _ => Map.empty[String, JsValue]
         }
       }
+
+//        Map(
+//          "Produced" -> ((s.lowerLitres, s.upperLitres)),
+//          "Imported" -> {
+//            s.activity match {
+//              case InternalActivity(x) => x.getOrElse(Imported, (0L, 0L))
+//              case _ => (0L, 0L)
+//            }
+//          },
+//          "Packaged" -> {
+//            s.activity match {
+//              case InternalActivity(x) => x.getOrElse(ProducedOwnBrand, (0L, 0L))
+//              case _ => (0L, 0L)
+//            }
+//          }
+//        ).flatMap {
+//          case (_,(0L,0L)) => Map.empty[String,JsValue]
+//          case (k,(l,h))   => Map(
+//            s"litres${k}UKLower" -> JsNumber(l),
+//            s"litres${k}UKHigher" -> JsNumber(h)
+//          )
+//        }
+//      }
 
       JsObject(Map(
         "registration" -> JsObject(Map(
@@ -141,7 +182,7 @@ package object create {
               JsBoolean(s.activity.isContractPacker)
           )),
           "activityQuestions" -> JsObject(activityMap), // TODO here...
-          "estimatedTaxAmount" -> JsNumber(s.taxEstimatePounds),
+          "estimatedTaxAmount" -> JsString(s.activity.taxEstimation),
           "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
         ))
       ))

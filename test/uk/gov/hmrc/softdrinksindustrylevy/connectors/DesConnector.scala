@@ -34,8 +34,8 @@ class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
   import json.internal._
 
   test("∀ Activity: parse(toJson(x)) = x") {
-    forAll { r: BetterActivity =>
-      Json.toJson(r).as[BetterActivity] should be (r)
+    forAll { r: Activity =>
+      Json.toJson(r).as[Activity] should be (r)
     }
   }
 

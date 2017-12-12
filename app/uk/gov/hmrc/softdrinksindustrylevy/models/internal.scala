@@ -51,31 +51,43 @@ package object internal {
   implicit val businessContactFormat: OFormat[Contact] = Json.format[Contact]
   implicit val siteFormat: OFormat[Site] = Json.format[Site]
 
-  implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
+//  implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
+//    def reads(json: JsValue): JsResult[Activity] = JsSuccess {
+//      ActivityType.values.map{ at =>
+//        (json \ at.toString).asOpt[LitreBands].map{at -> _}
+//      }.flatten.toMap
+//    }
+//    def writes(address: Activity): JsValue = JsObject(
+//      address.map{ case (t,litreBand) =>
+//        t.toString -> litreBandsFormat.writes(litreBand)
+//      }
+//    )
+//  }
+
+  implicit val betterActivityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-      ActivityType.values.map{ at =>
-        (json \ at.toString).asOpt[LitreBands].map{at -> _}
-      }.flatten.toMap
-    }
-    def writes(address: Activity): JsValue = JsObject(
-      address.map{ case (t,litreBand) =>
-        t.toString -> litreBandsFormat.writes(litreBand)
-      }
-    )
-  }
+          // if json contains internal model..
+            InternalActivity(ActivityType.values.map{ at =>
+               (json \ at.toString).asOpt[LitreBands].map{at -> _}
+            }.flatten.toMap)
 
-  implicit val betterActivityMapFormat: Format[BetterActivity] = new Format[BetterActivity] {
-    def reads(json: JsValue): JsResult[BetterActivity] = JsSuccess {
+          }
 
-      InternalActivity(Map(ActivityType.ProducedOwnBrand ->  ((1L, 1L)))) // TODO figure this out
+//      InternalActivity(Map(ActivityType.ProducedOwnBrand ->  ((1L, 1L)))) // TODO figure this out
 
-    }
-    def writes(activity: BetterActivity): JsValue = JsObject(
+
+    def writes(activity: Activity): JsValue = JsObject(
       activity match {
-        case InternalActivity(a) => a.map{ case (t, lb) =>
+        case InternalActivity(a) => a.map { case (t, lb) =>
           t.toString -> litreBandsFormat.writes(lb)
         }
-          // TODO match the other cases
+        case a:RetrievedActivity => Map(
+          "voluntaryRegistration" -> JsBoolean(a.isVoluntaryRegistration),
+          "smallProducer" -> JsBoolean(a.isSmallProducer),
+          "largeProducer" -> JsBoolean(a.isLarge),
+          "contractPacker" -> JsBoolean(a.isContractPacker),
+          "importer" -> JsBoolean(a.isImporter)
+        )
       }
     )
   }
