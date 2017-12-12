@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
-import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _,_}
 import scala.collection.JavaConverters._
 
 package object gen {
@@ -27,8 +26,8 @@ package object gen {
     Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
 
   val genEmail: Gen[String] = for {
-    prefix <- nonEmptyString.map(_.take(50))
-    domain <- nonEmptyString.map(_.take(50))
+    prefix <- nonEmptyString.map(_.take(10))
+    domain <- nonEmptyString.map(_.take(10))
     tld <- Gen.oneOf("com", "co.uk")
   } yield { s"${prefix}@${domain}.${tld}" }
 
