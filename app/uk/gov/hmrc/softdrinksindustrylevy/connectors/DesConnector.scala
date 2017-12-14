@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import javax.inject.Singleton
 
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -31,10 +32,17 @@ class DesConnector extends ServicesConfig {
   val serviceURL: String = "soft-drinks"
   val http = WSHttp
 
+  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
+    hc.withExtraHeaders(
+      "Environment" -> getConfString("des.environment", "")
+    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
+  }
+
   def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] ={
 
     import json.des.create._
 
-    http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
+    http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)(implicitly, implicitly, addHeaders, implicitly)
   }
+
 }
