@@ -16,18 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import controllers._
+import com.github.fge.jackson.JsonLoader
+import com.github.fge.jsonschema.main._
 import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
-import uk.gov.hmrc.softdrinksindustrylevy.models._
 import play.api.libs.json._
-import com.github.fge.jsonschema.core.report.ProcessingReport
-import com.github.fge.jsonschema.main._
-import com.github.fge.jackson.JsonLoader
-import com.fasterxml.jackson.databind.JsonNode
-import java.time._
-import gen._
+import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen._
 
 class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 

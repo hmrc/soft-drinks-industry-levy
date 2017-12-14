@@ -18,7 +18,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
+<<<<<<< HEAD
 import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _,_}
+=======
+>>>>>>> master
 import scala.collection.JavaConverters._
 
 package object gen {
@@ -27,12 +30,10 @@ package object gen {
     Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
 
   val genEmail: Gen[String] = for {
-    prefix <- nonEmptyString.map(_.take(50))
-    domain <- nonEmptyString.map(_.take(50))
+    prefix <- nonEmptyString.map(_.take(10))
+    domain <- nonEmptyString.map(_.take(10))
     tld <- Gen.oneOf("com", "co.uk")
   } yield { s"${prefix}@${domain}.${tld}" }
-
-  def genAddress = genUkAddress
 
   val genUkAddress: Gen[Address] = Gen.ukAddress.map {
     stubAddr => UkAddress(stubAddr.init, stubAddr.last)
@@ -73,12 +74,13 @@ package object gen {
   } yield s"$fname $sname"
 
   val genContact: Gen[Contact] = for {
-    fullName <- genName
-    positionInCompany <- nonEmptyString // TODO could use sector Gen stuff here.
+    fname <- Gen.forename
+    sname <- Gen.surname
+    positionInCompany <- nonEmptyString
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(Some(fullName), Some(positionInCompany), phoneNumber, email)
+      Contact(s"$fname $sname", positionInCompany, phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
@@ -118,5 +120,11 @@ package object gen {
   }
 
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
+  implicit val arbActivity = Arbitrary(genActivity)
+  implicit val arbAddress = Arbitrary(
+    genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
+  )
+  implicit val arbContact = Arbitrary(genContact)      
+  implicit val arbSubRequest = Arbitrary(genSubscription)  
   
 }
