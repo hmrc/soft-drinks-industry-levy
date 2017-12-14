@@ -31,8 +31,6 @@ package object gen {
     tld <- Gen.oneOf("com", "co.uk")
   } yield { s"${prefix}@${domain}.${tld}" }
 
-  def genAddress = genUkAddress
-
   val genUkAddress: Gen[Address] = Gen.ukAddress.map {
     stubAddr => UkAddress(stubAddr.init, stubAddr.last)
   }
@@ -81,7 +79,9 @@ package object gen {
     productionSites, warehouseSites, contact)
 
   implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(genAddress)
+  implicit val arbAddress = Arbitrary(
+    genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
+  )
   implicit val arbContact = Arbitrary(genContact)      
   implicit val arbSubRequest = Arbitrary(genSubscription)  
   
