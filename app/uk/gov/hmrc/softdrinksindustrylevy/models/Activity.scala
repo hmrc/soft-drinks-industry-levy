@@ -32,7 +32,7 @@ sealed trait Activity {
 
 case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPacker: Boolean, isImporter: Boolean)
   extends Activity {
-  override def taxEstimation = "unknown"
+  override def taxEstimation = "unknown" // lost in translation
 }
 
 case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) extends Activity {

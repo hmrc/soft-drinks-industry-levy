@@ -19,7 +19,11 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import java.time.{LocalDate => Date}
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._ // TODO remove this import and implement missing formatters
+
+
+
+//Reads the DES subscription create JSON to create a Subscription
 
 package object create {
 
@@ -94,7 +98,7 @@ package object create {
         utr = (json \ "utr").as[String],
         orgName = (json \ "orgName").as[String],
         address = (json \ "address").as[Address],
-        activity = (json \ "activity").as[Activity],
+        activity = (json \ "activity").as[Activity], // TODO this is wrong
         liabilityDate = (json \ "liabilityDate").as[Date],
         productionSites = (json \ "productionSites").as[List[Site]],
         warehouseSites = (json \ "warehouseSites").as[List[Site]],
@@ -122,29 +126,6 @@ package object create {
           case _ => Map.empty[String, JsValue]
         }
       }
-
-//        Map(
-//          "Produced" -> ((s.lowerLitres, s.upperLitres)),
-//          "Imported" -> {
-//            s.activity match {
-//              case InternalActivity(x) => x.getOrElse(Imported, (0L, 0L))
-//              case _ => (0L, 0L)
-//            }
-//          },
-//          "Packaged" -> {
-//            s.activity match {
-//              case InternalActivity(x) => x.getOrElse(ProducedOwnBrand, (0L, 0L))
-//              case _ => (0L, 0L)
-//            }
-//          }
-//        ).flatMap {
-//          case (_,(0L,0L)) => Map.empty[String,JsValue]
-//          case (k,(l,h))   => Map(
-//            s"litres${k}UKLower" -> JsNumber(l),
-//            s"litres${k}UKHigher" -> JsNumber(h)
-//          )
-//        }
-//      }
 
       JsObject(Map(
         "registration" -> JsObject(Map(
@@ -182,7 +163,7 @@ package object create {
               JsBoolean(s.activity.isContractPacker)
           )),
           "activityQuestions" -> JsObject(activityMap), // TODO here...
-          "estimatedTaxAmount" -> JsString(s.activity.taxEstimation),
+          "estimatedTaxAmount" -> JsString(s.activity.taxEstimation), // TODO turn this back into a number and exclude if unknown
           "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
         ))
       ))

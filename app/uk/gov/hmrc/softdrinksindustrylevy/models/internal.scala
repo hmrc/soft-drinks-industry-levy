@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
+
 package object internal {
 
   // SDIL create and retrieve subscription formatters
@@ -64,16 +65,14 @@ package object internal {
 //    )
 //  }
 
-  implicit val betterActivityMapFormat: Format[Activity] = new Format[Activity] {
+  implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-          // if json contains internal model..
+          // if json contains internal model.. TODO what to do with other
             InternalActivity(ActivityType.values.map{ at =>
                (json \ at.toString).asOpt[LitreBands].map{at -> _}
             }.flatten.toMap)
 
           }
-
-//      InternalActivity(Map(ActivityType.ProducedOwnBrand ->  ((1L, 1L)))) // TODO figure this out
 
 
     def writes(activity: Activity): JsValue = JsObject(

@@ -22,17 +22,12 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
+
+// Reads the DES retrieve subscription JSON to create a Subscription.
+
 package object get {
 
   implicit val contactFormat: Format[Contact] = new Format[Contact] {
-    override def writes(o: Contact) = {
-      Json.obj(
-        "name" -> o.name,
-        "positionInCompany" -> o.positionInCompany,
-        "telephone" -> o.phoneNumber,
-        "email" -> o.email
-      )
-    }
 
     override def reads(json: JsValue) = {
       JsSuccess(Contact(
@@ -42,9 +37,38 @@ package object get {
         email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
       ))
     }
+
+    override def writes(o: Contact) = {
+      Json.obj(
+        "name" -> o.name,
+        "positionInCompany" -> o.positionInCompany,
+        "telephone" -> o.phoneNumber,
+        "email" -> o.email
+      )
+    }
+
   }
 
   implicit val addressFormat: Format[Address] = new Format[Address] {
+
+    override def reads(json: JsValue): JsResult[Address] = {
+
+      val lines = List(
+        Some((json \ "line1").as[String]),
+        Some((json \ "line2").as[String]),
+        (json \ "line3").asOpt[String],
+        (json \ "line4").asOpt[String]
+      ).flatten
+
+      val country = (json \ "country").asOpt[String].map(_.toUpperCase)
+      val post = (json \ "postCode").asOpt[String]
+      (country, post) match {
+        case (Some("GB") | None, Some(p)) => JsSuccess(UkAddress(lines, p))
+        case (Some(c), _) => JsSuccess(ForeignAddress(lines, c))
+        case (None, None) => JsError("Neither country code nor postcode supplied")
+      }
+
+    }
 
     def writes(address: Address): JsValue = {
 
@@ -66,24 +90,6 @@ package object get {
       )
     }
 
-    override def reads(json: JsValue): JsResult[Address] = {
-
-      val lines = List(
-        Some((json \ "line1").as[String]),
-        Some((json \ "line2").as[String]),
-        (json \ "line3").asOpt[String],
-        (json \ "line4").asOpt[String]
-      ).flatten
-
-      val country = (json \ "country").asOpt[String].map(_.toUpperCase)
-      val post = (json \ "postCode").asOpt[String]
-      (country, post) match {
-        case (Some("GB") | None, Some(p)) => JsSuccess(UkAddress(lines, p))
-        case (Some(c), _) => JsSuccess(ForeignAddress(lines, c))
-        case (None, None) => JsError("Neither country code nor postcode supplied")
-      }
-
-    }
   }
 
   implicit val siteFormat: Format[Site] = (

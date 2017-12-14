@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import javax.inject.Singleton
 
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -27,6 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DesConnector extends ServicesConfig {
+
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
   val http = WSHttp
@@ -37,4 +38,13 @@ class DesConnector extends ServicesConfig {
 
     http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
   }
+
+  def retrieveSubscriptionDetails(idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+
+//    import json.des.get._
+
+//    http.GET[Subscription](s"$desURL/$serviceURL/subscription/$idType/$idNumber")
+    http.GET(s"$desURL/$serviceURL/subscription/$idType/$idNumber")
+  }
+
 }
