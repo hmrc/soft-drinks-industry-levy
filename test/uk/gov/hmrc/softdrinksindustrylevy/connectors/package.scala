@@ -18,10 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
-<<<<<<< HEAD
-import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _,_}
-=======
->>>>>>> master
 import scala.collection.JavaConverters._
 
 package object gen {
@@ -80,7 +76,7 @@ package object gen {
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(s"$fname $sname", positionInCompany, phoneNumber, email)
+      Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
@@ -96,14 +92,10 @@ package object gen {
 
   val genSite: Gen[Site] = for {
     ref <- nonEmptyString
-    address <- genAddress
+    address <- genUkAddress
   } yield Site(address, ref)
 
   implicit val arbSite = Arbitrary(genSite)
-  implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(genAddress)
-  implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)
 
   def genRetrievedSubscription: Gen[Subscription] = {
   for {
@@ -125,6 +117,6 @@ package object gen {
     genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
   )
   implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)  
-  
+//  implicit val arbSubRequest = Arbitrary(genSubscription)
+
 }

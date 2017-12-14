@@ -22,7 +22,6 @@ import java.time.{LocalDate => Date}
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._ // TODO remove this import and implement missing formatters
 
 
-
 //Reads the DES subscription create JSON to create a Subscription
 
 package object create {
@@ -32,67 +31,69 @@ package object create {
     def reads(json: JsValue): JsResult[Address] = {
 
       val lines = List(
-        Some((json \ "line1").as[String]), 
+        Some((json \ "line1").as[String]),
         Some((json \ "line2").as[String]),
-        (json \ "line3").asOpt[String], 
+        (json \ "line3").asOpt[String],
         (json \ "line4").asOpt[String]
       ).flatten
 
       val country = (json \ "country").asOpt[String].map(_.toUpperCase)
-      val nonUk = (json \ "notUKAddress").as[Boolean]      
+      val nonUk = (json \ "notUKAddress").as[Boolean]
       (country, nonUk) match {
         case (Some("GB"), true) => JsError("Country code is GB, but notUKAddress is true")
-        case (Some("GB") | None, false) => JsSuccess(UkAddress( lines, (json \ "postCode").as[String] ))
+        case (Some("GB") | None, false) => JsSuccess(UkAddress(lines, (json \ "postCode").as[String]))
         case (Some(_), false) => JsError("Country code is not GB, but notUKAddress is false")
-        case (None, true) => JsError("notUKAddress is true, but no country is supplied")          
-        case (Some(c), true) => JsSuccess(ForeignAddress( lines, c ))
+        case (None, true) => JsError("notUKAddress is true, but no country is supplied")
+        case (Some(c), true) => JsSuccess(ForeignAddress(lines, c))
       }
     }
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map{ case (v,i) =>
+      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
         s"line${i + 1}" -> JsString(v)
       }
 
       JsObject(
-        { address match {
-          case UkAddress(_, postCode) => List(
-            "notUKAddress" -> JsBoolean(false),
-            "postCode" -> JsString(postCode)              
-          )
-          case ForeignAddress(_, country) => List(
-            "notUKAddress" -> JsBoolean(true),
-            "country" -> JsString(country)
-          )
-        } } ::: jsLines
+        {
+          address match {
+            case UkAddress(_, postCode) => List(
+              "notUKAddress" -> JsBoolean(false),
+              "postCode" -> JsString(postCode)
+            )
+            case ForeignAddress(_, country) => List(
+              "notUKAddress" -> JsBoolean(true),
+              "country" -> JsString(country)
+            )
+          }
+        } ::: jsLines
       )
     }
   }
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
     def reads(json: JsValue): JsResult[Subscription] = {
-//      def activityType = {
-//
-//        InternalActivity(ActivityType.values.map{ at =>
-//          (json \ at.toString).asOpt[LitreBands].map{at -> _}
-//        }.flatten.toMap)
-//
-//
-////        json \ "activity" match {
-////          case JsDefined(JsArray(arr)) => arr.toList.collect {
-////            case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
-////          }
-////          case _ => List.empty[Site]
-////        }
-////
-////
-////        val smallProducer =(json \ "subscriptionDetails" \ "smallProducer").as[Boolean]
-////        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").as[Boolean]
-////        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
-////        val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
-////        InternalActivity()
-//      }
+      //      def activityType = {
+      //
+      //        InternalActivity(ActivityType.values.map{ at =>
+      //          (json \ at.toString).asOpt[LitreBands].map{at -> _}
+      //        }.flatten.toMap)
+      //
+      //
+      ////        json \ "activity" match {
+      ////          case JsDefined(JsArray(arr)) => arr.toList.collect {
+      ////            case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
+      ////          }
+      ////          case _ => List.empty[Site]
+      ////        }
+      ////
+      ////
+      ////        val smallProducer =(json \ "subscriptionDetails" \ "smallProducer").as[Boolean]
+      ////        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").as[Boolean]
+      ////        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
+      ////        val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
+      ////        InternalActivity()
+      //      }
 
       JsSuccess(Subscription(
         utr = (json \ "utr").as[String],
@@ -127,11 +128,31 @@ package object create {
         }
       }
 
+      def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
+        sites map {
+          site =>
+            JsObject(Map(
+              "action" -> JsString("1"),
+              "tradingName" -> JsString(s.orgName),
+              "newSiteRef" -> JsString(site.ref),
+              "siteAddress" -> JsObject(Map(
+                "addressDetails" -> Json.toJson(site.address),
+                "contactDetails" -> JsObject(Map(
+                  "telephone" -> JsString(s.contact.phoneNumber),
+                  "email" -> JsString(s.contact.email)
+                ))
+              )),
+              "siteType" -> JsString(if (isWarehouse) "1" else "2")
+            )
+            )
+        }
+      }
+
       JsObject(Map(
         "registration" -> JsObject(Map(
           "organisationType" -> JsString("1"), // TODO!
           "applicationDate" -> JsString(Date.now.toString),
-          "taxStartDate" -> JsString(s.liabilityDate.toString), 
+          "taxStartDate" -> JsString(s.liabilityDate.toString),
           "cin" -> JsString(s.utr),
           "tradingName" -> JsString(s.orgName),
           "businessContact" -> JsObject(Map(
@@ -148,7 +169,9 @@ package object create {
             "positionInCompany" -> JsString(s.contact.positionInCompany.getOrElse(""))
           )),
           "details" -> JsObject(Map(
-            "producer" -> JsBoolean{s.activity.isProducer},
+            "producer" -> JsBoolean {
+              s.activity.isProducer
+            },
             "producerDetails" -> JsObject(Map(
               "produceMillionLitres" ->
                 JsBoolean(s.activity.isLarge),
@@ -165,12 +188,13 @@ package object create {
           "activityQuestions" -> JsObject(activityMap), // TODO here...
           "estimatedTaxAmount" -> JsString(s.activity.taxEstimation), // TODO turn this back into a number and exclude if unknown
           "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
-        ))
+        )),
+        "sites" -> JsArray(siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false))
       ))
     }
   }
 
   implicit val createSubscriptionResponseFormat: OFormat[CreateSubscriptionResponse] =
     Json.format[CreateSubscriptionResponse]
-    
+
 }
