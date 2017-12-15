@@ -20,7 +20,7 @@ import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbSite, arbAddress, arbSubGet}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbSite, arbSubGet}
 
 class GetConnectorSpec extends FunSuite with PropertyChecks with Matchers {
 

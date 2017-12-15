@@ -99,9 +99,8 @@ package object controllers {
       |		"taxObligationStartDate": "2017-07-29",
       |		"taxObligationEndDate": "2017-10-29",
       |		"tradingName": "a",
-      |		"deregistrationDate": "1920-02-29",
-      |		"voluntaryRegistration": true,
-      |		"smallProducer": true,
+      |		"voluntaryRegistration": false,
+      |		"smallProducer": false,
       |		"largeProducer": true,
       |		"contractPacker": true,
       |		"importer": true,
@@ -137,14 +136,6 @@ package object controllers {
       |		"fax": "09876543211",
       |		"email": "a@bcd.com"
       |	},
-      |	"partners": [
-      |        {
-      |		    "partnerName": "Fab Drinks",
-      |		    "partnerName": "Fantastic Drinks",
-      |		    "partnerName": "Zing Drinks",
-      |		    "partnerName": "Zappo Drinks"
-      |        }
-      |	],
       |	"sites": [
       |		{
       |			"siteReference": "a",
@@ -163,9 +154,6 @@ package object controllers {
       |				"fax": "01234567891",
       |				"email": "a@bcd.com"
       |			},
-      |			"closerDate": "1920-02-29",
-      |			"validFromDate": "1920-02-29",
-      |			"validToDate": "1920-02-29",
       |			"siteType": "1"
       |		},
       |		{
@@ -182,9 +170,6 @@ package object controllers {
       |				"mobile": "07891234567",
       |				"email": "a@bcd.com"
       |			},
-      |			"closerDate": "1920-02-29",
-      |			"validFromDate": "1920-02-29",
-      |			"validToDate": "1920-02-29",
       |			"siteType": "2"
       |		}
       |	]

@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
-import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _,_}
+import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _, _}
 
 import scala.collection.JavaConverters._
 
@@ -45,24 +45,29 @@ package object gen {
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
-    h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    l <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    h <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-//  val genProducerOrCopackee: Gen[Set[ActivityType.Value]] = {
-//    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
-//      act => Gen.sequence(Set(act, ActivityType.CopackerAll, ActivityType.Imported)).map{
-//        x: ActivityType.Value => Gen.const(x).sometimes
-//      }
-//    }
-//  }
+//  Gen.sequence[Seq[Option[Int]],Option[Int]](Seq(Gen.const(1).sometimes,Gen.const(2).sometimes,Gen.const(3).sometimes))
+
+  val genLargeActivityTypeLitreages: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
+    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
+      x: ActivityType.Value =>
+        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](Seq(Gen.const(x).sometimes,
+        Gen.const(ActivityType.Imported).sometimes,
+        Gen.const(ActivityType.CopackerAll).sometimes))
+    }
+  }
+
 
   val genActivity: Gen[Activity] = for {
-    types <- subset(ActivityType)
+//    types <- subset(ActivityType)
+    types <- genLargeActivityTypeLitreages flatMap(s => s map { t => t.flatten})
     // also Copackee and ProducedOwnBrand are mutually exclusive
 
-    // TODO: Rewrite this shamefull mess
-    // indeed... the problem here is that some of the numbers are subtracted and we're going to need them to be smaller
+    // TODO: Rewrite this shamefull mess.. we now need to add in the copackerSmall and subtract it with
+    // gen litres in range 0 - 5000000
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
