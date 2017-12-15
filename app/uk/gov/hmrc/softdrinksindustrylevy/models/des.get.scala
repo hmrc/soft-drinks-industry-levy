@@ -29,7 +29,7 @@ package object get {
 
   implicit val contactFormat: Format[Contact] = new Format[Contact] {
 
-    override def reads(json: JsValue) = {
+    override def reads(json: JsValue): JsSuccess[Contact] = {
       JsSuccess(Contact(
         name = Some((json \ "subscriptionDetails" \ "primaryContactName").as[String]),
         positionInCompany = Some((json \ "subscriptionDetails" \ "primaryPositionInCompany").as[String]),
@@ -38,7 +38,7 @@ package object get {
       ))
     }
 
-    override def writes(o: Contact) = {
+    override def writes(o: Contact): JsObject = {
       Json.obj(
         "name" -> o.name,
         "positionInCompany" -> o.positionInCompany,
@@ -173,7 +173,7 @@ package object get {
         liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
         productionSites = getSites("1"),
         warehouseSites = getSites("2"),
-        contact = (json).as[Contact]
+        contact = json.as[Contact]
       ))
     }
 
