@@ -21,7 +21,7 @@ import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen._
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbActivity, arbContact, arbSubRequest}
 
 class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
 

@@ -20,12 +20,26 @@ import java.time.{LocalDate => Date}
 
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._ // TODO remove this import and implement missing formatters
-
 
 //Reads the DES subscription create JSON to create a Subscription and writes it back
 
 package object create {
+
+  implicit val businessContactFormat = new Format[Contact] {
+    override def writes(contact: Contact): JsValue = Json.obj(
+      "name" -> contact.name,
+      "positionInCompany" -> contact.positionInCompany,
+      "telephone" -> contact.phoneNumber,
+      "email" -> contact.email
+    )
+
+    override def reads(json: JsValue): JsResult[Contact] = JsSuccess(Contact(
+      (json \ "name").asOpt[String],
+      (json \ "positionInCompany").asOpt[String],
+      (json \ "telephone").as[String],
+      (json \ "email").as[String]
+    ))
+  }
 
   // SDIL create and retrieve subscription formatters
   implicit val addressFormat = new Format[Address] {
@@ -74,37 +88,50 @@ package object create {
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
     def reads(json: JsValue): JsResult[Subscription] = {
-      //      def activityType = {
-      //
-      //        InternalActivity(ActivityType.values.map{ at =>
-      //          (json \ at.toString).asOpt[LitreBands].map{at -> _}
-      //        }.flatten.toMap)
-      //
-      //
-      ////        json \ "activity" match {
-      ////          case JsDefined(JsArray(arr)) => arr.toList.collect {
-      ////            case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
-      ////          }
-      ////          case _ => List.empty[Site]
-      ////        }
-      ////
-      ////
-      ////        val smallProducer =(json \ "subscriptionDetails" \ "smallProducer").as[Boolean]
-      ////        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").as[Boolean]
-      ////        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
-      ////        val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
-      ////        InternalActivity()
+
+      val (warehouses, production) = json \ "sites" match {
+        case JsDefined(JsArray(sites)) => sites.partition(site => (site \ "siteType").as[String] == "1")
+        case _ => (Nil, Nil)
+      }
+
+      def sites(siteJson: Seq[JsValue]) = {
+        siteJson map {
+          site => Site(address = (site \ "siteAddress" \ "addressDetails").as[Address], ref = (site \ "newSiteRef").as[String])
+        }
+      }.toList
+
+      val regJson = json \ "registration"
+
+      //      "activityQuestions": {
+      //        "litresProducedUKHigher": -277268,
+      //        "litresProducedUKLower": 447077,
+      //        "litresImportedUKHigher": 0,
+      //        "litresImportedUKLower": 0,
+      //        "litresPackagedUKHigher": 0,
+      //        "litresPackagedUKLower": 633571
       //      }
 
+      def litreReads(activityField: String) = (
+        (regJson \ "activityQuestions" \ s"litres${activityField}UKLower").as[Litres],
+        (regJson \ "activityQuestions" \ s"litres${activityField}UKHigher").as[Litres]
+      )
+
+      def activity = {
+        val produced = ActivityType.ProducedOwnBrand -> litreReads("Produced")
+        val imported = ActivityType.Imported -> litreReads("Imported")
+
+        InternalActivity(Map(produced, imported))
+      }
+
       JsSuccess(Subscription(
-        utr = (json \ "utr").as[String],
-        orgName = (json \ "orgName").as[String],
-        address = (json \ "address").as[Address],
-        activity = (json \ "activity").as[Activity], // TODO this is wrong
-        liabilityDate = (json \ "liabilityDate").as[Date],
-        productionSites = (json \ "productionSites").as[List[Site]],
-        warehouseSites = (json \ "warehouseSites").as[List[Site]],
-        contact = (json).as[Contact]
+        utr = (regJson \ "cin").as[String],
+        orgName = (regJson \ "tradingName").as[String],
+        address = (regJson \ "businessContact" \ "addressDetails").as[Address],
+        activity = activity, // TODO this is wrong
+        liabilityDate = (regJson \ "taxStartDate").as[Date],
+        productionSites = sites(production),
+        warehouseSites = sites(warehouses),
+        contact = (regJson \ "primaryPersonContact").as[Contact]
       ))
 
     }
@@ -132,66 +159,58 @@ package object create {
       def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
         sites map {
           site =>
-            JsObject(Map(
-              "action" -> JsString("1"),
-              "tradingName" -> JsString(s.orgName),
-              "newSiteRef" -> JsString(site.ref),
-              "siteAddress" -> JsObject(Map(
-                "addressDetails" -> Json.toJson(site.address),
-                "contactDetails" -> JsObject(Map(
-                  "telephone" -> JsString(s.contact.phoneNumber),
-                  "email" -> JsString(s.contact.email)
-                ))
-              )),
-              "siteType" -> JsString(if (isWarehouse) "1" else "2")
-            )
+            Json.obj(
+              "action" -> "1",
+              "tradingName" -> s.orgName,
+              "newSiteRef" -> site.ref,
+              "siteAddress" -> Json.obj(
+                "addressDetails" -> site.address,
+                "contactDetails" -> Json.obj(
+                  "telephone" -> s.contact.phoneNumber,
+                  "email" -> s.contact.email
+                )
+              ),
+              "siteType" -> (if (isWarehouse) "1" else "2")
             )
         }
       }
 
-      JsObject(Map(
-        "registration" -> JsObject(Map(
-          "organisationType" -> JsString("1"), // TODO!
-          "applicationDate" -> JsString(Date.now.toString),
-          "taxStartDate" -> JsString(s.liabilityDate.toString),
-          "cin" -> JsString(s.utr),
-          "tradingName" -> JsString(s.orgName),
-          "businessContact" -> JsObject(Map(
-            "addressDetails" -> Json.toJson(s.address),
-            "contactDetails" -> JsObject(Map(
-              "telephone" -> JsString(s.contact.phoneNumber),
-              "email" -> JsString(s.contact.email)
-            ))
-          )),
-          "primaryPersonContact" -> JsObject(Map(
-            "name" -> Json.toJson(s.contact.name),
-            "telephone" -> JsString(s.contact.phoneNumber),
-            "email" -> JsString(s.contact.email),
-            "positionInCompany" -> JsString(s.contact.positionInCompany.getOrElse(""))
-          )),
-          "details" -> JsObject(Map(
-            "producer" -> JsBoolean {
-              s.activity.isProducer
-            },
-            "producerDetails" -> JsObject(Map(
-              "produceMillionLitres" ->
-                JsBoolean(s.activity.isLarge),
-              "producerClassification" ->
-                JsString(if (s.activity.isLarge) "1" else "0"),
-              "smallProducerExemption" ->
-                JsBoolean(!s.activity.isLarge)
-            )),
-            "importer" ->
-              JsBoolean(s.activity.isImporter),
-            "contractPacker" ->
-              JsBoolean(s.activity.isContractPacker)
-          )),
-          "activityQuestions" -> JsObject(activityMap), // TODO here...
-          "estimatedTaxAmount" -> JsNumber(s.activity.taxEstimation),
-          "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
-        )),
-        "sites" -> JsArray(siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false))
-      ))
+      Json.obj(
+        "registration" -> Json.obj(
+          "organisationType" -> "1", // TODO!
+          "applicationDate" -> Date.now.toString,
+          "taxStartDate" -> s.liabilityDate.toString,
+          "cin" -> s.utr,
+          "tradingName" -> s.orgName,
+          "businessContact" -> Json.obj(
+            "addressDetails" -> s.address,
+            "contactDetails" -> Json.obj(
+              "telephone" -> s.contact.phoneNumber,
+              "email" -> s.contact.email
+            )
+          ),
+          "primaryPersonContact" -> Json.obj(
+            "name" -> s.contact.name,
+            "telephone" -> s.contact.phoneNumber,
+            "email" -> s.contact.email,
+            "positionInCompany" -> s.contact.positionInCompany
+          ),
+          "details" -> Json.obj(
+            "producer" -> s.activity.isProducer,
+            "producerDetails" -> Json.obj(
+              "produceMillionLitres" -> s.activity.isLarge,
+              "producerClassification" -> (if (s.activity.isLarge) "1" else "0"),
+              "smallProducerExemption" -> !s.activity.isLarge
+            ),
+            "importer" -> s.activity.isImporter,
+            "contractPacker" -> s.activity.isContractPacker
+          ),
+          "activityQuestions" -> activityMap, // TODO here...
+          "estimatedTaxAmount" -> s.activity.taxEstimation,
+          "taxObligationStartDate" -> s.liabilityDate.toString
+        ),
+        "sites" -> (siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false))
+      )
     }
   }
 

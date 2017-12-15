@@ -25,8 +25,8 @@ sealed trait Activity {
   def isLarge: Boolean
   def isContractPacker: Boolean
   def isImporter: Boolean
-  def isVoluntaryRegistration: Boolean = isProducer && !isLarge && !isImporter && !isContractPacker // TODO check logic
-  def isSmallProducer: Boolean = isProducer && !isLarge // TODO check logic
+  def isVoluntaryRegistration: Boolean = isProducer && !isLarge && !isImporter && !isContractPacker
+  def isSmallProducer: Boolean = isProducer && !isLarge
   def taxEstimation: BigDecimal
 }
 
@@ -39,11 +39,11 @@ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPa
 case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) extends Activity {
   import ActivityType._
 
-  val lowerRate: Long = 6
-  val upperRate: Long = 8
+  val lowerRate: Long = 18
+  val upperRate: Long = 24
 
   val add: (Litres, Litres) = activity
-    .filter(x => List(ProducedOwnBrand,Copackee).contains(x._1)) // TODO check logic
+    .filter(x => List(ProducedOwnBrand,CopackerAll,Imported).contains(x._1))
     .values.foldLeft((0L,0L)){
       case ((aL,aH), (pL,pH)) => (aL+pL, aH+pH)
     }

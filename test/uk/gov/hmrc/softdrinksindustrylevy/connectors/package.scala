@@ -18,9 +18,12 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
+
 import scala.collection.JavaConverters._
 
 package object gen {
+
+  implicit def addressToSite(ad: Address): Site = Site(ad, "FOO")
 
   private val nonEmptyString =
     Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
@@ -47,10 +50,20 @@ package object gen {
     h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
+//  val genProducerOrCopackee: Gen[Set[ActivityType.Value]] = {
+//    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
+//      act => Gen.sequence(Set(act, ActivityType.CopackerAll, ActivityType.Imported)).map{
+//        x: ActivityType.Value => Gen.const(x).sometimes
+//      }
+//    }
+//  }
+
   val genActivity: Gen[Activity] = for {
     types <- subset(ActivityType)
+    // also Copackee and ProducedOwnBrand are mutually exclusive
 
     // TODO: Rewrite this shamefull mess
+    // indeed... the problem here is that some of the numbers are subtracted and we're going to need them to be smaller
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
@@ -91,11 +104,9 @@ package object gen {
     productionSites, warehouseSites, contact)
 
   val genSite: Gen[Site] = for {
-    ref <- nonEmptyString
+    ref <- Gen.oneOf("a", "b")
     address <- genUkAddress
   } yield Site(address, ref)
-
-  implicit val arbSite = Arbitrary(genSite)
 
   def genRetrievedSubscription: Gen[Subscription] = {
   for {
@@ -116,7 +127,8 @@ package object gen {
   implicit val arbAddress = Arbitrary(
     genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
   )
-  implicit val arbContact = Arbitrary(genContact)      
-//  implicit val arbSubRequest = Arbitrary(genSubscription)
+  implicit val arbContact = Arbitrary(genContact)
+  implicit val arbSite = Arbitrary(genSite)
+  implicit val arbSubRequest = Arbitrary(genSubscription)
 
 }

@@ -20,7 +20,7 @@ import java.time.{LocalDateTime, LocalDate => Date}
 
 case class Site(
   address: Address,
-  ref: String = java.util.UUID.randomUUID.toString
+  ref: String
 ) 
 
 case class Contact(

@@ -23,5 +23,4 @@ package object models {
   type EmailAddress = String
   type LitreBands = (Litres, Litres)
 
-  implicit def addressToSite(ad: Address): Site = Site(ad)
 }
