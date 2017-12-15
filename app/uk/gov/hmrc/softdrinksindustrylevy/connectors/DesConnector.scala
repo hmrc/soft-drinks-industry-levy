@@ -47,10 +47,6 @@ class DesConnector extends ServicesConfig {
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-
-//    import json.des.get._
-
-//    http.GET[Subscription](s"$desURL/$serviceURL/subscription/$idType/$idNumber")
-    http.GET(s"$desURL/$serviceURL/subscription/$idType/$idNumber")
+    http.GET[HttpResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber")(implicitly, addHeaders, ec)
   }
 }

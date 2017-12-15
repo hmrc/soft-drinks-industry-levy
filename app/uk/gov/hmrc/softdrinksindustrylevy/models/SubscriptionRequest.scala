@@ -40,24 +40,6 @@ case class Subscription (
                           warehouseSites: List[Site],
                           contact: Contact
 )
-//{
-//
-//  lazy val (lowerLitres,upperLitres) =
-//    activity match {
-//      case a:InternalActivity => a.sumOfLiableLitreRates
-//      case _ => (0L, 0L)
-//    }
-//
-//  val lowerRate: Long = 6
-//  val upperRate: Long = 8
-//
-//  lazy val taxEstimatePence: Long =
-//    lowerLitres * lowerRate + upperLitres * upperRate
-//
-//  lazy val taxEstimatePounds: BigDecimal =
-//    BigDecimal(taxEstimatePence.toString) / 100
-//
-//}
 
 /* Probably overkill */
 case class CreateSubscriptionResponse(

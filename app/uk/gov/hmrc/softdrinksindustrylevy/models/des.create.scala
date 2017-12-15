@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
+import java.time.{LocalDate => Date}
+
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import java.time.{LocalDate => Date}
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._ // TODO remove this import and implement missing formatters
 
 
-//Reads the DES subscription create JSON to create a Subscription
+//Reads the DES subscription create JSON to create a Subscription and writes it back
 
 package object create {
 
@@ -186,7 +187,7 @@ package object create {
               JsBoolean(s.activity.isContractPacker)
           )),
           "activityQuestions" -> JsObject(activityMap), // TODO here...
-          "estimatedTaxAmount" -> JsString(s.activity.taxEstimation), // TODO turn this back into a number and exclude if unknown
+          "estimatedTaxAmount" -> JsNumber(s.activity.taxEstimation),
           "taxObligationStartDate" -> JsString(s.liabilityDate.toString)
         )),
         "sites" -> JsArray(siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false))
