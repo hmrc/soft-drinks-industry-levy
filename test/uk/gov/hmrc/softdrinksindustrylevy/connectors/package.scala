@@ -18,10 +18,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
-<<<<<<< HEAD
 import uk.gov.hmrc.smartstub.AutoGen.{providerStringNamed => _,_}
-=======
->>>>>>> master
+
 import scala.collection.JavaConverters._
 
 package object gen {
@@ -51,10 +49,20 @@ package object gen {
     h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
+//  val genProducerOrCopackee: Gen[Set[ActivityType.Value]] = {
+//    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
+//      act => Gen.sequence(Set(act, ActivityType.CopackerAll, ActivityType.Imported)).map{
+//        x: ActivityType.Value => Gen.const(x).sometimes
+//      }
+//    }
+//  }
+
   val genActivity: Gen[Activity] = for {
     types <- subset(ActivityType)
+    // also Copackee and ProducedOwnBrand are mutually exclusive
 
     // TODO: Rewrite this shamefull mess
+    // indeed... the problem here is that some of the numbers are subtracted and we're going to need them to be smaller
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
@@ -80,7 +88,7 @@ package object gen {
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(s"$fname $sname", positionInCompany, phoneNumber, email)
+      Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
@@ -96,14 +104,8 @@ package object gen {
 
   val genSite: Gen[Site] = for {
     ref <- nonEmptyString
-    address <- genAddress
+    address <- genUkAddress
   } yield Site(address, ref)
-
-  implicit val arbSite = Arbitrary(genSite)
-  implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(genAddress)
-  implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)
 
   def genRetrievedSubscription: Gen[Subscription] = {
   for {
@@ -124,7 +126,8 @@ package object gen {
   implicit val arbAddress = Arbitrary(
     genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
   )
-  implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)  
-  
+  implicit val arbContact = Arbitrary(genContact)
+  implicit val arbSubRequest = Arbitrary(genSubscription)
+  implicit val arbSite = Arbitrary(genSite)
+
 }

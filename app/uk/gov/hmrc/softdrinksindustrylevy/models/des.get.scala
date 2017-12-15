@@ -121,7 +121,7 @@ package object get {
         "subscriptionDetails" -> Json.obj(
           "sdilRegistrationNumber" -> "unknown",
           "taxObligationStartDate" -> o.liabilityDate.toString,
-          "taxObligationEndDate" -> o.liabilityDate.toString, // TODO this isn't optional! work out default
+          "taxObligationEndDate" -> o.liabilityDate.plusYears(1).toString,
           "tradingName" -> o.orgName,
           "voluntaryRegistration" -> o.activity.isVoluntaryRegistration,
           "smallProducer" -> o.activity.isSmallProducer,
@@ -151,7 +151,7 @@ package object get {
         val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
         val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
         RetrievedActivity(
-          isProducer = smallProducer || largeProducer, // TODO check this logic
+          isProducer = smallProducer || largeProducer,
           isLarge = largeProducer,
           isContractPacker = contractPacker,
           isImporter = importer
