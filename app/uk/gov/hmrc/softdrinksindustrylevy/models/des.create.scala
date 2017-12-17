@@ -114,9 +114,9 @@ package object create {
         import ActivityType._
         s.activity match {
           case a: InternalActivity => Map(
-            "Produced" -> a.sumOfLiableLitreRates,
+            "Produced" -> a.activity.getOrElse(ProducedOwnBrand, (0L,0L)), // TODO check logic
             "Imported" -> a.activity.getOrElse(Imported, (0L, 0L)),
-            "Packaged" -> a.activity.getOrElse(ProducedOwnBrand, (0L, 0L))
+            "Packaged" -> a.activity.getOrElse(CopackerAll, (0L, 0L)) // TODO check logic
           ).flatMap {
             case (k, (l, h)) => Map(
               s"litres${k}UKLower" -> JsNumber(l),

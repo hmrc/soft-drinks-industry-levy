@@ -49,25 +49,19 @@ package object gen {
     h <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-//  Gen.sequence[Seq[Option[Int]],Option[Int]](Seq(Gen.const(1).sometimes,Gen.const(2).sometimes,Gen.const(3).sometimes))
-
-  val genLargeActivityTypeLitreages: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
+  val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
       x: ActivityType.Value =>
-        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](Seq(Gen.const(x).sometimes,
-        Gen.const(ActivityType.Imported).sometimes,
-        Gen.const(ActivityType.CopackerAll).sometimes))
+        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](
+          Seq(Gen.const(x).sometimes,
+              Gen.const(ActivityType.Imported).sometimes,
+              Gen.const(ActivityType.CopackerAll).sometimes)
+        )
     }
   }
 
-
   val genActivity: Gen[Activity] = for {
-//    types <- subset(ActivityType)
-    types <- genLargeActivityTypeLitreages flatMap(s => s map { t => t.flatten})
-    // also Copackee and ProducedOwnBrand are mutually exclusive
-
-    // TODO: Rewrite this shamefull mess.. we now need to add in the copackerSmall and subtract it with
-    // gen litres in range 0 - 5000000
+    types <- genActivityTypes flatMap(s => s map { t => t.flatten})
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
