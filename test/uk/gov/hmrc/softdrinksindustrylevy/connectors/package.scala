@@ -74,12 +74,19 @@ package object gen {
     InternalActivity(typeTuples.asScala.toMap)
   }
 
-  val genRetrievedActivity: Gen[Activity] = for {
-    isProducer <- Gen.boolean
-    isLarge <- Gen.boolean
-    isContractPacker <- Gen.boolean
-    isImporter <- Gen.boolean
-  } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
+  def genIsProducer(isLarge: Boolean) = {
+    Gen.boolean map {
+      y => y || isLarge
+    }
+  }
+
+  val genRetrievedActivity: Gen[Activity] =
+    for {
+      isLarge <- Gen.boolean
+      isProducer <- genIsProducer(isLarge)
+      isContractPacker <- Gen.boolean
+      isImporter <- Gen.boolean
+    } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
 
   val genName: Gen[String] = for {
     fname <- Gen.forename
