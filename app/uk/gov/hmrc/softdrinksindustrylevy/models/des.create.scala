@@ -154,7 +154,7 @@ package object create {
             Json.obj(
               "action" -> "1",
               "tradingName" -> s.orgName,
-              "newSiteRef" -> site.ref.getOrElse[String](s"${idx + offset}"),
+              "newSiteRef" -> JsString(site.ref.getOrElse(s"${idx + offset}")),
               "siteAddress" -> Json.obj(
                 "addressDetails" -> site.address,
                 "contactDetails" -> Json.obj(
@@ -169,7 +169,7 @@ package object create {
 
       Json.obj(
         "registration" -> Json.obj(
-          "organisationType" -> "1", // TODO!
+          "organisationType" -> JsString(s.orgType.getOrElse("1")),
           "applicationDate" -> Date.now.toString,
           "taxStartDate" -> s.liabilityDate.toString,
           "cin" -> s.utr,
