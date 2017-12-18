@@ -33,7 +33,7 @@ case class Contact(
 case class Subscription (
                           utr: String,
                           orgName: String,
-                          orgType: Option[Int],
+                          orgType: Option[String],
                           address: Address,
                           activity: Activity,
                           liabilityDate: Date,

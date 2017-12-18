@@ -109,7 +109,7 @@ package object gen {
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
     orgName <- nonEmptyString
-    orgType <- Gen.oneOf(1 to 5)
+    orgType <- Gen.oneOf(1 to 5).map(_.toString)
     address <- genUkAddress
     activity <- genActivity
     liabilityDate <- Gen.date

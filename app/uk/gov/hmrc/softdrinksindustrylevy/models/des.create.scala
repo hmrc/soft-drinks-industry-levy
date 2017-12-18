@@ -117,7 +117,7 @@ package object create {
       JsSuccess(Subscription(
         utr = (regJson \ "cin").as[String],
         orgName = (regJson \ "tradingName").as[String],
-        orgType = (regJson \ "organisationType").asOpt[Int],
+        orgType = (regJson \ "organisationType").asOpt[String],
         address = (regJson \ "businessContact" \ "addressDetails").as[Address],
         activity = activity, // TODO this is wrong
         liabilityDate = (regJson \ "taxStartDate").as[Date],
