@@ -18,53 +18,28 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.{LocalDateTime, LocalDate => Date}
 
-import play.api.libs.json.Format
-
 case class Site(
   address: Address,
-  ref: String = java.util.UUID.randomUUID.toString
+  ref: String
 ) 
 
-object ActivityType extends Enumeration {
-  val ProducedOwnBrand, Imported, CopackerAll, CopackerSmall, Copackee = Value
-}
-
 case class Contact(
-  name: String,
-  positionInCompany: String, // could be made optional
+  name: Option[String],
+  positionInCompany: Option[String],
   phoneNumber: String,
   email: String
 )
 
 case class Subscription (
-  utr: String,
-  orgName: String,
-  address: Address,
-  activity: Activity,
-
-  /**
-    * can be up to 30 days into the future
-    */
-  liabilityDate: Date,
-  productionSites: List[Site],
-  warehouseSites: List[Site],
-  contact: Contact
-) {
-  lazy val (lowerLitres,upperLitres) =
-    activity.values.foldLeft((0L,0L)) {
-      case ((aL,aH), (pL,pH)) => (aL+pL, aH+pH)
-    }
-
-  val lowerRate: Long = 18
-  val upperRate: Long = 24
-
-  lazy val taxEstimatePence: Long =
-    lowerLitres * lowerRate + upperLitres * upperRate
-
-  lazy val taxEstimatePounds: BigDecimal =
-    BigDecimal(taxEstimatePence.toString) / 100
-  
-}
+                          utr: String,
+                          orgName: String,
+                          address: Address,
+                          activity: Activity,
+                          liabilityDate: Date,
+                          productionSites: List[Site],
+                          warehouseSites: List[Site],
+                          contact: Contact
+)
 
 /* Probably overkill */
 case class CreateSubscriptionResponse(

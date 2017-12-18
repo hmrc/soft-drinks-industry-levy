@@ -16,15 +16,11 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy
 
-import play.api.libs.json._
-
 package object models {
 
   type Litres = Long
   type PhoneNo = String
   type EmailAddress = String
   type LitreBands = (Litres, Litres)
-  type Activity = Map[ActivityType.Value, LitreBands]
-    
-  implicit def addressToSite(ad: Address): Site = Site(ad)
+
 }

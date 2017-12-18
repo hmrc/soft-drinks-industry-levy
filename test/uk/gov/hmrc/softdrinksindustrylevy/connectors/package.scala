@@ -18,9 +18,12 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
+
 import scala.collection.JavaConverters._
 
 package object gen {
+
+  implicit def addressToSite(ad: Address): Site = Site(ad, "FOO")
 
   private val nonEmptyString =
     Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
@@ -33,7 +36,7 @@ package object gen {
 
   val genUkAddress: Gen[Address] = Gen.ukAddress.map {
     stubAddr => UkAddress(stubAddr.init, stubAddr.last)
-  }
+  }.retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
 
   // could be part of scalacheck?
   def subset[A <: Enumeration](a: A): Gen[Set[A#Value]] = {
@@ -43,19 +46,47 @@ package object gen {
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
-    h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    l <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    h <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-  val genActivity: Gen[Activity] = for {
-    types <- subset(ActivityType)
+  val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
+    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
+      x: ActivityType.Value =>
+        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](
+          Seq(Gen.const(x).sometimes,
+              Gen.const(ActivityType.Imported).sometimes,
+              Gen.const(ActivityType.CopackerAll).sometimes)
+        )
+    }
+  }
 
-    // TODO: Rewrite this shamefull mess
+  val genActivity: Gen[Activity] = for {
+    types <- genActivityTypes flatMap(s => s map { t => t.flatten})
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
-    typeTuples.asScala.toMap
+    InternalActivity(typeTuples.asScala.toMap)
   }
+
+  def genIsProducer(isLarge: Boolean) = {
+    Gen.boolean map {
+      y => y || isLarge
+    }
+  }
+
+  val genRetrievedActivity: Gen[Activity] =
+    for {
+      isLarge <- Gen.boolean
+      isProducer <- genIsProducer(isLarge)
+      isContractPacker <- Gen.boolean
+      isImporter <- Gen.boolean
+    } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
+
+  val genName: Gen[String] = for {
+    fname <- Gen.forename
+    sname <- Gen.surname
+  } yield s"$fname $sname"
 
   val genContact: Gen[Contact] = for {
     fname <- Gen.forename
@@ -64,7 +95,7 @@ package object gen {
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(s"$fname $sname", positionInCompany, phoneNumber, email)
+      Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
@@ -78,11 +109,30 @@ package object gen {
   } yield Subscription(utr, orgName, address, activity, liabilityDate,
     productionSites, warehouseSites, contact)
 
+  val genSite: Gen[Site] = for {
+    ref <- Gen.oneOf("a", "b")
+    address <- genUkAddress
+  } yield Site(address, ref)
+
+  def genRetrievedSubscription: Gen[Subscription] = {
+  for {
+    utr <- Enumerable.instances.utrEnum.gen
+    orgName <- nonEmptyString
+    address <- genUkAddress
+    activity <- genRetrievedActivity
+    liabilityDate <- Gen.date
+    productionSites <- Gen.listOf(genUkAddress map addressToSite)
+    warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
+    contact <- genContact
+  } yield Subscription(utr, orgName, address, activity, liabilityDate,
+    productionSites, warehouseSites, contact)
+  }
+
+  implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(
-    genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
-  )
-  implicit val arbContact = Arbitrary(genContact)      
-  implicit val arbSubRequest = Arbitrary(genSubscription)  
-  
+  implicit val arbAddress = Arbitrary(genUkAddress)
+  implicit val arbContact = Arbitrary(genContact)
+  implicit val arbSite = Arbitrary(genSite)
+  implicit val arbSubRequest = Arbitrary(genSubscription)
+
 }

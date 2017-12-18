@@ -39,4 +39,15 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 			}
 		)
 	}
+
+	def retrieveSubscripionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
+		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+			response => {
+        response match {
+          case r if r.status == 200 => Ok(Json.parse(""" {"known" : "you are subscribed"} """))
+          case _ => Ok(Json.parse(""" {"unknown" : "you are not subscribed"} """))
+        }
+      }
+		}
+	}
 }

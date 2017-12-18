@@ -19,8 +19,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
+
 package object internal {
 
+  // SDIL create and retrieve subscription formatters
   implicit val addressFormat = new Format[Address] {
     lazy val ukAddressFormat = Json.format[UkAddress]
     lazy val foreignAddressFormat = Json.format[ForeignAddress]
@@ -52,13 +54,24 @@ package object internal {
 
   implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-      ActivityType.values.map{ at =>
-        (json \ at.toString).asOpt[LitreBands].map{at -> _}
-      }.flatten.toMap
-    }
-    def writes(address: Activity): JsValue = JsObject(
-      address.map{ case (t,litreBand) =>
-        t.toString -> litreBandsFormat.writes(litreBand)
+            InternalActivity(ActivityType.values.map{ at =>
+               (json \ at.toString).asOpt[LitreBands].map{at -> _}
+            }.flatten.toMap)
+          }
+
+
+    def writes(activity: Activity): JsValue = JsObject(
+      activity match {
+        case InternalActivity(a) => a.map { case (t, lb) =>
+          t.toString -> litreBandsFormat.writes(lb)
+        }
+        case a:RetrievedActivity => Map(
+          "voluntaryRegistration" -> JsBoolean(a.isVoluntaryRegistration),
+          "smallProducer" -> JsBoolean(a.isSmallProducer),
+          "largeProducer" -> JsBoolean(a.isLarge),
+          "contractPacker" -> JsBoolean(a.isContractPacker),
+          "importer" -> JsBoolean(a.isImporter)
+        )
       }
     )
   }

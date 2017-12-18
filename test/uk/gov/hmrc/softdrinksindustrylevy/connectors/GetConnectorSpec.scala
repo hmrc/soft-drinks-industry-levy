@@ -16,34 +16,27 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbActivity, arbContact, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbSite, arbSubGet}
 
-class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+class GetConnectorSpec extends FunSuite with PropertyChecks with Matchers {
 
-  import json.internal._
+  import json.des.get._
 
-  test("∀ Activity: parse(toJson(x)) = x") {
-    forAll { r: Activity =>
-      Json.toJson(r).as[Activity] should be (r)
+  test("∀ Site: parse(toJson(x)) = x") {
+    forAll { r: Site =>
+      Json.toJson(r).as[Site] should be (r)
     }
   }
 
-  test("∀ UkAddress: parse(toJson(x)) = x") {
+  test("∀ Address: parse(toJson(x)) = x") {
     forAll { r: Address =>
       Json.toJson(r).as[Address] should be (r)
     }
   }
-
-  test("∀ Contact: parse(toJson(x)) = x") {
-    forAll { r: Contact =>
-      Json.toJson(r).as[Contact] should be (r)
-    }
-  }  
 
   test("∀ Subscription: parse(toJson(x)) = x") {
     forAll { r: Subscription =>
