@@ -116,6 +116,22 @@ package object get {
         }
       }
 
+      def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
+        sites map {
+          site =>
+            Json.obj(
+              "tradingName" -> o.orgName,
+              "siteReference" -> site.ref,
+              "siteAddress" -> site.address,
+              "siteContact" -> Json.obj(
+                  "telephone" -> o.contact.phoneNumber,
+                  "email" -> o.contact.email
+                ),
+              "siteType" -> (if (isWarehouse) "1" else "2"))
+
+        }
+      }
+
       Json.obj(
         "utr" -> o.utr,
         "subscriptionDetails" -> Json.obj(
@@ -138,8 +154,7 @@ package object get {
           "telephone" -> o.contact.phoneNumber,
           "email" -> o.contact.email
         ),
-        "productionSites" -> writeSites(1),
-        "warehouseSites" -> writeSites(2)
+        "sites" -> (siteList(o.warehouseSites, true) ++ siteList(o.productionSites, false))
 
       )
     }
@@ -171,8 +186,8 @@ package object get {
         address = (json \ "businessAddress").as[Address],
         activity = activityType,
         liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
-        productionSites = getSites("1"),
-        warehouseSites = getSites("2"),
+        productionSites = getSites("2"),
+        warehouseSites = getSites("1"),
         contact = json.as[Contact]
       ))
     }

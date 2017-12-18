@@ -46,36 +46,42 @@ package object gen {
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
-    h <- Gen.choose(0, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    l <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
+    h <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
   } yield ( (l,h) )
 
-//  val genProducerOrCopackee: Gen[Set[ActivityType.Value]] = {
-//    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
-//      act => Gen.sequence(Set(act, ActivityType.CopackerAll, ActivityType.Imported)).map{
-//        x: ActivityType.Value => Gen.const(x).sometimes
-//      }
-//    }
-//  }
+  val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
+    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
+      x: ActivityType.Value =>
+        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](
+          Seq(Gen.const(x).sometimes,
+              Gen.const(ActivityType.Imported).sometimes,
+              Gen.const(ActivityType.CopackerAll).sometimes)
+        )
+    }
+  }
 
   val genActivity: Gen[Activity] = for {
-    types <- subset(ActivityType)
-    // also Copackee and ProducedOwnBrand are mutually exclusive
-
-    // TODO: Rewrite this shamefull mess
-    // indeed... the problem here is that some of the numbers are subtracted and we're going to need them to be smaller
+    types <- genActivityTypes flatMap(s => s map { t => t.flatten})
     typeTuples <- Gen.sequence(types.map{
       typeL => genLitreBands.flatMap{ typeL -> _ } })
   } yield {
     InternalActivity(typeTuples.asScala.toMap)
   }
 
-  val genRetrievedActivity: Gen[Activity] = for {
-    isProducer <- Gen.boolean
-    isLarge <- Gen.boolean
-    isContractPacker <- Gen.boolean
-    isImporter <- Gen.boolean
-  } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
+  def genIsProducer(isLarge: Boolean) = {
+    Gen.boolean map {
+      y => y || isLarge
+    }
+  }
+
+  val genRetrievedActivity: Gen[Activity] =
+    for {
+      isLarge <- Gen.boolean
+      isProducer <- genIsProducer(isLarge)
+      isContractPacker <- Gen.boolean
+      isImporter <- Gen.boolean
+    } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
 
   val genName: Gen[String] = for {
     fname <- Gen.forename

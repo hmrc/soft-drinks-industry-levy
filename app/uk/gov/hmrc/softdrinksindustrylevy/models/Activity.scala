@@ -66,7 +66,7 @@ case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) exte
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
   override def taxEstimation: BigDecimal = {
-    BigDecimal(sumOfLiableLitreRates._1 * upperRate + sumOfLiableLitreRates._2 * lowerRate) / 100
+    BigDecimal(Math.max(sumOfLiableLitreRates._1 * upperRate + sumOfLiableLitreRates._2 * lowerRate / 100, 0))
   }
 }
 
