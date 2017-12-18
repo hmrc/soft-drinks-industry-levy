@@ -20,8 +20,8 @@ import java.time.{LocalDateTime, LocalDate => Date}
 
 case class Site(
   address: Address,
-  ref: String
-) 
+  ref: Option[String]
+)
 
 case class Contact(
   name: Option[String],
@@ -33,6 +33,7 @@ case class Contact(
 case class Subscription (
                           utr: String,
                           orgName: String,
+                          orgType: Option[Int],
                           address: Address,
                           activity: Activity,
                           liabilityDate: Date,

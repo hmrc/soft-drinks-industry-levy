@@ -96,7 +96,7 @@ package object create {
 
       def sites(siteJson: Seq[JsValue]) = {
         siteJson map {
-          site => Site(address = (site \ "siteAddress" \ "addressDetails").as[Address], ref = (site \ "newSiteRef").as[String])
+          site => Site(address = (site \ "siteAddress" \ "addressDetails").as[Address], ref = (site \ "newSiteRef").asOpt[String])
         }
       }.toList
 
@@ -117,6 +117,7 @@ package object create {
       JsSuccess(Subscription(
         utr = (regJson \ "cin").as[String],
         orgName = (regJson \ "tradingName").as[String],
+        orgType = (regJson \ "organisationType").asOpt[Int],
         address = (regJson \ "businessContact" \ "addressDetails").as[Address],
         activity = activity, // TODO this is wrong
         liabilityDate = (regJson \ "taxStartDate").as[Date],
@@ -147,13 +148,13 @@ package object create {
         }
       }
 
-      def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
-        sites map {
-          site =>
+      def siteList(sites: List[Site], isWarehouse: Boolean, offset: Int = 0): List[JsObject] = {
+        sites.zipWithIndex map {
+          case (site, idx) =>
             Json.obj(
               "action" -> "1",
               "tradingName" -> s.orgName,
-              "newSiteRef" -> site.ref,
+              "newSiteRef" -> site.ref.getOrElse[String](s"${idx + offset}"),
               "siteAddress" -> Json.obj(
                 "addressDetails" -> site.address,
                 "contactDetails" -> Json.obj(
@@ -200,7 +201,7 @@ package object create {
           "estimatedTaxAmount" -> s.activity.taxEstimation,
           "taxObligationStartDate" -> s.liabilityDate.toString
         ),
-        "sites" -> (siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false))
+        "sites" -> (siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false, s.warehouseSites.size))
       )
     }
   }
