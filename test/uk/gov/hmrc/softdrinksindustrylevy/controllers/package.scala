@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy
 import java.time.LocalDateTime
 
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.softdrinksindustrylevy.models.CreateSubscriptionResponse
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object controllers {
 
@@ -174,5 +174,28 @@ package object controllers {
       |		}
       |	]
       |}""".stripMargin)
+
+  val validRosmRegisterResponse = RosmRegisterResponse(
+    "fvp41Gm51rswaeiysohztnrqjdfz7cOnael38omHvuH2ye519ncqiXruPqjBbwewiKdmthpsphun",
+    None,
+    false,
+    false,
+    false,
+    Some(OrganisationResponse("foo", false, RosmOrganisationType.CorporateBody)),
+    RosmResponseAddress(
+      "50",
+      Some("The Lane"),
+      Some("vclmtrtcivhcjldlfeysrttlpfykeolmkpcikccignlvyvghp"),
+      None,
+      "GB",
+      "SM32 5IA"),
+    RosmResponseContactDetails(
+      Some("08926 167394"),
+      None,
+      None,
+      Some("qovmlk@rlkioorw.com")
+    )
+
+  )
 
 }
