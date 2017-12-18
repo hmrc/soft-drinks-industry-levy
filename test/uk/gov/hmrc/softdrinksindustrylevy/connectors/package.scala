@@ -36,7 +36,7 @@ package object gen {
 
   val genUkAddress: Gen[Address] = Gen.ukAddress.map {
     stubAddr => UkAddress(stubAddr.init, stubAddr.last)
-  }
+  }.retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
 
   // could be part of scalacheck?
   def subset[A <: Enumeration](a: A): Gen[Set[A#Value]] = {
@@ -130,9 +130,7 @@ package object gen {
 
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(
-    genUkAddress.retryUntil(_.lines.forall(_.length <= 35))
-  )
+  implicit val arbAddress = Arbitrary(genUkAddress)
   implicit val arbContact = Arbitrary(genContact)
   implicit val arbSite = Arbitrary(genSite)
   implicit val arbSubRequest = Arbitrary(genSubscription)

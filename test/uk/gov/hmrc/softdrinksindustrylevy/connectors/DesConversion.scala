@@ -23,7 +23,7 @@ import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbSubRequest, arbAddress, arbSite}
 
 class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
