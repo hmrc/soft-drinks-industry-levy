@@ -94,7 +94,7 @@ package object get {
 
   implicit val siteFormat: Format[Site] = (
     (JsPath \ "siteAddress").format[Address] and
-      (JsPath \ "siteReference").format[String]
+      (JsPath \ "siteReference").formatNullable[String]
     )(Site.apply, unlift(Site.unapply))
 
 
@@ -183,6 +183,7 @@ package object get {
       JsSuccess(Subscription(
         utr = (json \ "utr").as[String],
         orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
+        orgType = None,
         address = (json \ "businessAddress").as[Address],
         activity = activityType,
         liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],

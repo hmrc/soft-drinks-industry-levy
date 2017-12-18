@@ -23,16 +23,18 @@ import scala.collection.JavaConverters._
 
 package object gen {
 
-  implicit def addressToSite(ad: Address): Site = Site(ad, "FOO")
+  implicit def addressToSite(ad: Address): Site = Site(ad, Some("FOO"))
 
   private val nonEmptyString =
-    Gen.alphaStr.flatMap{t => Gen.alphaChar.map(_ + t)}
+    Gen.alphaStr.flatMap { t => Gen.alphaChar.map(_ + t) }
 
   val genEmail: Gen[String] = for {
     prefix <- nonEmptyString.map(_.take(10))
     domain <- nonEmptyString.map(_.take(10))
     tld <- Gen.oneOf("com", "co.uk")
-  } yield { s"${prefix}@${domain}.${tld}" }
+  } yield {
+    s"${prefix}@${domain}.${tld}"
+  }
 
   val genUkAddress: Gen[Address] = Gen.ukAddress.map {
     stubAddr => UkAddress(stubAddr.init, stubAddr.last)
@@ -40,31 +42,38 @@ package object gen {
 
   // could be part of scalacheck?
   def subset[A <: Enumeration](a: A): Gen[Set[A#Value]] = {
-    Gen.sequence(a.values.toSet.map{
+    Gen.sequence(a.values.toSet.map {
       x: A#Value => Gen.const(x).sometimes
     }).map(_.asScala.toSet.flatten)
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
-    h <- Gen.choose(500000, 1000000).sometimes.map{_.getOrElse(0).toLong}
-  } yield ( (l,h) )
+    l <- Gen.choose(500000, 1000000).sometimes.map {
+      _.getOrElse(0).toLong
+    }
+    h <- Gen.choose(500000, 1000000).sometimes.map {
+      _.getOrElse(0).toLong
+    }
+  } yield ((l, h))
 
   val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
       x: ActivityType.Value =>
-        Gen.sequence[Seq[Option[ActivityType.Value]],Option[ActivityType.Value]](
+        Gen.sequence[Seq[Option[ActivityType.Value]], Option[ActivityType.Value]](
           Seq(Gen.const(x).sometimes,
-              Gen.const(ActivityType.Imported).sometimes,
-              Gen.const(ActivityType.CopackerAll).sometimes)
+            Gen.const(ActivityType.Imported).sometimes,
+            Gen.const(ActivityType.CopackerAll).sometimes)
         )
     }
   }
 
   val genActivity: Gen[Activity] = for {
-    types <- genActivityTypes flatMap(s => s map { t => t.flatten})
-    typeTuples <- Gen.sequence(types.map{
-      typeL => genLitreBands.flatMap{ typeL -> _ } })
+    types <- genActivityTypes flatMap (s => s map { t => t.flatten })
+    typeTuples <- Gen.sequence(types.map {
+      typeL => genLitreBands.flatMap {
+        typeL -> _
+      }
+    })
   } yield {
     InternalActivity(typeTuples.asScala.toMap)
   }
@@ -95,37 +104,38 @@ package object gen {
     phoneNumber <- Gen.ukPhoneNumber
     email <- genEmail
   } yield
-      Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
+    Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
     utr <- Enumerable.instances.utrEnum.gen
     orgName <- nonEmptyString
+    orgType <- Gen.oneOf(1 to 5).map(_.toString)
     address <- genUkAddress
     activity <- genActivity
     liabilityDate <- Gen.date
     productionSites <- Gen.listOf(genUkAddress map addressToSite)
     warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
     contact <- genContact
-  } yield Subscription(utr, orgName, address, activity, liabilityDate,
+  } yield Subscription(utr, orgName, Some(orgType), address, activity, liabilityDate,
     productionSites, warehouseSites, contact)
 
   val genSite: Gen[Site] = for {
     ref <- Gen.oneOf("a", "b")
     address <- genUkAddress
-  } yield Site(address, ref)
+  } yield Site(address, Some(ref))
 
   def genRetrievedSubscription: Gen[Subscription] = {
-  for {
-    utr <- Enumerable.instances.utrEnum.gen
-    orgName <- nonEmptyString
-    address <- genUkAddress
-    activity <- genRetrievedActivity
-    liabilityDate <- Gen.date
-    productionSites <- Gen.listOf(genUkAddress map addressToSite)
-    warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
-    contact <- genContact
-  } yield Subscription(utr, orgName, address, activity, liabilityDate,
-    productionSites, warehouseSites, contact)
+    for {
+      utr <- Enumerable.instances.utrEnum.gen
+      orgName <- nonEmptyString
+      address <- genUkAddress
+      activity <- genRetrievedActivity
+      liabilityDate <- Gen.date
+      productionSites <- Gen.listOf(genUkAddress map addressToSite)
+      warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
+      contact <- genContact
+    } yield Subscription(utr, orgName, None, address, activity, liabilityDate,
+      productionSites, warehouseSites, contact)
   }
 
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
