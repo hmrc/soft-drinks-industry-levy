@@ -102,15 +102,6 @@ package object create {
 
       val regJson = json \ "registration"
 
-      //      "activityQuestions": {
-      //        "litresProducedUKHigher": -277268,
-      //        "litresProducedUKLower": 447077,
-      //        "litresImportedUKHigher": 0,
-      //        "litresImportedUKLower": 0,
-      //        "litresPackagedUKHigher": 0,
-      //        "litresPackagedUKLower": 633571
-      //      }
-
       def litreReads(activityField: String) = (
         (regJson \ "activityQuestions" \ s"litres${activityField}UKLower").as[Litres],
         (regJson \ "activityQuestions" \ s"litres${activityField}UKHigher").as[Litres]

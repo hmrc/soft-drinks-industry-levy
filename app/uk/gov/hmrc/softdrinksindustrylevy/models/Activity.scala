@@ -54,13 +54,7 @@ case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) exte
     }
   }
 
-  def isProducer: Boolean = {
-    List(ProducedOwnBrand, Copackee).
-      foldLeft(false){ case (acc, t) =>
-        acc || activity.contains(t)
-      }
-  }
-
+  def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
   def isLarge: Boolean = sumOfLiableLitreRates._1 + sumOfLiableLitreRates._2 >= 1000000
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
   def isImporter: Boolean = activity.keySet.contains(Imported)

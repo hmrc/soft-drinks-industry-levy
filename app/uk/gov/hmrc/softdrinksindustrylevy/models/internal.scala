@@ -52,26 +52,11 @@ package object internal {
   implicit val businessContactFormat: OFormat[Contact] = Json.format[Contact]
   implicit val siteFormat: OFormat[Site] = Json.format[Site]
 
-//  implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
-//    def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-//      ActivityType.values.map{ at =>
-//        (json \ at.toString).asOpt[LitreBands].map{at -> _}
-//      }.flatten.toMap
-//    }
-//    def writes(address: Activity): JsValue = JsObject(
-//      address.map{ case (t,litreBand) =>
-//        t.toString -> litreBandsFormat.writes(litreBand)
-//      }
-//    )
-//  }
-
   implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-          // if json contains internal model.. TODO what to do with other
             InternalActivity(ActivityType.values.map{ at =>
                (json \ at.toString).asOpt[LitreBands].map{at -> _}
             }.flatten.toMap)
-
           }
 
 
