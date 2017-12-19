@@ -18,14 +18,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import javax.inject.{Inject, Singleton}
 
+import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
-import play.api.{Application, Configuration}
+import play.api.{Application, Configuration, Environment}
+import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
-import uk.gov.hmrc.play.microservice.filters.{ AuditFilter, LoggingFilter, MicroserviceFilterSupport }
+import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
 @Singleton
 class ControllerConfiguration @Inject()(configuration: Configuration) extends ControllerConfig {
@@ -53,6 +55,13 @@ object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilte
   override lazy val authParamsConfig = AuthParamsControllerConfiguration
   override lazy val authConnector = MicroserviceAuthConnector
   override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfigurationObject.controllerConfigsClass.paramsForController(controllerName).needsAuth
+}
+
+class GuiceModule(environment: Environment,
+                  configuration: Configuration) extends AbstractModule {
+  override def configure() = {
+    bind(classOf[MongoConnector]).toInstance(MongoConnector(configuration.getString("mongodb.uri").get))
+  }
 }
 
 object MicroserviceGlobal extends DefaultMicroserviceGlobal with RunMode with MicroserviceFilterSupport {

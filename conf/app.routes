@@ -1,6 +1,8 @@
 # microservice specific routes
 
-POST       /subscription/:idType/:idNumber    @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.submitRegistration(idType, idNumber)
-GET        /subscription/:idType/:idNumber    @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.retrieveSubscripionDetails(idType, idNumber)
+POST        /subscription/:idType/:idNumber        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.submitRegistration(idType, idNumber)
+GET         /subscription/:idType/:idNumber        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.retrieveSubscripionDetails(idType, idNumber)
 
-GET        /rosm-registration/lookup/:utr          @uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
+GET         /rosm-registration/lookup/:utr         @uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
+
+GET         /check-subscription-status/:utr        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.checkPendingSubscription(utr)
