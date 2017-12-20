@@ -1,6 +1,6 @@
 # soft-drinks-industry-levy
 
-[![Build Status](https://travis-ci.org/hmrc/soft-drinks-industry-levy.svg)](https://travis-ci.org/hmrc/soft-drinks-industry-levy) [ ![Download](https://api.bintray.com/packages/hmrc/releases/soft-drinks-industry-levy/images/download.svg) ](https://bintray.com/hmrc/releases/soft-drinks-industry-levy/_latestVersion)
+[ ![Download](https://api.bintray.com/packages/hmrc/releases/soft-drinks-industry-levy/images/download.svg) ](https://bintray.com/hmrc/releases/soft-drinks-industry-levy/_latestVersion)
 
 This is a placeholder README.md for a new repository
 

@@ -20,14 +20,15 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.libs.json._
 import play.api.mvc._
+import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoStorageService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import json.internal._
-import json.des.create.createSubscriptionResponseFormat
 
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
@@ -49,10 +50,17 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
 			response => {
         response match {
-          case r if r.status == 200 => Ok(Json.parse(""" {"known" : "you are subscribed"} """))
-          case _ => Ok(Json.parse(""" {"unknown" : "you are not subscribed"} """))
+          case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
+          case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))
         }
       }
-		}
-	}
+    }
+  }
+
+  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
+    mongo.findById(utr) map {
+      case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
+      case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
+    }
+  }
 }

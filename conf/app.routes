@@ -1,8 +1,17 @@
 # microservice specific routes
 
+<<<<<<< HEAD
 POST       /subscription/:idType/:idNumber/:safeId    @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.submitRegistration(idType, idNumber, safeId)
 GET        /subscription/:idType/:idNumber            @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.retrieveSubscriptionDetails(idType, idNumber)
 
 GET        /rosm-registration/lookup/:utr             @uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
 
 GET        /tax-enrolment-callback/                   @uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
+=======
+POST        /subscription/:idType/:idNumber        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.submitRegistration(idType, idNumber)
+GET         /subscription/:idType/:idNumber        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.retrieveSubscriptionDetails(idType, idNumber)
+
+GET         /rosm-registration/lookup/:utr         @uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
+
+GET         /check-subscription-status/:utr        @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.checkPendingSubscription(utr)
+>>>>>>> master
