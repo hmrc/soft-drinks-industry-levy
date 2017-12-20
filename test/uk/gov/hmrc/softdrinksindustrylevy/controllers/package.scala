@@ -181,7 +181,7 @@ package object controllers {
     false,
     false,
     false,
-    Some(OrganisationResponse("foo", false, RosmOrganisationType.CorporateBody)),
+    Some(OrganisationResponse("foo", Some(RosmOrganisationType.CorporateBody))),
     RosmResponseAddress(
       "50",
       Some("The Lane"),
@@ -195,7 +195,6 @@ package object controllers {
       None,
       Some("qovmlk@rlkioorw.com")
     )
-
   )
 
 }

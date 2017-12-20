@@ -27,8 +27,7 @@ object RosmOrganisationType extends Enumeration {
 
 case class OrganisationResponse(
                                  organisationName: String,
-                                 isAGroup: Boolean,
-                                 organisationType: RosmOrganisationType.Value
+                                 organisationType: Option[RosmOrganisationType.Value]
                                )
 
 object OrganisationResponse {

@@ -42,18 +42,18 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
           mongo.insert(data) map { _ =>
             Ok(Json.toJson(response))
           } recover {
-            case e: LastError if e.code.contains(11000) => Conflict(Json.parse(""" {"status" : "Storage to pending queue failed"}"""))
+            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
           }
       }
     )
   }
 
-  def retrieveSubscripionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
+  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
     desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
       response => {
         response match {
-          case r if r.status == 200 => Ok(Json.parse(""" {"known" : "you are subscribed"} """))
-          case _ => Ok(Json.parse(""" {"unknown" : "you are not subscribed"} """))
+          case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
+          case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))
         }
       }
     }
@@ -61,8 +61,8 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 
   def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
     mongo.findById(utr) map {
-      case Some(_) => Ok(Json.parse(""" {"status" : "Subscription pending"} """))
-      case _ => NotFound(Json.parse(""" {"status" : "Subscription not found in pending queue"}"""))
+      case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
+      case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
     }
   }
 }

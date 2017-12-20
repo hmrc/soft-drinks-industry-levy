@@ -46,7 +46,7 @@ with ScalaFutures {
   "RosmController" should {
     "return Status: OK Body: RosmRegisterResponse for successful valid Rosm lookup" in {
       when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
-        .thenReturn(Future.successful(validRosmRegisterResponse))
+        .thenReturn(Future.successful(Some(validRosmRegisterResponse)))
 
       val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest("GET", "/register/organisation/utr/:utr"))
 
@@ -65,7 +65,7 @@ with ScalaFutures {
 
     "return Status: NOT_FOUND for response with missing organisation " in {
       when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
-        .thenReturn(Future.successful(validRosmRegisterResponse.copy(organisation = None)))
+        .thenReturn(Future.successful(Some(validRosmRegisterResponse.copy(organisation = None))))
 
       val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest("GET", "/register/organisation/utr/:utr"))
 

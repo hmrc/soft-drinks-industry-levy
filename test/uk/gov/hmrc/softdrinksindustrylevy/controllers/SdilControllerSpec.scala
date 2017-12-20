@@ -73,27 +73,25 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockMongo.insert(any())(any())).thenReturn(Future.failed(LastError(
-        false,
-        None,
-        Some(11000),
-        None,
-        2,
-        None,
-        false,
-        None,
-        None,
-        false,
-        None,
-        None)))
+        ok = false,
+        errmsg = None,
+        code = Some(11000),
+        lastOp = None,
+        n = 2,
+        singleShard = None,
+        updatedExisting = false,
+        upserted = None,
+        wnote = None,
+        wtimeout = false,
+        waited = None,
+        wtime = None)))
 
       val response = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any(), any())
-      contentAsJson(response) mustBe Json.parse("""{
-        "status": "Storage to pending queue failed"
-      }""")
+      contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
     }
 
     "return Status: OK for subscription found in pending queue" in {
@@ -104,7 +102,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       val response = mockSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
       status(response) mustBe OK
-      contentAsJson(response) mustBe Json.parse(""" {"status" : "Subscription pending"} """)
+      contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_PENDING")
     }
 
     "return Status: NOT_FOUND for subscription not in pending queue" in {
@@ -113,7 +111,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       val response = mockSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
       status(response) mustBe NOT_FOUND
-      contentAsJson(response) mustBe Json.parse(""" {"status" : "Subscription not found in pending queue"} """)
+      contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND")
     }
   }
 }
