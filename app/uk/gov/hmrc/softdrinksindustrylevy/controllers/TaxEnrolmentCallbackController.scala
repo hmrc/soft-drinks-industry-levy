@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy.models
+package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import play.api.libs.json.Json
+import javax.inject.{Inject, Singleton}
 
-case class RosmRegisterRequest(
-                                regime: String = "ZSDL", // TODO turn this to a config
-                                requiresNameMatch: Boolean = false,
-                                isAnAgent: Boolean = false
-                              )
-object RosmRegisterRequest {
-  implicit val rosmFormatter = Json.format[RosmRegisterRequest]
+import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
+
+@Singleton
+class TaxEnrolmentCallbackController @Inject()(rosmConnector: RosmConnector, taxEnrolmentConnector: TaxEnrolmentConnector)
+  extends BaseController {
+
+  def callback(safeId: String) = TODO
+
 }
-
-

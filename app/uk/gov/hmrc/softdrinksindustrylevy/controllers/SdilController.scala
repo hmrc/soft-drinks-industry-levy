@@ -21,26 +21,31 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import json.internal._
 import json.des.create.createSubscriptionResponseFormat
 
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
+															 taxEnrolmentConnector: TaxEnrolmentConnector,
 															 desConnector: DesConnector) extends BaseController {
 
-	def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
+	def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
 		withJsonBody[Subscription](data =>
 			desConnector.createSubscription(data, idType, idNumber).map {
-				response => Ok(Json.toJson(response))
+				response =>
+					// TODO store in mongo
+					taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
+					Ok(Json.toJson(response))
 			}
 		)
 	}
 
-	def retrieveSubscripionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
+	def retrieveSubscriptionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
 		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
 			response => {
         response match {

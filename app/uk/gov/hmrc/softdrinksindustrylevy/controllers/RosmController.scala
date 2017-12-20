@@ -21,17 +21,19 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.RosmConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class RosmController @Inject()(rosmConnector: RosmConnector) extends BaseController {
+class RosmController @Inject()(rosmConnector: RosmConnector, taxEnrolmentConnector: TaxEnrolmentConnector)
+  extends BaseController {
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest()).map {
-      case r@RosmRegisterResponse(_, _, _, _, _, Some(_), _, _) => Ok(Json.toJson(r))
+      case r@RosmRegisterResponse(_, _, _, _, _, Some(_), _, _) =>
+        Ok(Json.toJson(r))
       case _ => NotFound
     }
   }
