@@ -42,7 +42,7 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
           mongo.insert(data) map { _ =>
             Ok(Json.toJson(response))
           } recover {
-            case e: LastError if e.code.contains(11000) => Conflict("WRONG PUNK")
+            case e: LastError if e.code.contains(11000) => Conflict(Json.parse(""" {"status" : "Storage to pending queue failed"}"""))
           }
       }
     )
@@ -61,8 +61,8 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 
   def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
     mongo.findById(utr) map {
-      case Some(_) => Ok("Subscription pending")
-      case _ => NotFound("Subscription not found in pending queue")
+      case Some(_) => Ok(Json.parse(""" {"status" : "Subscription pending"} """))
+      case _ => NotFound(Json.parse(""" {"status" : "Subscription not found in pending queue"}"""))
     }
   }
 }
