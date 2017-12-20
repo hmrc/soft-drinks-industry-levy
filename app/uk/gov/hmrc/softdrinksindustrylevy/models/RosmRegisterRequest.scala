@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import play.api.libs.json.Json
 
 case class RosmRegisterRequest(
-                                regime: String = "SDIL", // TODO check the regime name
+                                regime: String = "ZSDL",
                                 requiresNameMatch: Boolean = false,
                                 isAnAgent: Boolean = false
                               )
