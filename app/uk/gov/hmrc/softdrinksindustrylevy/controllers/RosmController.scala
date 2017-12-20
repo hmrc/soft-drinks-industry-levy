@@ -31,7 +31,7 @@ class RosmController @Inject()(rosmConnector: RosmConnector) extends BaseControl
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest()).map {
-      case r@RosmRegisterResponse(_, _, _, _, _, Some(_), _, _) => Ok(Json.toJson(r))
+      case r if r.flatMap(_.organisation).isDefined => Ok(Json.toJson(r))
       case _ => NotFound
     }
   }

@@ -20,34 +20,49 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.libs.json._
 import play.api.mvc._
+import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.services.DesSubmissionService
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoStorageService}
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import json.internal._
-import json.des.create.createSubscriptionResponseFormat
 
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
-															 desConnector: DesConnector) extends BaseController {
+                               desConnector: DesConnector,
+                               mongo: MongoStorageService) extends BaseController {
 
-	def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
-		withJsonBody[Subscription](data =>
-			desConnector.createSubscription(data, idType, idNumber).map {
-				response => Ok(Json.toJson(response))
-			}
-		)
-	}
+  def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[Subscription](data =>
+      desConnector.createSubscription(data, idType, idNumber).flatMap {
+        response =>
+          mongo.insert(data) map { _ =>
+            Ok(Json.toJson(response))
+          } recover {
+            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+          }
+      }
+    )
+  }
 
-	def retrieveSubscripionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
-		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-			response => {
+  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+      response => {
         response match {
-          case r if r.status == 200 => Ok(Json.parse(""" {"known" : "you are subscribed"} """))
-          case _ => Ok(Json.parse(""" {"unknown" : "you are not subscribed"} """))
+          case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
+          case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))
         }
       }
-		}
-	}
+    }
+  }
+
+  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
+    mongo.findById(utr) map {
+      case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
+      case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
+    }
+  }
 }

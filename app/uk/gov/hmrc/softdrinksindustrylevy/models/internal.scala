@@ -76,6 +76,22 @@ package object internal {
     )
   }
 
+  val subReads = Json.reads[Subscription]
+  val subWrites = new Writes[Subscription] {
+    override def writes(o: Subscription): JsValue = Json.obj(
+      "utr" -> o.utr,
+      "orgName" -> o.orgName,
+      "orgType" -> o.orgType,
+      "address" -> o.address,
+      "activity" -> o.activity,
+      "liabilityDate" -> o.liabilityDate,
+      "productionSites" -> o.productionSites,
+      "warehouseSites" -> o.warehouseSites,
+      "contact" -> o.contact,
+      "_id" -> o.utr
+    )
+  }
+
   implicit val subscriptionFormat: OFormat[Subscription] = Json.format[Subscription]
-    
+
 }
