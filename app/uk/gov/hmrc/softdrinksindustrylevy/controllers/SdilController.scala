@@ -33,18 +33,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 															 taxEnrolmentConnector: TaxEnrolmentConnector,
-															 desConnector: DesConnector) extends BaseController {
+															 desConnector: DesConnector,
+                               mongo: MongoStorageService) extends BaseController {
 
 	def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
 		withJsonBody[Subscription](data =>
-			desConnector.createSubscription(data, idType, idNumber).map {
-				response =>
-					// TODO store in mongo
-					taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
-					Ok(Json.toJson(response))
-			}
-		)
-	}
+      desConnector.createSubscription(data, idType, idNumber).flatMap {
+        response =>
+          mongo.insert(data) map { _ =>
+					  taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
+            Ok(Json.toJson(response))
+          } recover {
+            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+          }
+      }
+    )
+  }
 
 	def retrieveSubscriptionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
 		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
