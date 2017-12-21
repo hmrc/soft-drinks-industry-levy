@@ -39,14 +39,17 @@ class DesConnector extends ServicesConfig {
     ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
   }
 
-  def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
-
+  def createSubscription(request: Subscription, idType: String, idNumber: String)
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
     import json.des.create._
 
     http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)(implicitly, implicitly, addHeaders, implicitly)
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.GET[HttpResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber")(implicitly, addHeaders, ec)
+  def retrieveSubscriptionDetails(idType: String, idNumber: String)
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
+    import json.des.get._
+
+    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
   }
 }
