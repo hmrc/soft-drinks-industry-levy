@@ -19,8 +19,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import javax.inject.Singleton
 
 import play.api.Logger
-import play.api.libs.json.{JsObject, JsString, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
@@ -33,18 +33,22 @@ class TaxEnrolmentConnector extends ServicesConfig {
   val callbackUrl: String = getConfString("tax-enrolments.callback", "")
   val serviceName: String = getConfString("tax-enrolments.serviceName", "")
 
-  val http: WSHttp.type = WSHttp
-
   def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {response =>
-      response.status match {
-        case 400 | 401 => {
-          Logger.error(s"Tax enrolment returned ${response.status} for ${subscribeUrl(formBundleNumber)}")
-          response
-        }
-        case _ => response
+    WSHttp.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
+      Result => Result
+    } recover {
+      case e: UnauthorizedException => {
+        handleError(e, formBundleNumber)
+      }
+      case e: BadRequestException =>  {
+        handleError(e, formBundleNumber)
       }
     }
+  }
+
+  private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
+    Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
+    HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
   }
 
   private def subscribeUrl(subscriptionId: String) =
@@ -52,16 +56,16 @@ class TaxEnrolmentConnector extends ServicesConfig {
 
   private def requestBody(safeId: String, formBundleNumber: String): JsObject = {
     Json.obj(
-      "serviceName" → JsString(serviceName),
-      "callback" → JsString(s"$callbackUrl?subscriptionId=$formBundleNumber"),
-      "etmpId" → JsString(safeId)
+      "serviceName" -> serviceName,
+      "callback" -> s"$callbackUrl?subscriptionId=$formBundleNumber",
+      "etmpId" -> safeId
     )
   }
 
   private def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.withExtraHeaders(
       "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}"))) // TODO check where these tokens are
+    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
   }
 
 }

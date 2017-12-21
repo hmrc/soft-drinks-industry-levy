@@ -35,13 +35,12 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
 															 taxEnrolmentConnector: TaxEnrolmentConnector,
 															 desConnector: DesConnector,
                                mongo: MongoStorageService) extends BaseController {
-
-	def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json)  { implicit request =>
-		withJsonBody[Subscription](data =>
+  def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    withJsonBody[Subscription](data =>
       desConnector.createSubscription(data, idType, idNumber).flatMap {
         response =>
           mongo.insert(data) map { _ =>
-					  taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
+            taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
             Ok(Json.toJson(response))
           } recover {
             case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
