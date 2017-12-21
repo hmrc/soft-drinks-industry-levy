@@ -18,8 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import javax.inject.Singleton
 
+import play.api.Logger
 import play.api.libs.json.{JsObject, JsString, Json}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
@@ -34,17 +35,25 @@ class TaxEnrolmentConnector extends ServicesConfig {
 
   val http: WSHttp.type = WSHttp
 
-  def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[JsObject]] = {
-    http.PUT[JsObject, Option[JsObject]](subscribeUrl(formBundleNumber), requestBody(safeId))
+  def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {response =>
+      response.status match {
+        case 400 | 401 => {
+          Logger.error(s"Tax enrolment returned ${response.status} for ${subscribeUrl(formBundleNumber)}")
+          response
+        }
+        case _ => response
+      }
+    }
   }
 
   private def subscribeUrl(subscriptionId: String) =
     s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId/subscriber"
 
-  private def requestBody(safeId: String): JsObject = {
+  private def requestBody(safeId: String, formBundleNumber: String): JsObject = {
     Json.obj(
       "serviceName" → JsString(serviceName),
-      "callback" → JsString(callbackUrl),
+      "callback" → JsString(s"$callbackUrl?subscriptionId=$formBundleNumber"),
       "etmpId" → JsString(safeId)
     )
   }

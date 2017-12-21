@@ -27,15 +27,16 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.RosmConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.http._
 
 import scala.concurrent.Future
 
 class RosmControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach
 with ScalaFutures {
+  val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
-  val mockRosmController = new RosmController(mockRosmConnector)
+  val mockRosmController = new RosmController(mockRosmConnector, mockTaxEnrolmentConnector)
 
   implicit val hc = new HeaderCarrier
 

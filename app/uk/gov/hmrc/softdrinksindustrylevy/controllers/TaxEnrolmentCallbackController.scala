@@ -18,13 +18,23 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import javax.inject.{Inject, Singleton}
 
+import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
+import uk.gov.hmrc.softdrinksindustrylevy.services.MongoStorageService
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class TaxEnrolmentCallbackController @Inject()(rosmConnector: RosmConnector, taxEnrolmentConnector: TaxEnrolmentConnector)
+class TaxEnrolmentCallbackController @Inject()(mongo: MongoStorageService)
   extends BaseController {
 
-  def callback(safeId: String) = TODO
+  def callback(formBundleNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    // delete stuff from mongo
+    // mongo.removeById(formBundleNumber)
+    // email user
+    // return something maybe?
+    Future(NotFound) // TODO change this
+  }
 
 }

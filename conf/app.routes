@@ -5,6 +5,7 @@ GET        /subscription/:idType/:idNumber            @uk.gov.hmrc.softdrinksind
 
 GET        /rosm-registration/lookup/:utr             @uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
 
-GET        /tax-enrolment-callback/                   @uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
+# the readme says this should be a GET, but we're receiving a POST...
+POST       /tax-enrolment-callback/                   @uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
 
 GET        /check-subscription-status/:utr            @uk.gov.hmrc.softdrinksindustrylevy.controllers.SdilController.checkPendingSubscription(utr)
