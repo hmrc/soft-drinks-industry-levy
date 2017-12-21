@@ -18,24 +18,24 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.libs.json._
-import play.api.mvc._
-import uk.gov.hmrc.play.config.ServicesConfig
+import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.services.MongoStorageService
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class RosmController @Inject()(rosmConnector: RosmConnector, taxEnrolmentConnector: TaxEnrolmentConnector)
-  extends BaseController with ServicesConfig {
+class TaxEnrolmentCallbackController @Inject()(mongo: MongoStorageService)
+  extends BaseController {
 
-  def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
-    rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
-      case r if r.flatMap(_.organisation).isDefined => Ok(Json.toJson(r))
-      case _ => NotFound
-    }
+  def callback(formBundleNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    // todo go and get the subscription? see https://confluence.tools.tax.service.gov.uk/display/SOS/tax-enrolment+subscription+API
+    // delete stuff from mongo
+    // mongo.removeById(formBundleNumber)
+    // email user
+    // return something maybe?
+    Future.successful(NotFound) // TODO change this
   }
 
 }

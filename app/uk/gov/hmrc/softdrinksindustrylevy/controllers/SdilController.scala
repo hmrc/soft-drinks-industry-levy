@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
@@ -32,14 +32,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
-                               desConnector: DesConnector,
+															 taxEnrolmentConnector: TaxEnrolmentConnector,
+															 desConnector: DesConnector,
                                mongo: MongoStorageService) extends BaseController {
-
-  def submitRegistration(idType: String, idNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Subscription](data =>
       desConnector.createSubscription(data, idType, idNumber).flatMap {
         response =>
           mongo.insert(data) map { _ =>
+            taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
             Ok(Json.toJson(response))
           } recover {
             case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
@@ -48,9 +49,9 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
     )
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
-    desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-      response => {
+	def retrieveSubscriptionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
+		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+			response => {
         response match {
           case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
           case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))

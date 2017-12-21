@@ -27,7 +27,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoStorageService}
 
@@ -35,9 +35,12 @@ import scala.concurrent.Future
 
 class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
+  val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockMongo: MongoStorageService = mock[MongoStorageService]
-  val mockSdilController = new SdilController(mockDesSubmissionService, mockDesConnector, mockMongo)
+  val mockSdilController = new SdilController(
+    mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockMongo
+  )
 
   implicit val hc = new HeaderCarrier
 
@@ -53,7 +56,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
       when(mockMongo.insert(any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val response = mockSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
@@ -62,7 +65,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: BAD_REQUEST for invalid request" in {
-      val result = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val result = mockSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
         .withBody(invalidCreateSubscriptionRequest))
 
       status(result) mustBe BAD_REQUEST
@@ -86,7 +89,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
         waited = None,
         wtime = None)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val response = mockSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
