@@ -32,7 +32,7 @@ class RosmController @Inject()(rosmConnector: RosmConnector, taxEnrolmentConnect
   extends BaseController with ServicesConfig {
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
-    rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getConfString("etmp.sdil.regime", ""))).map {
+    rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
       case r if r.flatMap(_.organisation).isDefined => Ok(Json.toJson(r))
       case _ => NotFound
     }

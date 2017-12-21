@@ -35,7 +35,7 @@ class TaxEnrolmentCallbackController @Inject()(mongo: MongoStorageService)
     // mongo.removeById(formBundleNumber)
     // email user
     // return something maybe?
-    Future(NotFound) // TODO change this
+    Future.successful(NotFound) // TODO change this
   }
 
 }
