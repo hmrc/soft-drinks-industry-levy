@@ -93,7 +93,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
-      verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any(), any())
+      verify(mockDesConnector, times(0)).createSubscription(any(), any(), any())(any(), any())
       contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
     }
 

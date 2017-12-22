@@ -32,26 +32,27 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
-															 taxEnrolmentConnector: TaxEnrolmentConnector,
-															 desConnector: DesConnector,
+                               taxEnrolmentConnector: TaxEnrolmentConnector,
+                               desConnector: DesConnector,
                                mongo: MongoStorageService) extends BaseController {
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Subscription](data =>
-      desConnector.createSubscription(data, idType, idNumber).flatMap {
-        response =>
-          mongo.insert(data) map { _ =>
+      mongo.insert(data) flatMap { _ =>
+        desConnector.createSubscription(data, idType, idNumber) map {
+          response =>
             taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
             Ok(Json.toJson(response))
-          } recover {
-            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
-          }
+        }
+      } recover {
+        case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+        case _ => BadRequest
       }
     )
   }
 
-	def retrieveSubscriptionDetails(idType: String, idNumber: String):Action[AnyContent] = Action.async { implicit request =>
-		desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-			response => {
+  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+      response => {
         response match {
           case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
           case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))
