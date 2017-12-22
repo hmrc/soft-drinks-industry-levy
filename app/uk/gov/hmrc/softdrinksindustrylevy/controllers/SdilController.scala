@@ -45,7 +45,6 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
         }
       } recover {
         case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
-        case _ => BadRequest
       }
     )
   }
