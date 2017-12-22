@@ -49,7 +49,7 @@ with ScalaFutures {
       when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse)))
 
-      val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest("GET", "/register/organisation/utr/:utr"))
+      val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest())
 
       status(response) mustBe OK
       verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(any(), any())
@@ -60,7 +60,7 @@ with ScalaFutures {
       when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
         .thenReturn(Future.failed(new NotFoundException("foo")))
 
-      val result = mockRosmController.lookupRegistration("2222222222")(FakeRequest("GET", "/register/organisation/utr/:utr"))
+      val result = mockRosmController.lookupRegistration("2222222222")(FakeRequest())
       whenReady(result.failed){e => e mustBe a[NotFoundException]}
     }
 
@@ -68,7 +68,7 @@ with ScalaFutures {
       when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse.copy(organisation = None))))
 
-      val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest("GET", "/register/organisation/utr/:utr"))
+      val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest())
 
       status(response) mustBe NOT_FOUND
       verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(any(), any())
