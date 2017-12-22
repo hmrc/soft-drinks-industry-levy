@@ -56,7 +56,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
       when(mockMongo.insert(any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val response = mockSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
@@ -65,7 +65,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: BAD_REQUEST for invalid request" in {
-      val result = mockSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val result = mockSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest()
         .withBody(invalidCreateSubscriptionRequest))
 
       status(result) mustBe BAD_REQUEST
@@ -89,7 +89,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
         waited = None,
         wtime = None)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest("POST", "/create-subscription/:idType/:idNumber")
+      val response = mockSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
