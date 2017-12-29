@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class RosmConnector extends ServicesConfig {
 
   val desURL: String = baseUrl("des")
-  val serviceURL: String = "soft-drinks/register/organisation"
+  val serviceURL: String = "register/organisation"
   val http = WSHttp
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
