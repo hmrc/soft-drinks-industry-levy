@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands._
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoStorageService}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoBufferService, SubscriptionWrapper}
 
 import scala.concurrent.Future
 
@@ -37,9 +37,9 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
-  val mockMongo: MongoStorageService = mock[MongoStorageService]
-  val mockSdilController = new SdilController(
-    mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockMongo
+  val mockBuffer: MongoBufferService = mock[MongoBufferService]
+  val testSdilController = new SdilController(
+    mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
   )
 
   implicit val hc = new HeaderCarrier
@@ -54,9 +54,10 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      when(mockMongo.insert(any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+      when(mockBuffer.insert(any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+      when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any())).thenReturn(Future.successful(HttpResponse(418)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest()
+      val response = testSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
@@ -65,7 +66,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: BAD_REQUEST for invalid request" in {
-      val result = mockSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest()
+      val result = testSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest()
         .withBody(invalidCreateSubscriptionRequest))
 
       status(result) mustBe BAD_REQUEST
@@ -75,7 +76,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      when(mockMongo.insert(any())(any())).thenReturn(Future.failed(LastError(
+      when(mockBuffer.insert(any())(any())).thenReturn(Future.failed(LastError(
         ok = false,
         errmsg = None,
         code = Some(11000),
@@ -89,7 +90,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
         waited = None,
         wtime = None)))
 
-      val response = mockSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
+      val response = testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
@@ -100,18 +101,20 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     "return Status: OK for subscription found in pending queue" in {
       import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
-      when(mockMongo.findById(any(), any())(any())).thenReturn(Future.successful(Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get)))
+      val sub = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get)
 
-      val response = mockSdilController.checkPendingSubscription("00002222")(FakeRequest())
+      when(mockBuffer.findById(any(), any())(any())).thenReturn(Future.successful(Some(sub)))
+
+      val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_PENDING")
     }
 
     "return Status: NOT_FOUND for subscription not in pending queue" in {
-      when(mockMongo.findById(any(), any())(any())).thenReturn(Future.successful(None))
+      when(mockBuffer.findById(any(), any())(any())).thenReturn(Future.successful(None))
 
-      val response = mockSdilController.checkPendingSubscription("00002222")(FakeRequest())
+      val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
       status(response) mustBe NOT_FOUND
       contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND")
