@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,18 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import javax.inject.Inject
 
-import play.api.libs.json.Format
+import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
+class MongoBufferService @Inject()(implicit mc: MongoConnector)
+  extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly)
 
-class MongoStorageService @Inject()(implicit mc: MongoConnector)
-  extends ReactiveRepository[Subscription, String]("sdil-subscription", mc.db, Format(subReads, subWrites), implicitly)
+case class SubscriptionWrapper(_id: String, subscription: Subscription)
+
+object SubscriptionWrapper {
+  implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
+
+  val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]
+}

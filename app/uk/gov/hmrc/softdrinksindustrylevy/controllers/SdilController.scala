@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolment
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoStorageService}
+import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,16 +34,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class SdilController @Inject()(desSubmissionService: DesSubmissionService,
                                taxEnrolmentConnector: TaxEnrolmentConnector,
                                desConnector: DesConnector,
-                               mongo: MongoStorageService) extends BaseController {
+                               buffer: MongoBufferService) extends BaseController {
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[Subscription](data =>
-      mongo.insert(data) flatMap { _ =>
-        desConnector.createSubscription(data, idType, idNumber) map {
-          response =>
-            taxEnrolmentConnector.subscribe(safeId, response.formBundleNumber)
-            Ok(Json.toJson(response))
-        }
-      } recover {
+      (for {
+        _ <- buffer.insert(SubscriptionWrapper(safeId, data))
+        res <- desConnector.createSubscription(data, idType, idNumber)
+        _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
+      } yield {
+        Ok(Json.toJson(res))
+      }) recover {
         case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
       }
     )
@@ -61,7 +61,7 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
   }
 
   def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
-    mongo.findById(utr) map {
+    buffer.findById(utr) map {
       case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
       case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
     }

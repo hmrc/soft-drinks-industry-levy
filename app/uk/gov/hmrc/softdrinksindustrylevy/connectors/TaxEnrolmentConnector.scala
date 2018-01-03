@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import javax.inject.Singleton
 
 import play.api.Logger
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
@@ -46,6 +46,10 @@ class TaxEnrolmentConnector extends ServicesConfig {
     }
   }
 
+  def getSubscription(subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] = {
+    WSHttp.GET[TaxEnrolmentsSubscription](s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId")
+  }
+
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
     Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
     HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
@@ -68,4 +72,16 @@ class TaxEnrolmentConnector extends ServicesConfig {
     ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
   }
 
+}
+
+case class TaxEnrolmentsSubscription(identifiers: Seq[Identifier], etmpId: String)
+
+object TaxEnrolmentsSubscription {
+  implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]
+}
+
+case class Identifier(key: String, value: String)
+
+object Identifier {
+  implicit val format: Format[Identifier] = Json.format[Identifier]
 }

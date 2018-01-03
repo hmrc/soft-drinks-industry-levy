@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,62 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.mvc.{Action, AnyContent}
+import play.api.Logger
+import play.api.libs.json.{Format, Json}
+import play.api.mvc.Action
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.services.MongoStorageService
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class TaxEnrolmentCallbackController @Inject()(mongo: MongoStorageService)
+class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
+                                               emailConnector: EmailConnector,
+                                               taxEnrolments: TaxEnrolmentConnector)
   extends BaseController {
 
-  def callback(formBundleNumber: String): Action[AnyContent] = Action.async { implicit request =>
-    // todo go and get the subscription? see https://confluence.tools.tax.service.gov.uk/display/SOS/tax-enrolment+subscription+API
-    // delete stuff from mongo
-    // mongo.removeById(formBundleNumber)
-    // email user
-    // return something maybe?
-    Future.successful(NotFound) // TODO change this
+  def callback(formBundleNumber: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[CallbackNotification] { body =>
+      if (body.state == "SUCCEEDED") {
+        for {
+          teSub <- taxEnrolments.getSubscription(formBundleNumber)
+          pendingSub <- buffer.findById(teSub.etmpId)
+          _ <- buffer.removeById(teSub.etmpId)
+          _ <- sendNotificationEmail(pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
+        } yield {
+          NoContent
+        }
+      } else {
+        Logger.error(s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
+        Future.successful(NoContent)
+      }
+    }
   }
 
+  private def sendNotificationEmail(email: Option[String], sdilNumber: Option[String], formBundleNumber: String)
+                                   (implicit hc: HeaderCarrier): Future[Unit] = {
+    email match {
+      case Some(e) => sdilNumber match {
+        case Some(s) => emailConnector.sendConfirmationEmail(e, s)
+        case None => Future.successful(Logger.error(s"Unable to send email for form bundle $formBundleNumber as enrolment is missing SDIL Number"))
+      }
+      case None => Future.successful(Logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
+    }
+  }
+
+  private def getSdilNumber(taxEnrolmentsSubscription: TaxEnrolmentsSubscription): Option[String] = {
+    taxEnrolmentsSubscription.identifiers.collectFirst {
+      case Identifier(_, value) if value.slice(2, 4) == "SD" => value
+    }
+  }
+
+}
+
+case class CallbackNotification(state: String, errorResponse: Option[String])
+
+object CallbackNotification {
+  implicit val format: Format[CallbackNotification] = Json.format[CallbackNotification]
 }
