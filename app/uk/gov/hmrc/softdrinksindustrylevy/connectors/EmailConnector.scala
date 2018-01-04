@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 HM Revenue & Customs
+ * Copyright 2018 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,14 @@ class EmailConnector extends ServicesConfig {
 
   val emailUrl: String = baseUrl("email")
 
-  def sendConfirmationEmail(email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
       "to" -> Seq(email),
       "templateId" -> "sdil_registration_accepted",
       "parameters" -> Json.obj(
-        "sdilNumber" -> sdilNumber
-      ),
+        "sdilNumber" -> sdilNumber,
+        "companyName" -> orgName
+       ),
       "force" -> false
     )
 
@@ -43,10 +44,13 @@ class EmailConnector extends ServicesConfig {
   }
 
   // TODO find out if we need to verify...
-  def sendSubmissionReceivedEmail(email: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendSubmissionReceivedEmail(email: String, orgName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
       "to" -> Seq(email),
       "templateId" -> "sdil_registration_received",
+      "parameters" -> Json.obj(
+        "companyName" -> orgName
+      ),
       "force" -> false
     )
 

@@ -52,7 +52,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             res <- desConnector.createSubscription(data, idType, idNumber)
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
-            _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email)
+            _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
           } yield {
             Ok(Json.toJson(res))
           }) recover {
