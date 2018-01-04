@@ -50,13 +50,11 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    import json.internal._
+
     desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-      response => {
-        response match {
-          case r if r.status == 200 => Ok(Json.obj("status" -> "SUBSCRIBED"))
-          case _ => NotFound(Json.obj("status" -> "NOT_SUBSCRIBED"))
-        }
-      }
+      case Some(s) => Ok(Json.toJson(s))
+      case None => NotFound
     }
   }
 

@@ -133,18 +133,19 @@ package object create {
 
     def writes(s: Subscription): JsValue = {
 
-      def activityMap = {
+      def activityMap: Map[String, JsValue] = {
         import ActivityType._
         s.activity match {
           case a: InternalActivity => Map(
-            "Produced" -> a.activity.getOrElse(ProducedOwnBrand, (0L,0L)), // TODO check logic
-            "Imported" -> a.activity.getOrElse(Imported, (0L, 0L)),
-            "Packaged" -> a.activity.getOrElse(CopackerAll, (0L, 0L)) // TODO check logic
-          ).flatMap {
-            case (k, (l, h)) => Map(
+            "Produced" -> a.activity.get(ProducedOwnBrand), // TODO check logic
+            "Imported" -> a.activity.get(Imported),
+            "Packaged" -> a.activity.get(CopackerAll) // TODO check logic
+          ) flatMap {
+            case (k, Some((l, h))) => Map(
               s"litres${k}UKLower" -> JsNumber(l),
               s"litres${k}UKHigher" -> JsNumber(h)
             )
+            case _ => Map.empty[String, JsValue]
           }
           case _ => Map.empty[String, JsValue]
         }
