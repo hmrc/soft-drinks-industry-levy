@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailConnector extends ServicesConfig {
+
   val http: WSHttp = WSHttp
 
   val emailUrl: String = baseUrl("email")
@@ -40,4 +41,16 @@ class EmailConnector extends ServicesConfig {
 
     http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
   }
+
+  // TODO find out if we need to verify...
+  def sendSubmissionReceivedEmail(email: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val params = Json.obj(
+      "to" -> Seq(email),
+      "templateId" -> "sdil_registration_received",
+      "force" -> false
+    )
+
+    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
+  }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2017 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
@@ -40,7 +40,8 @@ class SdilController @Inject()(val authConnector: AuthConnector,
                                desSubmissionService: DesSubmissionService,
                                taxEnrolmentConnector: TaxEnrolmentConnector,
                                desConnector: DesConnector,
-                               buffer: MongoBufferService)
+                               buffer: MongoBufferService,
+                               emailConnector: EmailConnector)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
@@ -51,6 +52,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             res <- desConnector.createSubscription(data, idType, idNumber)
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
+            _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email)
           } yield {
             Ok(Json.toJson(res))
           }) recover {
