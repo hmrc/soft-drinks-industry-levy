@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.Action
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -35,7 +35,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
                                                taxEnrolments: TaxEnrolmentConnector)
   extends BaseController {
 
-  def callback(formBundleNumber: String) = Action.async(parse.json) { implicit request =>
+  def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>
       if (body.state == "SUCCEEDED") {
         for {
