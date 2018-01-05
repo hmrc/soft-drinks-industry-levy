@@ -25,16 +25,18 @@ sealed trait Activity {
   def isLarge: Boolean
   def isContractPacker: Boolean
   def isImporter: Boolean
-  def isVoluntaryRegistration: Boolean = isProducer && !isLarge && !isImporter && !isContractPacker
+  def isVoluntaryRegistration: Boolean =
+    isProducer && !isLarge && !isImporter && !isContractPacker
   def isSmallProducer: Boolean = isProducer && !isLarge
-  def taxEstimation: BigDecimal
+  //def taxEstimation: BigDecimal
 }
 
-case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPacker: Boolean, isImporter: Boolean)
-  extends Activity {
-  override def taxEstimation = 0 // lost in translation - we should either hide or say something like unknown but it is
-  // not optional
-}
+case class RetrievedActivity(
+  isProducer: Boolean,
+  isLarge: Boolean,
+  isContractPacker: Boolean,
+  isImporter: Boolean
+) extends Activity 
 
 case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) extends Activity {
   import ActivityType._
@@ -59,7 +61,7 @@ case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) exte
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
-  override def taxEstimation: BigDecimal = {
+  def taxEstimation: BigDecimal = {
     BigDecimal(Math.max(sumOfLiableLitreRates._1 * upperRate + sumOfLiableLitreRates._2 * lowerRate / 100, 0))
   }
 }

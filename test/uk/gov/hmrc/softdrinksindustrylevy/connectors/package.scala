@@ -18,8 +18,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
-
 import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 package object gen {
 

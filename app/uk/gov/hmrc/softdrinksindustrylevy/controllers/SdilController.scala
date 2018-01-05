@@ -22,34 +22,44 @@ import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.csrFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class SdilController @Inject()(desSubmissionService: DesSubmissionService,
-                               taxEnrolmentConnector: TaxEnrolmentConnector,
-                               desConnector: DesConnector,
-                               buffer: MongoBufferService) extends BaseController {
-  def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[Subscription](data =>
-      (for {
-        _ <- buffer.insert(SubscriptionWrapper(safeId, data))
-        res <- desConnector.createSubscription(data, idType, idNumber)
-        _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
-      } yield {
-        Ok(Json.toJson(res))
-      }) recover {
-        case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
-      }
-    )
-  }
+@Singleton class SdilController @Inject()(
+  desSubmissionService: DesSubmissionService,
+  taxEnrolmentConnector: TaxEnrolmentConnector,
+  desConnector: DesConnector,
+  buffer: MongoBufferService
+) extends BaseController {
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
+  def submitRegistration(
+    idType: String,
+    idNumber: String,
+    safeId: String): Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      withJsonBody[Subscription](data =>
+        (for {
+          _ <- buffer.insert(SubscriptionWrapper(safeId, data))
+          res <- desConnector.createSubscription(data, idType, idNumber)
+          _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
+        } yield {
+          Ok(Json.toJson(res))
+        }) recover {
+          case e: LastError if e.code.contains(11000) =>
+            Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+        }
+      )
+    }
+
+  def retrieveSubscriptionDetails(
+    idType: String,
+    idNumber: String
+  ): Action[AnyContent] = Action.async { implicit request =>
     import json.internal._
 
     desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
@@ -58,7 +68,9 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
     }
   }
 
-  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
+  def checkPendingSubscription(
+    utr: String
+  ): Action[AnyContent] = Action.async { implicit request =>
     buffer.findById(utr) map {
       case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
       case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))

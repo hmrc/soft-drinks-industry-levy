@@ -18,12 +18,11 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main._
-import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbSubRequest, arbAddress, arbSite}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbSubRequest
 
 class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 

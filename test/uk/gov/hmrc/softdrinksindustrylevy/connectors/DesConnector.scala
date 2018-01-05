@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
