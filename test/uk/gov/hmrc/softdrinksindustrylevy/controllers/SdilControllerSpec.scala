@@ -103,7 +103,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
       val sub = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get)
 
-      when(mockBuffer.findById(any(), any())(any())).thenReturn(Future.successful(Some(sub)))
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(sub)))
 
       val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
@@ -112,7 +112,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: NOT_FOUND for subscription not in pending queue" in {
-      when(mockBuffer.findById(any(), any())(any())).thenReturn(Future.successful(None))
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
 
       val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
 
