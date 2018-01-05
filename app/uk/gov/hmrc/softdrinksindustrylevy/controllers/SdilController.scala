@@ -68,12 +68,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
     }
   }
 
-  def checkPendingSubscription(
-    utr: String
-  ): Action[AnyContent] = Action.async { implicit request =>
-    buffer.findById(utr) map {
-      case Some(_) => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
-      case _ => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
+  def checkPendingSubscription(utr: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      buffer.find({"subscription.utr" -> utr}) map {
+        case Nil => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
+        case _ => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
+      }
     }
-  }
 }
