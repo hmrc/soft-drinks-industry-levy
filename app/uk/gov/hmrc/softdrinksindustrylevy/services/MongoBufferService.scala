@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 import play.api.libs.json.{Format, Json}
@@ -26,7 +27,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 class MongoBufferService @Inject()(implicit mc: MongoConnector)
   extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly)
 
-case class SubscriptionWrapper(_id: String, subscription: Subscription)
+case class SubscriptionWrapper(_id: String, subscription: Subscription, timestamp: LocalDateTime = LocalDateTime.now)
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
