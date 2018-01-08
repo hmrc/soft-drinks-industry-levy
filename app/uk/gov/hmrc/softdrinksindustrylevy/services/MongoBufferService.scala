@@ -25,7 +25,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
 class MongoBufferService @Inject()(implicit mc: MongoConnector)
-  extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly)
+  extends ReactiveRepository[SubscriptionWrapper, String](
+    "sdil-subscription",
+    mc.db,
+    SubscriptionWrapper.format,
+    implicitly)
 
 case class SubscriptionWrapper(_id: String, subscription: Subscription, timestamp: LocalDateTime = LocalDateTime.now)
 

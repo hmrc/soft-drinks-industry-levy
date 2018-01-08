@@ -36,12 +36,22 @@ class RosmConnector extends ServicesConfig {
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.withExtraHeaders(
       "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
+    ).copy(
+      authorization =
+        Some(Authorization(s"Bearer ${getConfString("des.token", "")}"))
+    )
   }
 
-  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] ={
-    http.POST[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)(implicitly, implicitly, addHeaders, implicitly)
+  def retrieveROSMDetails(
+    utr: String,
+    request: RosmRegisterRequest
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[RosmRegisterResponse]] = {
+    http.POST[RosmRegisterRequest, Option[RosmRegisterResponse]](
+      s"$desURL/$serviceURL/utr/$utr", request
+    )(implicitly, implicitly, addHeaders, implicitly)
   }
 
 }

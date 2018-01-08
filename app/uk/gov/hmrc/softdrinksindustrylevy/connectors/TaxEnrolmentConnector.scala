@@ -33,51 +33,67 @@ class TaxEnrolmentConnector extends ServicesConfig {
   val callbackUrl: String = getConfString("tax-enrolments.callback", "")
   val serviceName: String = getConfString("tax-enrolments.serviceName", "")
 
-  def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    WSHttp.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
-      Result => Result
-    } recover {
-      case e: UnauthorizedException => {
-        handleError(e, formBundleNumber)
-      }
-      case e: BadRequestException =>  {
-        handleError(e, formBundleNumber)
-      }
-    }
-  }
+  def subscribe(
+    safeId: String,
+    formBundleNumber: String
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[HttpResponse] = WSHttp.PUT[JsObject, HttpResponse](
+    subscribeUrl(formBundleNumber),
+    requestBody(safeId, formBundleNumber)
+  ) recover { case e: HttpException => handleError(e, formBundleNumber) }
 
-  def getSubscription(subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] = {
-    WSHttp.GET[TaxEnrolmentsSubscription](s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId")
-  }
+  def getSubscription(
+    subscriptionId: String
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[TaxEnrolmentsSubscription] = WSHttp.GET[TaxEnrolmentsSubscription](
+    s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/" +
+      subscriptionId)
 
-  private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
-    Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
+
+  private def handleError(
+    e: HttpException,
+    formBundleNumber: String
+  ): HttpResponse = {
+    Logger.error(
+      s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
     HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
   }
 
   private def subscribeUrl(subscriptionId: String) =
-    s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId/subscriber"
+    s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/" +
+  s"$subscriptionId/subscriber"
 
-  private def requestBody(safeId: String, formBundleNumber: String): JsObject = {
-    Json.obj(
-      "serviceName" -> serviceName,
-      "callback" -> s"$callbackUrl?subscriptionId=$formBundleNumber",
-      "etmpId" -> safeId
-    )
-  }
+  private def requestBody(
+    safeId: String,
+    formBundleNumber: String
+  ): JsObject = Json.obj(
+    "serviceName" -> serviceName,
+    "callback" -> s"$callbackUrl?subscriptionId=$formBundleNumber",
+    "etmpId" -> safeId
+  )
 
-  private def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
+  private def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
     hc.withExtraHeaders(
       "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
-  }
+    ).copy(
+      authorization =
+        Some(Authorization(s"Bearer ${getConfString("des.token", "")}"))
+    )
 
 }
 
-case class TaxEnrolmentsSubscription(identifiers: Seq[Identifier], etmpId: String)
+case class TaxEnrolmentsSubscription(
+  identifiers: Seq[Identifier],
+  etmpId: String
+)
 
 object TaxEnrolmentsSubscription {
-  implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]
+  implicit val format: Format[TaxEnrolmentsSubscription] =
+    Json.format[TaxEnrolmentsSubscription]
 }
 
 case class Identifier(key: String, value: String)

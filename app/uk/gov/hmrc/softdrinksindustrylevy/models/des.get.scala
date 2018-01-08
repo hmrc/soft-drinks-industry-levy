@@ -31,9 +31,12 @@ package object get {
 
     override def reads(json: JsValue): JsSuccess[Contact] = {
       JsSuccess(Contact(
-        name = Some((json \ "subscriptionDetails" \ "primaryContactName").as[String]),
-        positionInCompany = Some((json \ "subscriptionDetails" \ "primaryPositionInCompany").as[String]),
-        phoneNumber = (json \ "subscriptionDetails" \"primaryTelephone").as[String],
+        name = Some((json \ "subscriptionDetails" \
+          "primaryContactName").as[String]),
+        positionInCompany = Some((json \ "subscriptionDetails" \
+          "primaryPositionInCompany").as[String]),
+        phoneNumber = (json \ "subscriptionDetails" \
+          "primaryTelephone").as[String],
         email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
       ))
     }
@@ -101,20 +104,6 @@ package object get {
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
 
     override def writes(o: Subscription): JsValue = {
-
-      def writeSites(siteType: Int): List[JsObject] = {
-        val siteTradingName = o.orgName
-        val s = siteType match {
-          case 1 => o.productionSites
-          case 2 => o.warehouseSites
-        }
-        s.map {
-          x => JsObject(Map(
-              "tradingName" -> JsString(siteTradingName),
-              "siteAddress" -> addressFormat.writes(x.address)
-            ))
-        }
-      }
 
       def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
         sites map {

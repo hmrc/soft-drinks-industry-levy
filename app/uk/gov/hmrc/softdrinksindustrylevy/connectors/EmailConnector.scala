@@ -28,7 +28,14 @@ class EmailConnector extends ServicesConfig {
 
   val emailUrl: String = baseUrl("email")
 
-  def sendConfirmationEmail(email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendConfirmationEmail(
+    email: String,
+    sdilNumber: String
+  )(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
+
     val params = Json.obj(
       "to" -> Seq(email),
       "templateId" -> "sdil_registration_accepted",
@@ -38,6 +45,7 @@ class EmailConnector extends ServicesConfig {
       "force" -> false
     )
 
-    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
+    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params)
+      .map { _ => () }
   }
 }
