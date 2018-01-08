@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
+import uk.gov.hmrc.softdrinksindustrylevy.services.OverdueSubmissionsChecker
 
 @Singleton
 class ControllerConfiguration @Inject()(configuration: Configuration) extends ControllerConfig {
@@ -63,6 +64,7 @@ class GuiceModule(environment: Environment,
                   configuration: Configuration) extends AbstractModule {
   override def configure() = {
     bind(classOf[MongoConnector]).toInstance(MongoConnector(configuration.getString("mongodb.uri").get))
+    bind(classOf[OverdueSubmissionsChecker]).asEagerSingleton()
     bind(classOf[AuthConnector]).toProvider(classOf[AuthConnectorProvider])
   }
 }

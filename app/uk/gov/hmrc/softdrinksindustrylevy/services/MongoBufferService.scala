@@ -20,14 +20,31 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 import play.api.libs.json.{Format, Json}
+import reactivemongo.bson.{BSONDocument, BSONString}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import reactivemongo.play.json.ImplicitBSONHandlers._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class MongoBufferService @Inject()(implicit mc: MongoConnector)
-  extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly)
+  extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly) {
 
-case class SubscriptionWrapper(_id: String, subscription: Subscription, formBundleNumber: String, timestamp: LocalDateTime = LocalDateTime.now)
+  def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] = {
+    collection.findAndUpdate(
+      BSONDocument("_id" -> BSONString(id)),
+      BSONDocument("$set" -> BSONDocument("status" -> BSONString(newStatus)))
+    ) map { _ => () }
+  }
+
+  def findOverdue(olderThan: LocalDateTime)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
+    find("status" -> "PENDING", "timestamp" -> Json.obj("$lt" -> olderThan))
+  }
+}
+
+case class SubscriptionWrapper(_id: String, subscription: Subscription, formBundleNumber: String, timestamp: LocalDateTime = LocalDateTime.now,
+                               status: String = "PENDING")
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
