@@ -73,7 +73,7 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
       case Some(s) =>
         buffer.find("subscription.utr" -> utr) flatMap {
           case Nil => Future successful Ok(Json.toJson(s))
-          case l => taxEnrolmentConnector.getSubscription(l.head.formBundleNumber) flatMap {
+          case l :: _ => taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
             _ =>
               buffer.remove("subscription.utr" -> utr) map {
                 _ => Ok(Json.toJson(s))
