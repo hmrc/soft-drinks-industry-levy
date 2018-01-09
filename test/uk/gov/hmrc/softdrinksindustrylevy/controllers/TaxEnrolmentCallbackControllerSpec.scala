@@ -39,7 +39,7 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
         Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XXSDIL0009999")), "safe-id"))
       )
 
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get)
+      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -55,7 +55,7 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
         Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999")), "safe-id"))
       )
 
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get)
+      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))

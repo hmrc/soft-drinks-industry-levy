@@ -23,6 +23,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object controllers {
 
+  val formBundleNumber = "asdfasdfsadf"
+
   val invalidCreateSubscriptionRequest: JsValue = Json.parse(
 """{
   |"test": "bad"
