@@ -86,7 +86,7 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
         }
       case _ => buffer.find("subscription.utr" -> utr) map {
         case Nil => NotFound
-        case l => Accepted(Json.toJson(l.head.subscription))
+        case l :: _ => Accepted(Json.toJson(l.subscription))
       }
     }
   }
