@@ -18,14 +18,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import javax.inject.{Inject, Singleton}
 
-import com.google.inject.AbstractModule
+import com.google.inject.{AbstractModule, Provider}
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
 import play.api.{Application, Configuration, Environment}
+import uk.gov.hmrc.auth.core.{AuthConnector, PlayAuthConnector}
+import uk.gov.hmrc.http.CorePost
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
@@ -61,6 +63,15 @@ class GuiceModule(environment: Environment,
                   configuration: Configuration) extends AbstractModule {
   override def configure() = {
     bind(classOf[MongoConnector]).toInstance(MongoConnector(configuration.getString("mongodb.uri").get))
+    bind(classOf[AuthConnector]).toProvider(classOf[AuthConnectorProvider])
+  }
+}
+
+class AuthConnectorProvider extends Provider[AuthConnector] with ServicesConfig {
+  override def get(): AuthConnector = new PlayAuthConnector {
+    override def http: CorePost = WSHttp
+
+    override lazy val serviceUrl: String = baseUrl("auth")
   }
 }
 
