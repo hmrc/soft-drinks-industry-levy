@@ -98,28 +98,6 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
     }
 
-    "return Status: OK for subscription found in pending queue" in {
-      import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-
-      val sub = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
-
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(sub)))
-
-      val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
-
-      status(response) mustBe OK
-      contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_PENDING")
-    }
-
-    "return Status: NOT_FOUND for subscription not in pending queue" in {
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
-
-      val response = testSdilController.checkPendingSubscription("00002222")(FakeRequest())
-
-      status(response) mustBe NOT_FOUND
-      contentAsJson(response) mustBe Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND")
-    }
-
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))

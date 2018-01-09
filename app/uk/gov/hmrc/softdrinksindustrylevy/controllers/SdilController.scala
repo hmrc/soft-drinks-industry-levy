@@ -61,12 +61,12 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
     }
   }
 
-  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
-    buffer.find("subscription.utr" -> utr) map {
-      case Nil => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
-      case _ => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
-    }
-  }
+//  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
+//    buffer.find("subscription.utr" -> utr) map {
+//      case Nil => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
+//      case _ => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
+//    }
+//  }
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
@@ -86,7 +86,8 @@ class SdilController @Inject()(desSubmissionService: DesSubmissionService,
         }
       case _ => buffer.find("subscription.utr" -> utr) map {
         case Nil => NotFound
-        case l :: _ => Accepted(Json.toJson(l.subscription))
+        case l :: _ =>
+          Accepted(Json.toJson(l.subscription))
       }
     }
   }
