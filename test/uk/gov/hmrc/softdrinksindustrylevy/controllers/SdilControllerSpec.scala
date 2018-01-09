@@ -28,6 +28,9 @@ import play.api.test.Helpers._
 import reactivemongo.api.commands._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoBufferService, SubscriptionWrapper}
@@ -35,19 +38,23 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoB
 import scala.concurrent.Future
 
 class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
+
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
+  val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val testSdilController = new SdilController(
-    mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
+    mockAuthConnector, mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
   )
 
-  implicit val hc = new HeaderCarrier
+  implicit val hc: HeaderCarrier = new HeaderCarrier
 
   override def beforeEach() {
     reset(mockDesSubmissionService, mockDesConnector)
   }
+
+  when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
