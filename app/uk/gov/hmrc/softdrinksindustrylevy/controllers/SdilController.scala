@@ -23,6 +23,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.http.NotFoundException
+import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -34,39 +36,41 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class SdilController @Inject()(desSubmissionService: DesSubmissionService,
+class SdilController @Inject()(val authConnector: AuthConnector,
+                               desSubmissionService: DesSubmissionService,
                                taxEnrolmentConnector: TaxEnrolmentConnector,
                                desConnector: DesConnector,
-                               buffer: MongoBufferService) extends BaseController {
-  def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[Subscription](data =>
-      (for {
-        res <- desConnector.createSubscription(data, idType, idNumber)
-        _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
-        _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
-      } yield {
-        Ok(Json.toJson(res))
-      }) recover {
-        case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+                               buffer: MongoBufferService)
+  extends BaseController with AuthorisedFunctions {
+
+  def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
+    Action.async(parse.json) { implicit request =>
+      authorised(AuthProviders(GovernmentGateway)) {
+        withJsonBody[Subscription](data =>
+          (for {
+            res <- desConnector.createSubscription(data, idType, idNumber)
+            _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
+            _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
+          } yield {
+            Ok(Json.toJson(res))
+          }) recover {
+            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+          }
+        )
       }
-    )
+    }
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
     import json.internal._
 
-    desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-      case Some(s) => Ok(Json.toJson(s))
-      case None => NotFound
+    authorised(AuthProviders(GovernmentGateway)) {
+      desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+        case Some(s) => Ok(Json.toJson(s))
+        case None => NotFound
+      }
     }
   }
-
-//  def checkPendingSubscription(utr: String): Action[AnyContent] = Action.async { implicit request =>
-//    buffer.find("subscription.utr" -> utr) map {
-//      case Nil => NotFound(Json.obj("status" -> "SUBSCRIPTION_NOT_FOUND"))
-//      case _ => Ok(Json.obj("status" -> "SUBSCRIPTION_PENDING"))
-//    }
-//  }
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {

@@ -28,6 +28,9 @@ import play.api.test.Helpers._
 import reactivemongo.api.commands._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoBufferService, SubscriptionWrapper}
@@ -35,19 +38,23 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoB
 import scala.concurrent.Future
 
 class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
+
   val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
+  val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val testSdilController = new SdilController(
-    mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
+    mockAuthConnector, mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
   )
 
-  implicit val hc = new HeaderCarrier
+  implicit val hc: HeaderCarrier = new HeaderCarrier
 
   override def beforeEach() {
     reset(mockDesSubmissionService, mockDesConnector)
   }
+
+  when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
@@ -156,5 +163,62 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       status(response) mustBe OK
     }
 
+    "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful None)
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+
+      status(response) mustBe NOT_FOUND
+    }
+
+    "return Status: ACCEPTED for subscription for a sub that isn't in Des but is in the pending queue (Mongo)" in {
+      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful None)
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+
+      status(response) mustBe ACCEPTED
+    }
+
+    "return Status: OK for subscription for a sub that is in Des but is not in the pending queue (Mongo)" in {
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe OK
+    }
+
+    "return Status: OK for subscription for a sub that has an enrolment and is in the pending queue (Mongo)" +
+      " and delete from the queue" in {
+      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999")), "safe-id"))
+      )
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+      when(mockBuffer.remove(any())(any())).thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe OK
+    }
+
+    "return Status: OK for subscription for a sub that doesn't have an enrolment but is in the pending queue (Mongo)" +
+      " n.b. an error should be logged" in {
+      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        Future.failed(new NotFoundException("foo"))
+      )
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe OK
+    }
   }
 }

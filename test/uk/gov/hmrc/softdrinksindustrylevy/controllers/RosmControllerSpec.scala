@@ -26,6 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.http._
@@ -33,20 +34,24 @@ import uk.gov.hmrc.http._
 import scala.concurrent.Future
 
 class RosmControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach
-with ScalaFutures {
+  with ScalaFutures {
+
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
-  val mockRosmController = new RosmController(mockRosmConnector, mockTaxEnrolmentConnector)
+  val mockAuthConnector: AuthConnector = mock[AuthConnector]
+  val mockRosmController = new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector)
 
-  implicit val hc = new HeaderCarrier
+  implicit val hc: HeaderCarrier = new HeaderCarrier
 
   override def beforeEach() {
     reset(mockRosmConnector)
   }
 
+  when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+
   "RosmController" should {
     "return Status: OK Body: RosmRegisterResponse for successful valid Rosm lookup" in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse)))
 
       val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest())
@@ -57,15 +62,15 @@ with ScalaFutures {
     }
 
     "return Status: NOT_FOUND for unknown utr" in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any()))
         .thenReturn(Future.failed(new NotFoundException("foo")))
 
       val result = mockRosmController.lookupRegistration("2222222222")(FakeRequest())
-      whenReady(result.failed){e => e mustBe a[NotFoundException]}
+      whenReady(result.failed) { e => e mustBe a[NotFoundException] }
     }
 
     "return Status: NOT_FOUND for response with missing organisation " in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(),any()))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse.copy(organisation = None))))
 
       val response = mockRosmController.lookupRegistration("1111111111")(FakeRequest())
