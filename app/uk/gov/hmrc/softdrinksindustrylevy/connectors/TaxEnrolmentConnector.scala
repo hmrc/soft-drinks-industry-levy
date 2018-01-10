@@ -23,7 +23,6 @@ import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.microservice.bootstrap.ErrorResponse
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
