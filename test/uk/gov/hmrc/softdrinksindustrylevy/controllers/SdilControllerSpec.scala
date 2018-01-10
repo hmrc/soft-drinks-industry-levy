@@ -62,8 +62,10 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
       when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      when(mockBuffer.insert(any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
-      when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any())).thenReturn(Future.successful(HttpResponse(418)))
+      when(mockBuffer.insert(any())(any()))
+        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+      when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
+        .thenReturn(Future.successful(HttpResponse(418)))
 
       val response = testSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
@@ -116,7 +118,10 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     }
 
     "return Status: ACCEPTED for subscription for a sub that isn't in Des but is in the pending queue (Mongo)" in {
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
         .thenReturn(Future successful None)
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
@@ -136,14 +141,24 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
     "return Status: OK for subscription for a sub that has an enrolment and is in the pending queue (Mongo)" +
       " and delete from the queue" in {
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
-        Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999")), "safe-id"))
+        Future.successful(
+          TaxEnrolmentsSubscription(
+            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+            "safe-id",
+            "SUCCEEDED",
+            None)
+        )
       )
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any())(any())).thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+      when(mockBuffer.remove(any())(any()))
+        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe OK
@@ -151,7 +166,10 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
     "return Status: OK for subscription for a sub that doesn't have an enrolment but is in the pending queue (Mongo)" +
       " n.b. an error should be logged" in {
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.failed(new NotFoundException("foo"))
       )

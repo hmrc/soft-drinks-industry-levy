@@ -36,12 +36,22 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {
       when(mockTaxEnrolments.getSubscription(matching("123"))(any(), any())).thenReturn(
-        Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XXSDIL0009999")), "safe-id"))
+        Future
+          .successful(
+            TaxEnrolmentsSubscription(
+              Some(Seq(Identifier("SdilRegistrationNumber", "XXSDIL0009999"))),
+              "safe-id",
+              "SUCCEEDED",
+              None))
       )
 
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
-      when(mockBuffer.removeById(matching("safe-id"), any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+      when(mockBuffer.removeById(matching("safe-id"), any())(any()))
+        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
@@ -52,18 +62,28 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
 
     "send a notification email on success" in {
       when(mockTaxEnrolments.getSubscription(matching("123"))(any(), any())).thenReturn(
-        Future.successful(TaxEnrolmentsSubscription(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999")), "safe-id"))
+        Future.successful(
+          TaxEnrolmentsSubscription(
+            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+            "safe-id",
+            "SUCCEEDED",
+            None))
       )
 
-      val wrapper = SubscriptionWrapper("safe-id", Json.fromJson[Subscription](validCreateSubscriptionRequest).get, formBundleNumber)
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
-      when(mockBuffer.removeById(matching("safe-id"), any())(any())).thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+      when(mockBuffer.removeById(matching("safe-id"), any())(any()))
+        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
       status(res) shouldBe NO_CONTENT
-      verify(mockEmail, times(1)).sendConfirmationEmail(matching(wrapper.subscription.contact.email), matching("XZSDIL0009999"))(any(), any())
+      verify(mockEmail, times(1))
+        .sendConfirmationEmail(matching(wrapper.subscription.contact.email), matching("XZSDIL0009999"))(any(), any())
     }
   }
 

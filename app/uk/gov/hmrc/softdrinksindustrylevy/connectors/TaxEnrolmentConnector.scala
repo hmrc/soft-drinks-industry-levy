@@ -23,6 +23,7 @@ import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.microservice.bootstrap.ErrorResponse
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -74,7 +75,7 @@ class TaxEnrolmentConnector extends ServicesConfig {
 
 }
 
-case class TaxEnrolmentsSubscription(identifiers: Seq[Identifier], etmpId: String)
+case class TaxEnrolmentsSubscription(identifiers: Option[Seq[Identifier]], etmpId: String, state: String, errorResponse: Option[String])
 
 object TaxEnrolmentsSubscription {
   implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]
