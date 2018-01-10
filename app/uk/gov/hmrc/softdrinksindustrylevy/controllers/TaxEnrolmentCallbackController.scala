@@ -65,7 +65,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
   }
 
   private def getSdilNumber(taxEnrolmentsSubscription: TaxEnrolmentsSubscription): Option[String] = {
-    taxEnrolmentsSubscription.identifiers.collectFirst {
+    taxEnrolmentsSubscription.identifiers.getOrElse(Nil).collectFirst {
       case Identifier(_, value) if value.slice(2, 4) == "SD" => value
     }
   }

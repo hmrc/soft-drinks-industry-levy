@@ -74,7 +74,7 @@ class TaxEnrolmentConnector extends ServicesConfig {
 
 }
 
-case class TaxEnrolmentsSubscription(identifiers: Seq[Identifier], etmpId: String)
+case class TaxEnrolmentsSubscription(identifiers: Option[Seq[Identifier]], etmpId: String, state: String, errorResponse: Option[String])
 
 object TaxEnrolmentsSubscription {
   implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]
