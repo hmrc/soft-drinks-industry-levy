@@ -18,16 +18,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import play.api.libs.json.Json
 
-object RosmOrganisationType extends Enumeration {
-  val Unknown, Partnership, LLP = Value
-  val CorporateBody = Value("Corporate body")
-  val UnincorporatedBody = Value("Unincorporated body")
-  implicit val rosmOrganisationTypeFormat = EnumUtils.enumFormat(this)
-}
-
 case class OrganisationResponse(
-                                 organisationName: String,
-                                 organisationType: Option[RosmOrganisationType.Value]
+                                 organisationName: String
                                )
 
 object OrganisationResponse {

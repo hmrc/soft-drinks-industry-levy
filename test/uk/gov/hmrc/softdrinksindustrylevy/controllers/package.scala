@@ -183,7 +183,7 @@ package object controllers {
     false,
     false,
     false,
-    Some(OrganisationResponse("foo", Some(RosmOrganisationType.CorporateBody))),
+    Some(OrganisationResponse("foo")),
     RosmResponseAddress(
       "50",
       Some("The Lane"),
