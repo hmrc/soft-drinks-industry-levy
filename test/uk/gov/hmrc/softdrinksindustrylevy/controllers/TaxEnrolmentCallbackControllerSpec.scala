@@ -52,7 +52,7 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any()))
         .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
-      when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
@@ -77,13 +77,17 @@ class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any()))
         .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
-      when(mockEmail.sendConfirmationEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
       status(res) shouldBe NO_CONTENT
       verify(mockEmail, times(1))
-        .sendConfirmationEmail(matching(wrapper.subscription.contact.email), matching("XZSDIL0009999"))(any(), any())
+        .sendConfirmationEmail(
+          matching(wrapper.subscription.orgName),
+          matching(wrapper.subscription.contact.email),
+          matching("XZSDIL0009999")
+        )(any(), any())
     }
   }
 

@@ -24,20 +24,37 @@ import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailConnector extends ServicesConfig {
+
   val http: WSHttp = WSHttp
 
   val emailUrl: String = baseUrl("email")
 
-  def sendConfirmationEmail(email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
       "to" -> Seq(email),
       "templateId" -> "sdil_registration_accepted",
       "parameters" -> Json.obj(
-        "sdilNumber" -> sdilNumber
+        "sdilNumber" -> sdilNumber,
+        "companyName" -> orgName
+       ),
+      "force" -> false
+    )
+
+    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
+  }
+
+  // TODO find out if we need to verify...
+  def sendSubmissionReceivedEmail(email: String, orgName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+    val params = Json.obj(
+      "to" -> Seq(email),
+      "templateId" -> "sdil_registration_received",
+      "parameters" -> Json.obj(
+        "companyName" -> orgName
       ),
       "force" -> false
     )
 
     http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
   }
+
 }

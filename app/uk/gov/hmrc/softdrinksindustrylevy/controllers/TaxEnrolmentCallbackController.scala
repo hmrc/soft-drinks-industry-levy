@@ -42,7 +42,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
           teSub <- taxEnrolments.getSubscription(formBundleNumber)
           pendingSub <- buffer.findById(teSub.etmpId)
           _ <- buffer.removeById(teSub.etmpId)
-          _ <- sendNotificationEmail(pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
+          _ <- sendNotificationEmail(pendingSub.map(_.subscription.orgName),pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
         } yield {
           NoContent
         }
@@ -53,14 +53,14 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
     }
   }
 
-  private def sendNotificationEmail(email: Option[String], sdilNumber: Option[String], formBundleNumber: String)
+  private def sendNotificationEmail(orgName:  Option[String], email: Option[String], sdilNumber: Option[String], formBundleNumber: String)
                                    (implicit hc: HeaderCarrier): Future[Unit] = {
-    email match {
-      case Some(e) => sdilNumber match {
-        case Some(s) => emailConnector.sendConfirmationEmail(e, s)
+    (orgName, email) match {
+      case (Some(o),Some(e)) => sdilNumber match {
+        case Some(s) => emailConnector.sendConfirmationEmail(o, e, s)
         case None => Future.successful(Logger.error(s"Unable to send email for form bundle $formBundleNumber as enrolment is missing SDIL Number"))
       }
-      case None => Future.successful(Logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
+      case _ => Future.successful(Logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
     }
   }
 
