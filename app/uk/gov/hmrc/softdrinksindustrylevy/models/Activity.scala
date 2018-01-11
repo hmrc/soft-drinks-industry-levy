@@ -39,8 +39,8 @@ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPa
 case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) extends Activity {
   import ActivityType._
 
-  val lowerRate: Long = 18
-  val upperRate: Long = 24
+  val lowerRate: BigDecimal = BigDecimal("0.18")
+  val upperRate: BigDecimal = BigDecimal("0.24")
 
   val add: (Litres, Litres) = activity
     .filter(x => List(ProducedOwnBrand,CopackerAll,Imported).contains(x._1))
@@ -60,7 +60,14 @@ case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) exte
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
   override def taxEstimation: BigDecimal = {
-    BigDecimal(Math.min(sumOfLiableLitreRates._1 * lowerRate + sumOfLiableLitreRates._2 * upperRate / 100, 99999999999.99))
+    val estimate = sumOfLiableLitreRates._1 * lowerRate + sumOfLiableLitreRates._2 * upperRate
+    val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+
+    if (estimate > biggestNumberThatETMPCanHandle) {
+      biggestNumberThatETMPCanHandle
+    } else {
+      estimate
+    }
   }
 }
 
