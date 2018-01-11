@@ -27,10 +27,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoBufferService, SubscriptionWrapper}
@@ -44,8 +43,10 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
+  val mockEmailConnector: EmailConnector = mock[EmailConnector]
+
   val testSdilController = new SdilController(
-    mockAuthConnector, mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer
+    mockAuthConnector, mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer, mockEmailConnector
   )
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
@@ -55,6 +56,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+  when(mockEmailConnector.sendSubmissionReceivedEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
