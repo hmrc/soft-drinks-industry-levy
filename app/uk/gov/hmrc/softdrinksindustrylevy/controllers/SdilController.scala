@@ -22,9 +22,9 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
-import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
+import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -47,7 +47,8 @@ class SdilController @Inject()(val authConnector: AuthConnector,
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)) {
-        withJsonBody[Subscription](data =>
+        withJsonBody[Subscription](data => {
+          Logger.info("SDIL Subscription submission sent to DES")
           (for {
             res <- desConnector.createSubscription(data, idType, idNumber)
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
@@ -58,6 +59,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
           }) recover {
             case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
           }
+        }
         )
       }
     }
@@ -96,7 +98,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
   }
 
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {
-    case a if  a.state == "SUCCEEDED" =>
+    case a if a.state == "SUCCEEDED" =>
       buffer.remove("subscription.utr" -> utr) map {
         _ => Ok(Json.toJson(s))
       }
