@@ -193,7 +193,9 @@ package object create {
           "details" -> Json.obj(
             "producer" -> s.activity.isProducer,
             "producerDetails" -> Json.obj(
-              "produceMillionLitres" -> s.activity.isLarge,
+              // from the boundless wisdom of the ETMP schema:
+              // "produceMillionLitres.description": "Do you produce less than 1 million litres of leviable product per annum true ( Yes) false ( No)"
+              "produceMillionLitres" -> !s.activity.isLarge,
               "producerClassification" -> (if (s.activity.isLarge) "1" else "0"),
               "smallProducerExemption" -> !s.activity.isLarge
             ),
