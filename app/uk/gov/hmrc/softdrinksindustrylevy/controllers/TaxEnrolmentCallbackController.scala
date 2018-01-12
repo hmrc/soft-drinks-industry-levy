@@ -44,6 +44,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
           _ <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(pendingSub.map(_.subscription.orgName),pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
         } yield {
+          Logger.info("Tax-enrolments callback successful")
           NoContent
         }
       } else {
