@@ -33,10 +33,10 @@ class DesConnector extends ServicesConfig with OptionHttpReads {
   val serviceURL: String = "soft-drinks"
   val http = WSHttp
 
+  // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
-    def read(method: String, url: String, response: HttpResponse) = response.status match {
-      case 204 | 404 => None
-      case 503 => None
+    def read(method: String, url: String, response: HttpResponse): Option[P] = response.status match {
+      case 204 | 404 | 503 => None
       case _ => Some(rds.read(method, url, response))
     }
   }
