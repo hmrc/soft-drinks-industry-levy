@@ -12,3 +12,4 @@
 # Add all the application routes to the prod.routes file
 ->         /                       prod.Routes
 GET        /test-only/reset        @uk.gov.hmrc.softdrinksindustrylevy.controllers.TestingController.resetStore
+GET        /test-only/reset-pending      @uk.gov.hmrc.softdrinksindustrylevy.controllers.TestingController.resetDb
