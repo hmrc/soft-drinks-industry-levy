@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalacheck._
 import org.scalatest._
 import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbActivity, arbContact, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
 
-class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+
+class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
   import json.internal._
 
@@ -49,5 +55,22 @@ class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
     forAll { r: Subscription =>
       Json.toJson(r).as[Subscription] should be (r)
     }
+  }
+
+
+}
+
+class DesConnectorSpecBehavioural extends PlaySpec with GuiceOneAppPerSuite {
+
+  implicit val hc: HeaderCarrier = new HeaderCarrier
+
+  "DesConnector " should {
+    "return : None for unknown UTR " in {
+      val des = new DesConnector
+      val response: Future[Option[Subscription]] = des.retrieveSubscriptionDetails("utr", "11111111119")
+
+      response.map { x => x mustBe None }
+    }
+
   }
 }

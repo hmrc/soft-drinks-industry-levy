@@ -58,9 +58,8 @@ class DesConnector extends ServicesConfig with OptionHttpReads {
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import json.des.get._
 
-    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec) recover {
-      case _: ServiceUnavailableException => None
-    }
+    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+
   }
 
 }
