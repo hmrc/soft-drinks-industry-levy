@@ -151,6 +151,18 @@ package object create {
         }
       }
 
+      def producerDetails: Map[String, JsValue] = {
+        s.activity match {
+          case a: InternalActivity if a.activity.contains(ActivityType.Copackee) && s.activity.isVoluntaryRegistration =>
+            Map(
+              "smallProducerExemption" -> JsBoolean(true),
+              "useContractPacker" -> JsBoolean(true),
+              "voluntarilyRegistered" -> JsBoolean(true)
+            )
+          case _ => Map.empty
+        }
+      }
+
       def siteList(sites: List[Site], isWarehouse: Boolean, offset: Int = 0): List[JsObject] = {
         sites.zipWithIndex map {
           case (site, idx) =>
@@ -190,18 +202,25 @@ package object create {
             "email" -> s.contact.email,
             "positionInCompany" -> s.contact.positionInCompany
           ),
-          "details" -> Json.obj(
-            "producer" -> s.activity.isProducer,
-            "producerDetails" -> Json.obj(
+          "details" -> (if (s.activity.isProducer) {
+            Json.obj(
+              "producer" -> s.activity.isProducer,
+              "importer" -> s.activity.isImporter,
+              "contractPacker" -> s.activity.isContractPacker,
               // from the boundless wisdom of the ETMP schema:
               // "produceMillionLitres.description": "Do you produce less than 1 million litres of leviable product per annum true ( Yes) false ( No)"
-              "produceMillionLitres" -> !s.activity.isLarge,
-              "producerClassification" -> (if (s.activity.isLarge) "1" else "0"),
-              "smallProducerExemption" -> !s.activity.isLarge
-            ),
-            "importer" -> s.activity.isImporter,
-            "contractPacker" -> s.activity.isContractPacker
-          ),
+              "producerDetails" -> Json.obj(
+                "produceMillionLitres" -> !s.activity.isLarge,
+                "producerClassification" -> (if (s.activity.isLarge) "1" else "0")
+              ).++(JsObject(producerDetails))
+            )
+          } else {
+            Json.obj(
+              "producer" -> s.activity.isProducer,
+              "importer" -> s.activity.isImporter,
+              "contractPacker" -> s.activity.isContractPacker
+            )
+          }),
           "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> s.activity.taxEstimation,
           "taxObligationStartDate" -> s.liabilityDate.toString
