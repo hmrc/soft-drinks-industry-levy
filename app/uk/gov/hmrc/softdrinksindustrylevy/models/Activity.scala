@@ -73,7 +73,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands]) exten
 
   def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
 
-  def isLarge: Boolean = totalLiableLitres._1 + totalLiableLitres._2 >= 1000000
+  def isLarge: Boolean = totalProduced.forall { case (l, h) => l + h >= 1000000 }
 
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
 

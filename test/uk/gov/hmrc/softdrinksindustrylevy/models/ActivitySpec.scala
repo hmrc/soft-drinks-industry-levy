@@ -18,8 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalatestplus.play.PlaySpec
 import ActivityType._
+import org.scalatest.AppendedClues
 
-class ActivitySpec extends PlaySpec {
+class ActivitySpec extends PlaySpec with AppendedClues {
 
   "Internal Activity" should {
     "not include litres copacked for small producers in the total copacked values" in {
@@ -68,6 +69,24 @@ class ActivitySpec extends PlaySpec {
       )
 
       activity.taxEstimation mustBe BigDecimal("99999999999.99")
+    }
+
+    "flag the user as a small producer if the total copacked by others or produced is less than 1,000,000" in {
+      val activity = internalActivity(
+        produced = (499999, 500000),
+        copackedAll = (999999, 999999)
+      )
+
+      activity.isLarge mustBe false withClue "Incorrectly marked as large producer"
+    }
+
+    "flag the user as a large producer if the total copacked by others and produced is greater than or equal to 1,000,000" in {
+      val activity = internalActivity(
+        produced = (999999, 999999),
+        copackedAll = (499999, 500000)
+      )
+
+      activity.isLarge mustBe true withClue "Incorrectly marked as small producer"
     }
   }
 
