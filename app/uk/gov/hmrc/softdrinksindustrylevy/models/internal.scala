@@ -76,8 +76,8 @@ package object internal {
     )
   }
 
-  val subReads = Json.reads[Subscription]
-  val subWrites = new Writes[Subscription] {
+  val subReads: Reads[Subscription] = Json.reads[Subscription]
+  val subWrites: Writes[Subscription] = new Writes[Subscription] {
     override def writes(o: Subscription): JsValue = Json.obj(
       "utr" -> o.utr,
       "orgName" -> o.orgName,

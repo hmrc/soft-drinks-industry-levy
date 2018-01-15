@@ -36,31 +36,51 @@ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPa
   // not optional
 }
 
-case class InternalActivity (activity: Map[ActivityType.Value, LitreBands]) extends Activity {
+case class InternalActivity(activity: Map[ActivityType.Value, LitreBands]) extends Activity {
+
   import ActivityType._
 
-  val lowerRate: BigDecimal = BigDecimal("0.18")
-  val upperRate: BigDecimal = BigDecimal("0.24")
+  private lazy val lowerRate: BigDecimal = BigDecimal("0.18")
+  private lazy val upperRate: BigDecimal = BigDecimal("0.24")
 
-  val add: (Litres, Litres) = activity
-    .filter(x => List(ProducedOwnBrand,CopackerAll,Imported).contains(x._1))
-    .values.foldLeft((0L,0L)){
-      case ((aL,aH), (pL,pH)) => (aL+pL, aH+pH)
+  def totalLiableLitres: LitreBands = {
+    val zero: LitreBands = (0, 0)
+
+    Seq(
+      totalProduced.getOrElse(zero),
+      activity.getOrElse(Imported, zero),
+      liableCopacked.getOrElse(zero)
+    ).foldLeft(zero) { case ((accLow, accHigh), (low, high)) => (accLow + low, accHigh + high) }
+  }
+
+  lazy val totalProduced: Option[LitreBands] = {
+    (activity.get(ProducedOwnBrand), activity.get(Copackee)) match {
+      case (Some(pob), Some(c)) => Some((pob._1 + c._1, pob._2 + c._2))
+      case (Some(pob), None) => Some(pob)
+      case (None, Some(c)) => Some(c)
+      case (None, None) => None
     }
+  }
 
-  def sumOfLiableLitreRates: LitreBands = {
-    activity.get(CopackerSmall).fold(add) {
-      subtract => (add._1 - subtract._1, add._2 - subtract._2)
+  lazy val liableCopacked: Option[LitreBands] = {
+    (activity.get(CopackerAll), activity.get(CopackerSmall)) match {
+      case (Some(ca), Some(cs)) => Some((ca._1 - cs._1, ca._2 - cs._2))
+      case (Some(ca), None) => Some(ca)
+      case (None, Some(cs)) => Some(cs)
+      case (None, None) => None
     }
   }
 
   def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
-  def isLarge: Boolean = sumOfLiableLitreRates._1 + sumOfLiableLitreRates._2 >= 1000000
+
+  def isLarge: Boolean = totalLiableLitres._1 + totalLiableLitres._2 >= 1000000
+
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
+
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
   override def taxEstimation: BigDecimal = {
-    val estimate = sumOfLiableLitreRates._1 * lowerRate + sumOfLiableLitreRates._2 * upperRate
+    val estimate = totalLiableLitres._1 * lowerRate + totalLiableLitres._2 * upperRate
     val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
 
     if (estimate > biggestNumberThatETMPCanHandle) {

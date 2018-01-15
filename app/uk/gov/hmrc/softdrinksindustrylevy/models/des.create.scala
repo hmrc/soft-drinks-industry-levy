@@ -137,9 +137,9 @@ package object create {
         import ActivityType._
         s.activity match {
           case a: InternalActivity => Map(
-            "Produced" -> a.activity.get(ProducedOwnBrand), // TODO check logic
+            "Produced" -> a.totalProduced,
             "Imported" -> a.activity.get(Imported),
-            "Packaged" -> a.activity.get(CopackerAll) // TODO check logic
+            "Packaged" -> a.liableCopacked
           ) flatMap {
             case (k, Some((l, h))) => Map(
               s"litres${k}UKLower" -> JsNumber(l),
@@ -202,7 +202,7 @@ package object create {
             "importer" -> s.activity.isImporter,
             "contractPacker" -> s.activity.isContractPacker
           ),
-          "activityQuestions" -> activityMap, // TODO here...
+          "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> s.activity.taxEstimation,
           "taxObligationStartDate" -> s.liabilityDate.toString
         ),
