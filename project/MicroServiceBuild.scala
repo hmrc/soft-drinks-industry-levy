@@ -28,7 +28,8 @@ object MicroServiceBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "stub-data-generator" % "0.4.0" % scope,
     "com.fasterxml.jackson.core" % "jackson-core" % "2.8.1" % scope,
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.1" % scope,
-    "com.github.fge" % "json-schema-validator" % "2.2.6" % scope
+    "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
+    "com.github.tomakehurst" % "wiremock" % "2.14.0" % scope
   )
 
 }
