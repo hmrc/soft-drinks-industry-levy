@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import javax.inject.Singleton
 
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
@@ -27,11 +27,19 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector extends ServicesConfig {
+class DesConnector extends ServicesConfig with OptionHttpReads {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
   val http = WSHttp
+
+  implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
+    def read(method: String, url: String, response: HttpResponse) = response.status match {
+      case 204 | 404 => None
+      case 503 => None
+      case _ => Some(rds.read(method, url, response))
+    }
+  }
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.withExtraHeaders(
@@ -50,6 +58,9 @@ class DesConnector extends ServicesConfig {
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import json.des.get._
 
-    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec) recover {
+      case _: ServiceUnavailableException => None
+    }
   }
+
 }
