@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalacheck._
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbAddress, arbActivity, arbContact, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
 
-class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+
+class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
   import json.internal._
 
@@ -50,4 +56,45 @@ class DesConnectorSpec extends FunSuite with PropertyChecks with Matchers {
       Json.toJson(r).as[Subscription] should be (r)
     }
   }
+
+}
+
+class DesConnectorSpecBehavioural extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
+  import com.github.tomakehurst.wiremock.client.WireMock._
+  import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
+  import play.api.test.Helpers.SERVICE_UNAVAILABLE
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.Future
+
+  val Port = 8080
+  val Host = "localhost"
+  val wireMockServer = new WireMockServer(wireMockConfig().port(Port))
+
+  implicit val hc: HeaderCarrier = new HeaderCarrier
+
+  override def beforeEach() {
+    wireMockServer.start()
+    WireMock.configureFor(Host, Port)
+  }
+
+  override def afterEach {
+    wireMockServer.stop()
+  }
+
+  object TestDesConnector extends DesConnector {
+    override val desURL: String = s"http://$Host:$Port"
+  }
+
+  "DesConnector" should {
+    "return : None when DES returns 503 for an unknown UTR" in {
+
+      stubFor(get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
+        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+
+      val response: Future[Option[Subscription]] = TestDesConnector.retrieveSubscriptionDetails("utr", "11111111119")
+      response.map { x => x mustBe None }
+    }
+  }
+
 }
