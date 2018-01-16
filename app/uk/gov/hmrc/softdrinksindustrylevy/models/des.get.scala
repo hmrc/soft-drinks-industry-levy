@@ -161,15 +161,15 @@ package object get {
 
     override def reads(json: JsValue): JsResult[Subscription] = {
       def activityType = {
-        val smallProducer = (json \ "subscriptionDetails" \ "smallProducer").as[Boolean]
-        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").as[Boolean]
-        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").as[Boolean]
-        val importer = (json \ "subscriptionDetails" \ "importer").as[Boolean]
+        val smallProducer = (json \ "subscriptionDetails" \ "smallProducer").asOpt[Boolean]
+        val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").asOpt[Boolean]
+        val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").asOpt[Boolean]
+        val importer = (json \ "subscriptionDetails" \ "importer").asOpt[Boolean]
         RetrievedActivity(
-          isProducer = smallProducer || largeProducer,
-          isLarge = largeProducer,
-          isContractPacker = contractPacker,
-          isImporter = importer
+          isProducer = smallProducer.contains(true) || largeProducer.contains(true),
+          isLarge = largeProducer.contains(true),
+          isContractPacker = contractPacker.contains(true),
+          isImporter = importer.contains(true)
         )
       }
       def getSites(siteType: String): List[Site] =
