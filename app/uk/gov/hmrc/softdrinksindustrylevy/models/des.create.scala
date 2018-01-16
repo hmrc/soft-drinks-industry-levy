@@ -207,9 +207,9 @@ package object create {
               "producer" -> s.activity.isProducer,
               "importer" -> s.activity.isImporter,
               "contractPacker" -> s.activity.isContractPacker,
-              // from the boundless wisdom of the ETMP schema:
-              // "produceMillionLitres.description": "Do you produce less than 1 million litres of leviable product per annum true ( Yes) false ( No)"
               "producerDetails" -> Json.obj(
+                // from the boundless wisdom of the ETMP schema:
+                // "produceMillionLitres.description": "Do you produce less than 1 million litres of leviable product per annum true ( Yes) false ( No)"
                 "produceMillionLitres" -> !s.activity.isLarge,
                 "producerClassification" -> (if (s.activity.isLarge) "1" else "0")
               ).++(JsObject(producerDetails))
@@ -225,7 +225,8 @@ package object create {
           "estimatedTaxAmount" -> s.activity.taxEstimation,
           "taxObligationStartDate" -> s.liabilityDate.toString
         ),
-        "sites" -> (siteList(s.warehouseSites, true) ++ siteList(s.productionSites, false, s.warehouseSites.size))
+        "sites" -> (siteList(s.warehouseSites, isWarehouse = true) ++
+          siteList(s.productionSites, isWarehouse = false, offset = s.warehouseSites.size))
       )
     }
   }
