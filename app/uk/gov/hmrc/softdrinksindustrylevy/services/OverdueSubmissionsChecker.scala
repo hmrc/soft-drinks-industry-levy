@@ -25,7 +25,7 @@ import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.lock.{ExclusiveTimePeriodLock, LockMongoRepository, LockRepository}
 import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DeskproConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,7 +34,7 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
                                           val mongoConnector: MongoConnector,
                                           val actorSystem: ActorSystem,
                                           mongoBufferService: MongoBufferService,
-                                          deskpro: DeskproConnector)
+                                          contactFrontend: ContactFrontendConnector)
                                          (implicit val ec: ExecutionContext) extends LockedJobScheduler {
 
   override val jobName: String = "overdueSubmissions"
@@ -64,7 +64,7 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
     for {
       subs <- mongoBufferService.findOverdue(LocalDateTime.now.minusHours(overduePeriod.getStandardHours))
       _ <- handleOverdueSubmissions(subs)
-    } yield Logger.info(s"job $jobName complete; rerunning in ${jobStartDelay.toMinutes} minutes")
+    } yield Logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
   }
 
   private def handleOverdueSubmissions(submissions: Seq[SubscriptionWrapper])(implicit ec: ExecutionContext) = {
@@ -73,12 +73,7 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
         for {
           _ <- mongoBufferService.updateStatus(sub._id, "OVERDUE")
           _ = Logger.warn(s"Overdue submission (safe id ${sub._id}; submitted at ${sub.timestamp})")
-          _ <- deskpro.raiseTicket(
-            subject = "Overdue pending SDIL submission",
-            message = s"Overdue pending SDIL submission\n\nSafe id: ${sub._id}\nSubmitted at ${sub.timestamp}",
-            email = sub.subscription.contact.email,
-            utr = sub.subscription.utr
-          )(HeaderCarrier(), ec)
+          _ <- contactFrontend.raiseTicket(sub.subscription, sub.formBundleNumber, sub.timestamp)(HeaderCarrier(), ec)
         } yield ()
       }
     )
