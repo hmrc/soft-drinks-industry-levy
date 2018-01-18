@@ -39,6 +39,10 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
 
   override val jobName: String = "overdueSubmissions"
 
+  override val jobEnabled: Boolean = {
+    config.getBoolean(s"$jobName.enabled").getOrElse(throw new RuntimeException("Missing config setting overdueSubmissions.enabled"))
+  }
+
   override val jobStartDelay: FiniteDuration = {
     config.getMilliseconds("overdueSubmissions.startDelay") match {
       case Some(delay) => FiniteDuration(delay, MILLISECONDS)
@@ -79,8 +83,12 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
     )
   }
 
-  Logger.info(s"scheduling $jobName to start running in ${jobStartDelay.toMinutes} minutes")
-  start()
+  if (jobEnabled) {
+    Logger.info(s"scheduling $jobName to start running in ${jobStartDelay.toMinutes} minutes")
+    start()
+  } else {
+    Logger.info(s"Job $jobName disabled")
+  }
 }
 
 trait LockedJobScheduler {
@@ -90,6 +98,7 @@ trait LockedJobScheduler {
   val jobName: String
   val jobInterval: Duration
   val jobStartDelay: FiniteDuration
+  val jobEnabled: Boolean
 
   val lock: ExclusiveTimePeriodLock = new ExclusiveTimePeriodLock {
     override def holdLockFor: Duration = jobInterval
