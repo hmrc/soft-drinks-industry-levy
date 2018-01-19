@@ -19,13 +19,14 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.{JsObject, _}
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
@@ -55,6 +56,10 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
           } yield {
+            MicroserviceAuditConnector.sendExtendedEvent(
+              new SdilSubscriptionEvent(request.uri,
+                buildSubscriptionAudit(data, res.formBundleNumber)))
+
             Ok(Json.toJson(res))
           }) recover {
             case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
@@ -106,6 +111,22 @@ class SdilController @Inject()(val authConnector: AuthConnector,
       Logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
       Future successful Ok(Json.toJson(s))
     case _ => Future successful Ok(Json.toJson(s))
+  }
+
+  private def buildSubscriptionAudit(subscription: Subscription, formBundleNumber: String): JsValue = {
+    implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
+      def writes(activity: Activity): JsValue = JsObject(
+        activity match {
+          case InternalActivity(a) => a.map { case (t, lb) =>
+            t.toString.replace(t.toString.head, t.toString.head.toLower) -> litreBandsFormat.writes(lb)
+          }
+        }
+      )
+    }
+
+    implicit val subscriptionFormat: Writes[Subscription] = Json.writes[Subscription]
+
+    Json.obj("subscriptionId" -> formBundleNumber).++(Json.toJson(subscription).as[JsObject])
   }
 
 }
