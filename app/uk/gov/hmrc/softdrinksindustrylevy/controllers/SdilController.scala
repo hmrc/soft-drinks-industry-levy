@@ -77,22 +77,24 @@ class SdilController @Inject()(val authConnector: AuthConnector,
   }
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
-    desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
-      case Some(s) =>
-        buffer.find("subscription.utr" -> utr) flatMap {
-          case Nil => Future successful Ok(Json.toJson(s))
-          case l :: _ => taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
-            checkEnrolmentState(utr, s)
-          } recover {
-            case e: NotFoundException =>
-              Logger.error(e.message) // TODO log to deskpro pending decision
-              Ok(Json.toJson(s))
+    authorised(AuthProviders(GovernmentGateway)) {
+      desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
+        case Some(s) =>
+          buffer.find("subscription.utr" -> utr) flatMap {
+            case Nil => Future successful Ok(Json.toJson(s))
+            case l :: _ => taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
+              checkEnrolmentState(utr, s)
+            } recover {
+              case e: NotFoundException =>
+                Logger.error(e.message) // TODO log to deskpro pending decision
+                Ok(Json.toJson(s))
+            }
           }
+        case _ => buffer.find("subscription.utr" -> utr) map {
+          case Nil => NotFound
+          case l :: _ =>
+            Accepted(Json.toJson(l.subscription))
         }
-      case _ => buffer.find("subscription.utr" -> utr) map {
-        case Nil => NotFound
-        case l :: _ =>
-          Accepted(Json.toJson(l.subscription))
       }
     }
   }
