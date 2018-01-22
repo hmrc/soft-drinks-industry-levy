@@ -139,8 +139,8 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     implicit val subWrites: Writes[Subscription] = new Writes[Subscription] {
       def writes(s: Subscription): JsValue = Json.obj(
         "utr" -> s.utr,
-        "orgName" -> toName(s.orgName),
-        "orgType" -> s.orgType,
+        "orgName" -> s.orgName,
+        "orgType" -> toName(s.orgType.getOrElse("0")),
         "address" -> s.address,
         "litreageActivity" -> activityMapFormat.writes(s.activity),
         "liabilityDate" -> s.liabilityDate,

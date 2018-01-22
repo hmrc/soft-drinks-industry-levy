@@ -36,6 +36,7 @@ package object controllers {
     """{
       |  "utr" : "7674173564",
       |  "orgName" : "fgdiukxkTwyrorGj",
+      |  "orgType" : "1",
       |  "address" : {
       |    "postCode" : "ZE13 8JG",
       |    "lines" : ["137 Crooked S Road", "Lerwick"]
