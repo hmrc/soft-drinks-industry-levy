@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -31,7 +32,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, Subscrip
 
 import scala.concurrent.Future
 
-class TaxEnrolmentCallbackControllerSpec extends UnitSpec with MockitoSugar {
+class TaxEnrolmentCallbackControllerSpec extends UnitSpec with GuiceOneAppPerSuite with MockitoSugar {
 
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {

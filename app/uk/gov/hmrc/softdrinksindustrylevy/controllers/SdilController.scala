@@ -26,6 +26,7 @@ import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
@@ -54,10 +55,23 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
+            _ <- MicroserviceAuditConnector.sendExtendedEvent(
+              new SdilSubscriptionEvent(request.uri,
+                buildSubscriptionAudit(data, Some(res.formBundleNumber), "PENDING")))
           } yield {
             Ok(Json.toJson(res))
-          }) recover {
-            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+          }) recoverWith {
+            case e: LastError if e.code.contains(11000) => MicroserviceAuditConnector.sendExtendedEvent(
+              new SdilSubscriptionEvent(request.uri,
+                buildSubscriptionAudit(data, None, "ERROR"))) map {
+              _ => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+            }
+            case e =>
+              MicroserviceAuditConnector.sendExtendedEvent(
+                new SdilSubscriptionEvent(request.uri,
+                  buildSubscriptionAudit(data, None, "ERROR"))) map {
+                throw e
+              }
           }
         }
         )
@@ -108,6 +122,38 @@ class SdilController @Inject()(val authConnector: AuthConnector,
       Logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
       Future successful Ok(Json.toJson(s))
     case _ => Future successful Ok(Json.toJson(s))
+  }
+
+  private def buildSubscriptionAudit(subscription: Subscription, formBundleNumber: Option[String], outcome: String): JsValue = {
+    import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+    implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
+      def writes(activity: Activity): JsValue = JsObject(
+        activity match {
+          case InternalActivity(a) => a.map { case (t, lb) =>
+            (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
+          }
+        }
+      )
+    }
+
+    implicit val subWrites: Writes[Subscription] = new Writes[Subscription] {
+      def writes(s: Subscription): JsValue = Json.obj(
+        "utr" -> s.utr,
+        "orgName" -> s.orgName,
+        "orgType" -> s.orgType,
+        "address" -> s.address,
+        "litreageActivity" -> activityMapFormat.writes(s.activity),
+        "liabilityDate" -> s.liabilityDate,
+        "productionSites" -> s.productionSites,
+        "warehouseSites" -> s.warehouseSites,
+        "contact" -> s.contact
+      )
+    }
+
+    Json.obj(
+      "subscriptionId" -> formBundleNumber,
+      "outcome" -> outcome
+    ).++(Json.toJson(subscription)(subWrites).as[JsObject])
   }
 
 }
