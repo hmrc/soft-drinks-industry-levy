@@ -58,11 +58,21 @@ class SdilController @Inject()(val authConnector: AuthConnector,
           } yield {
             MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, res.formBundleNumber))) map {
+                buildSubscriptionAudit(data, Some(res.formBundleNumber), "SUCCESS"))) map {
               _ => Ok(Json.toJson(res))
             }
-          }) recover {
-            case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+          }) recoverWith {
+            case e: LastError if e.code.contains(11000) => MicroserviceAuditConnector.sendExtendedEvent(
+              new SdilSubscriptionEvent(request.uri,
+                buildSubscriptionAudit(data, None, "ERROR"))) map {
+              _ => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
+            }
+            case e =>
+              MicroserviceAuditConnector.sendExtendedEvent(
+                new SdilSubscriptionEvent(request.uri,
+                  buildSubscriptionAudit(data, None, "ERROR"))) map {
+                throw e
+              }
           }
         }
         )
@@ -113,7 +123,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     case _ => Future successful Ok(Json.toJson(s))
   }
 
-  private def buildSubscriptionAudit(subscription: Subscription, formBundleNumber: String): JsValue = {
+  private def buildSubscriptionAudit(subscription: Subscription, formBundleNumber: Option[String], outcome: String): JsValue = {
     import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
       def writes(activity: Activity): JsValue = JsObject(
@@ -139,7 +149,10 @@ class SdilController @Inject()(val authConnector: AuthConnector,
       )
     }
 
-    Json.obj("subscriptionId" -> formBundleNumber).++(Json.toJson(subscription)(subWrites).as[JsObject])
+    Json.obj(
+      "subscriptionId" -> formBundleNumber,
+      "outcome" -> outcome
+    ).++(Json.toJson(subscription)(subWrites).as[JsObject])
   }
 
 }
