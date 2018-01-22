@@ -55,12 +55,11 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
-          } yield {
-            MicroserviceAuditConnector.sendExtendedEvent(
+            _ <- MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, Some(res.formBundleNumber), "SUCCESS"))) map {
-              _ => Ok(Json.toJson(res))
-            }
+                buildSubscriptionAudit(data, Some(res.formBundleNumber), "PENDING")))
+          } yield {
+            Ok(Json.toJson(res))
           }) recoverWith {
             case e: LastError if e.code.contains(11000) => MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
@@ -129,7 +128,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
       def writes(activity: Activity): JsValue = JsObject(
         activity match {
           case InternalActivity(a) => a.map { case (t, lb) =>
-            t.toString.replace(t.toString.head, t.toString.head.toLower) -> litreBandsFormat.writes(lb)
+            (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
           }
         }
       )

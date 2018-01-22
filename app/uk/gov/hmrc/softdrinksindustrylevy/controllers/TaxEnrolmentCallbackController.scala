@@ -22,7 +22,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.config.inject.DefaultServicesConfig
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
@@ -35,9 +35,8 @@ import scala.concurrent.Future
 @Singleton
 class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
                                                emailConnector: EmailConnector,
-                                               taxEnrolments: TaxEnrolmentConnector,
-                                               config: DefaultServicesConfig)
-  extends BaseController {
+                                               taxEnrolments: TaxEnrolmentConnector)
+  extends BaseController with ServicesConfig {
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>
@@ -47,12 +46,11 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
           pendingSub <- buffer.findById(teSub.etmpId)
           _ <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(pendingSub.map(_.subscription.orgName), pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
+          _ <- MicroserviceAuditConnector.sendExtendedEvent(
+            buildAuditEvent(body, request.uri, formBundleNumber))
         } yield {
           Logger.info("Tax-enrolments callback successful")
-          MicroserviceAuditConnector.sendExtendedEvent(
-            buildAuditEvent(body, request.uri, formBundleNumber)) map {
-            _ => NoContent
-          }
+          NoContent
         }
       } else {
         Logger.error(s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
@@ -82,7 +80,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
     implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
-      "url" -> s"${config.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId"
+      "url" -> s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId"
     ).++(Json.toJson(callback).as[JsObject])
     new TaxEnrolmentEvent(callback.state, path, detailJson)
   }
