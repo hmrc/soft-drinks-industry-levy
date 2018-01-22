@@ -58,8 +58,9 @@ class SdilController @Inject()(val authConnector: AuthConnector,
           } yield {
             MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, res.formBundleNumber)))
-            Ok(Json.toJson(res))
+                buildSubscriptionAudit(data, res.formBundleNumber))) map {
+              _ => Ok(Json.toJson(res))
+            }
           }) recover {
             case e: LastError if e.code.contains(11000) => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
           }
