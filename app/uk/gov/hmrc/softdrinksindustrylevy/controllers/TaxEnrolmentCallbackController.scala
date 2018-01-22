@@ -77,7 +77,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
     }
   }
 
-  private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String) = {
+  private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String)(implicit hc: HeaderCarrier) = {
     implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "url" -> s"${config.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId"
