@@ -54,7 +54,10 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
         }
       } else {
         Logger.error(s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
-        Future.successful(NoContent)
+        MicroserviceAuditConnector.sendExtendedEvent(
+          buildAuditEvent(body, request.uri, formBundleNumber)) map {
+          _ => NoContent
+        }
       }
     }
   }

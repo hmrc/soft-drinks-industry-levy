@@ -34,7 +34,7 @@ abstract class SDILBaseEvent(auditType: String,
 
 class SdilSubscriptionEvent(path: String, detailJson: JsValue)(implicit hc: HeaderCarrier)
   extends SDILBaseEvent(
-    auditType = "SDILApplicationSubmitted",
+    auditType = "SDILRegistrationSubmitted",
     transactionName = "Soft Drinks Industry Levy subscription submitted",
     path = path,
     detailJson = detailJson)

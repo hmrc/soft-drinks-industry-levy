@@ -57,7 +57,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
             _ <- MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, Some(res.formBundleNumber), "PENDING")))
+                buildSubscriptionAudit(data, Some(res.formBundleNumber), "SUCCESS")))
           } yield {
             Ok(Json.toJson(res))
           }) recoverWith {
@@ -139,7 +139,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     implicit val subWrites: Writes[Subscription] = new Writes[Subscription] {
       def writes(s: Subscription): JsValue = Json.obj(
         "utr" -> s.utr,
-        "orgName" -> s.orgName,
+        "orgName" -> toName(s.orgName),
         "orgType" -> s.orgType,
         "address" -> s.address,
         "litreageActivity" -> activityMapFormat.writes(s.activity),
@@ -154,6 +154,15 @@ class SdilController @Inject()(val authConnector: AuthConnector,
       "subscriptionId" -> formBundleNumber,
       "outcome" -> outcome
     ).++(Json.toJson(subscription)(subWrites).as[JsObject])
+  }
+
+  private def toName: String => String = {
+    case "1" => "Sole Trader"
+    case "2" => "Limited Liability Partnership"
+    case "3" => "Partnership"
+    case "5" => "Unincorporated Body"
+    case "7" => "Limited Company"
+    case other => throw new IllegalArgumentException(s"Unexpected orgType $other")
   }
 
 }
