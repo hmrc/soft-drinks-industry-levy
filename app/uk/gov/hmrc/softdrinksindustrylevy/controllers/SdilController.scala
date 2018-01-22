@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
-import play.api.libs.json.{JsObject, _}
+import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
