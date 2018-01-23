@@ -121,6 +121,8 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     case a if a.state == "ERROR" =>
       Logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
       Future successful Ok(Json.toJson(s))
+    case a if a.state == "PENDING" =>
+      Future successful Accepted(Json.toJson(s))
     case _ => Future successful Ok(Json.toJson(s))
   }
 
