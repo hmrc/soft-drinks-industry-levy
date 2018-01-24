@@ -38,7 +38,7 @@ class RosmController @Inject()(val authConnector: AuthConnector,
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
-        case r if r.flatMap(_.organisation).isDefined => Ok(Json.toJson(r))
+        case r if r.exists(res => res.organisation.isDefined || res.individual.isDefined) => Ok(Json.toJson(r))
         case _ => NotFound
       }
     }

@@ -46,8 +46,7 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
           pendingSub <- buffer.findById(teSub.etmpId)
           _ <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(pendingSub.map(_.subscription.orgName), pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
-          _ <- MicroserviceAuditConnector.sendExtendedEvent(
-            buildAuditEvent(body, request.uri, formBundleNumber))
+          _ <- MicroserviceAuditConnector.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
         } yield {
           Logger.info("Tax-enrolments callback successful")
           NoContent

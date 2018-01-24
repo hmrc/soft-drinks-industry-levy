@@ -40,7 +40,7 @@ class RosmConnector extends ServicesConfig {
   }
 
   def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] ={
+                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] = {
     http.POST[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)(implicitly, implicitly, addHeaders, implicitly)
   }
 
