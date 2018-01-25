@@ -32,13 +32,12 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{DesSubmissionService, MongoBufferService, SubscriptionWrapper}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 
 import scala.concurrent.Future
 
 class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
 
-  val mockDesSubmissionService: DesSubmissionService = mock[DesSubmissionService]
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
@@ -46,13 +45,13 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
 
   val testSdilController = new SdilController(
-    mockAuthConnector, mockDesSubmissionService, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer, mockEmailConnector
+    mockAuthConnector, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer, mockEmailConnector
   )
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
   override def beforeEach() {
-    reset(mockDesSubmissionService, mockDesConnector)
+    reset(mockDesConnector)
   }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -79,7 +78,12 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
 
     "return Status: BAD_REQUEST for invalid request" in {
       val result = testSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest()
-        .withBody(invalidCreateSubscriptionRequest))
+        .withBody(Json.parse(
+          """{
+            |"test": "bad"
+            |}
+          """.stripMargin
+        )))
 
       status(result) mustBe BAD_REQUEST
     }

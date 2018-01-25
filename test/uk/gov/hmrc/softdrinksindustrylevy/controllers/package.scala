@@ -25,13 +25,6 @@ package object controllers {
 
   val formBundleNumber = "asdfasdfsadf"
 
-  val invalidCreateSubscriptionRequest: JsValue = Json.parse(
-"""{
-  |"test": "bad"
-  |}
-""".stripMargin
-  )
-
   val validCreateSubscriptionRequest: JsValue = Json.parse(
     """{
       |  "utr" : "7674173564",
@@ -91,92 +84,6 @@ package object controllers {
     LocalDateTime.parse("2017-11-13T13:48:21.81"),
     "814892841918"
   )
-
-  val validSubscriptionRetrieve: JsValue =  Json.parse(
-    """{
-      |	"safeId": "XA0000000000000",
-      |	"nino": "AA000000A",
-      |	"utr": "9876543210",
-      |	"subscriptionDetails": {
-      |		"sdilRegistrationNumber": "a",
-      |		"taxObligationStartDate": "2017-07-29",
-      |		"taxObligationEndDate": "2017-10-29",
-      |		"tradingName": "a",
-      |		"voluntaryRegistration": false,
-      |		"smallProducer": false,
-      |		"largeProducer": true,
-      |		"contractPacker": true,
-      |		"importer": true,
-      |		"primaryContactName": "Joe Bloggs",
-      |		"primaryPositionInCompany": "Master Brewer",
-      |		"primaryTelephone": "01234567890",
-      |		"primaryMobile": "07777666555",
-      |		"primaryEmail": "a@bcd.com"
-      |	},
-      |	"businessAddress": {
-      |		"line1": "1 Here",
-      |		"line2": "There",
-      |		"line3": "Everywhere",
-      |		"postCode": "SK12AB",
-      |		"country": "AD"
-      |	},
-      |	"businessContact": {
-      |		"telephone": "01234567890",
-      |		"mobile": "07777666444",
-      |		"email": "a@bcd.com"
-      |	},
-      |	"correspondenceAddress": {
-      |		"line1": "2 Here",
-      |		"line2": "There",
-      |		"line3": "Overthere",
-      |		"line4": "Near Here",
-      |		"postCode": "A00AA",
-      |		"country": "AD"
-      |	},
-      |	"correspondenceContact": {
-      |		"telephone": "09876543210",
-      |		"mobile": "07654321098",
-      |		"fax": "09876543211",
-      |		"email": "a@bcd.com"
-      |	},
-      |	"sites": [
-      |		{
-      |			"siteReference": "a",
-      |			"tradingName": "Some Company",
-      |			"siteAddress": {
-      |				"line1": "1 Some Street",
-      |				"line2": "Some Town",
-      |				"line3": "Some District",
-      |				"line4": "Shropshire",
-      |				"postCode": "TF37RT",
-      |				"country": "GB"
-      |			},
-      |			"siteContact": {
-      |				"telephone": "01234567890",
-      |				"mobile": "07891234567",
-      |				"fax": "01234567891",
-      |				"email": "a@bcd.com"
-      |			},
-      |			"siteType": "1"
-      |		},
-      |		{
-      |			"siteReference": "b",
-      |			"tradingName": "Some Other Company",
-      |			"siteAddress": {
-      |				"line1": "1 Some Street",
-      |				"line2": "Some Town",
-      |				"postCode": "TF34NT",
-      |				"country": "GB"
-      |			},
-      |			"siteContact": {
-      |				"telephone": "01234567890",
-      |				"mobile": "07891234567",
-      |				"email": "a@bcd.com"
-      |			},
-      |			"siteType": "2"
-      |		}
-      |	]
-      |}""".stripMargin)
 
   val validRosmRegisterResponse = RosmRegisterResponse(
     "fvp41Gm51rswaeiysohztnrqjdfz7cOnael38omHvuH2ye519ncqiXruPqjBbwewiKdmthpsphun",
