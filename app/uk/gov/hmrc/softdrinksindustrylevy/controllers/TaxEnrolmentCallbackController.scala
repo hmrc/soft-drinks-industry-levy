@@ -82,8 +82,13 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
     implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
-      "url" -> s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId"
-    ).++(Json.toJson(callback).as[JsObject])
+      "url" -> s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",
+      "outcome" -> (callback.state match {
+        case "SUCCEEDED" => "SUCCESS"
+        case _ => "ERROR"
+      }),
+      "errorResponse" -> callback.errorResponse
+    )
     new TaxEnrolmentEvent(callback.state, path, detailJson)
   }
 

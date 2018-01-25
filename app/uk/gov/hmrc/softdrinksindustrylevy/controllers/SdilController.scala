@@ -23,8 +23,9 @@ import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.retrieve.Retrievals.internalId
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
-import uk.gov.hmrc.http.NotFoundException
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
@@ -46,7 +47,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
     Action.async(parse.json) { implicit request =>
-      authorised(AuthProviders(GovernmentGateway)) {
+      authorised(AuthProviders(GovernmentGateway)).retrieve(internalId) { providerId =>
         withJsonBody[Subscription](data => {
           Logger.info("SDIL Subscription submission sent to DES")
           (for {
@@ -56,19 +57,19 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
             _ <- MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, Some(res.formBundleNumber), "SUCCESS")))
+                buildSubscriptionAudit(data, providerId, Some(res.formBundleNumber), "SUCCESS")))
           } yield {
             Ok(Json.toJson(res))
           }) recoverWith {
             case e: LastError if e.code.contains(11000) => MicroserviceAuditConnector.sendExtendedEvent(
               new SdilSubscriptionEvent(request.uri,
-                buildSubscriptionAudit(data, None, "ERROR"))) map {
+                buildSubscriptionAudit(data, providerId, None, "ERROR"))) map {
               _ => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
             }
             case e =>
               MicroserviceAuditConnector.sendExtendedEvent(
                 new SdilSubscriptionEvent(request.uri,
-                  buildSubscriptionAudit(data, None, "ERROR"))) map {
+                  buildSubscriptionAudit(data, providerId, None, "ERROR"))) map {
                 throw e
               }
           }
@@ -125,7 +126,9 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     case _ => Future successful Ok(Json.toJson(s))
   }
 
-  private def buildSubscriptionAudit(subscription: Subscription, formBundleNumber: Option[String], outcome: String): JsValue = {
+  private def buildSubscriptionAudit(subscription: Subscription, providerId: Option[String],
+                                     formBundleNumber: Option[String], outcome: String)
+                                    (implicit hc: HeaderCarrier): JsValue = {
     import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
       def writes(activity: Activity): JsValue = JsObject(
@@ -153,7 +156,9 @@ class SdilController @Inject()(val authConnector: AuthConnector,
 
     Json.obj(
       "subscriptionId" -> formBundleNumber,
-      "outcome" -> outcome
+      "outcome" -> outcome,
+      "authProviderId" -> providerId,
+      "deviceId" -> hc.deviceID
     ).++(Json.toJson(subscription)(subWrites).as[JsObject])
   }
 
