@@ -26,6 +26,15 @@ object OrganisationResponse {
   implicit val organisationResponseFormat = Json.format[OrganisationResponse]
 }
 
+case class IndividualResponse(firstName: String, lastName: String)
+
+object IndividualResponse {
+
+  import play.api.libs.json._
+
+  implicit val format: Format[IndividualResponse] = Json.format[IndividualResponse]
+}
+
 case class RosmResponseAddress(
                                 addressLine1: String,
                                 addressLine2: Option[String],
@@ -56,7 +65,8 @@ case class RosmRegisterResponse(
                                  isEditable: Boolean,
                                  isAnAgent: Boolean,
                                  isAnIndividual: Boolean,
-                                 organisation: Option[OrganisationResponse] = None,
+                                 organisation: Option[OrganisationResponse],
+                                 individual: Option[IndividualResponse],
                                  address: RosmResponseAddress,
                                  contactDetails: RosmResponseContactDetails
                                )
