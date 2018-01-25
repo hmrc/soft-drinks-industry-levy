@@ -19,14 +19,12 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import javax.inject.Inject
 
 import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.TestConnector
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.Future
 
 class TestingController @Inject()(testConnector: TestConnector,
                                   buffer: MongoBufferService)

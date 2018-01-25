@@ -38,7 +38,6 @@ import scala.concurrent.Future
 
 @Singleton
 class SdilController @Inject()(val authConnector: AuthConnector,
-                               desSubmissionService: DesSubmissionService,
                                taxEnrolmentConnector: TaxEnrolmentConnector,
                                desConnector: DesConnector,
                                buffer: MongoBufferService,
