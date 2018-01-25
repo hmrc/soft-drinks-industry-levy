@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime, ZoneId}
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -32,7 +32,7 @@ class ContactFrontendConnector extends ServicesConfig {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String, timestamp: LocalDateTime)
+  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
 
     val headers = hc.withExtraHeaders("Csrf-Token" -> "nocheck")
@@ -52,7 +52,7 @@ class ContactFrontendConnector extends ServicesConfig {
              |
              |Safe Id: $safeId
              |
-             |Submitted at: $timestamp
+             |Submitted at: ${LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault)}
            """.stripMargin
         ),
       "isJavascript" -> Seq("false"),
