@@ -21,6 +21,7 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -33,6 +34,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, Subscrip
 import scala.concurrent.Future
 
 class TaxEnrolmentCallbackControllerSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
+
+  override def fakeApplication() = new GuiceApplicationBuilder().configure("auditing.enabled" -> "false").build()
 
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {
