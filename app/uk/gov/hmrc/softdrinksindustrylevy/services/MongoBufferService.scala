@@ -16,17 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.LocalDateTime
+import java.time.{Instant, LocalDateTime}
 import javax.inject.Inject
 
-import play.api.libs.json.{Format, Json}
-import reactivemongo.bson.{BSONDocument, BSONString}
+import play.api.libs.json._
+import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
+import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import reactivemongo.play.json.ImplicitBSONHandlers._
 
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 class MongoBufferService @Inject()(implicit mc: MongoConnector)
   extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly) {
@@ -41,13 +44,34 @@ class MongoBufferService @Inject()(implicit mc: MongoConnector)
   def findOverdue(olderThan: LocalDateTime)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
     find("status" -> "PENDING", "timestamp" -> Json.obj("$lt" -> olderThan))
   }
+
+  override def indexes: Seq[Index] = Seq(
+    Index(
+      key = Seq("timestamp" -> IndexType.Ascending),
+      name = Some("ttl"),
+      options = BSONDocument("expireAfterSeconds" -> (30 days).toSeconds)
+    )
+  )
 }
 
-case class SubscriptionWrapper(_id: String, subscription: Subscription, formBundleNumber: String, timestamp: LocalDateTime = LocalDateTime.now,
+case class SubscriptionWrapper(_id: String,
+                               subscription: Subscription,
+                               formBundleNumber: String,
+                               timestamp: Instant = Instant.now,
                                status: String = "PENDING")
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
+
+  implicit val instantFormat: Format[Instant] = new Format[Instant] {
+    override def writes(o: Instant): JsValue = {
+      Json.toJson(BSONDateTime(o.toEpochMilli))
+    }
+
+    override def reads(json: JsValue): JsResult[Instant] = {
+      json.validate[BSONDateTime] map { dt => Instant.ofEpochMilli(dt.value) }
+    }
+  }
 
   val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]
 }
