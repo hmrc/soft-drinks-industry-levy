@@ -161,6 +161,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
     Json.obj(
       "subscriptionId" -> formBundleNumber,
       "outcome" -> outcome,
+      "authProviderType" -> "GovernmentGateway",
       "authProviderId" -> providerId,
       "deviceId" -> hc.deviceID
     ).++(Json.toJson(subscription)(subWrites).as[JsObject])
