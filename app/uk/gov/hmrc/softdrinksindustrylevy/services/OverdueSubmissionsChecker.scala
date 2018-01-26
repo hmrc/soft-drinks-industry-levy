@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.LocalDateTime
+import java.time.temporal.{ChronoUnit, TemporalUnit}
+import java.time.{Instant, LocalDateTime}
 import javax.inject.Inject
 
 import akka.actor.{ActorSystem, Cancellable}
@@ -40,33 +41,33 @@ class OverdueSubmissionsChecker @Inject()(val config: Configuration,
   override val jobName: String = "overdueSubmissions"
 
   override val jobEnabled: Boolean = {
-    config.getBoolean(s"$jobName.enabled").getOrElse(throw new RuntimeException("Missing config setting overdueSubmissions.enabled"))
+    config.getBoolean(s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
   }
 
   override val jobStartDelay: FiniteDuration = {
-    config.getMilliseconds("overdueSubmissions.startDelay") match {
-      case Some(delay) => FiniteDuration(delay, MILLISECONDS)
-      case None => throw new RuntimeException("Missing config setting overdueSubmissions.startDelay")
+    config.getLong(s"$jobName.startDelayMinutes") match {
+      case Some(d) => FiniteDuration(d, MINUTES)
+      case None => throw MissingConfiguration(s"$jobName.startDelayMinutes")
     }
   }
 
   val overduePeriod: Duration = {
-    config.getMilliseconds("overdueSubmissions.overduePeriod") match {
-      case Some(millis) => Duration.millis(millis)
-      case None => throw new RuntimeException("Missing config setting overdueSubmissions.overduePeriod")
+    config.getLong(s"$jobName.overduePeriodMinutes") match {
+      case Some(d) => Duration.standardMinutes(d)
+      case None => throw MissingConfiguration(s"$jobName.overduePeriodMinutes")
     }
   }
 
   override val jobInterval: Duration = {
-    config.getMilliseconds("overdueSubmissions.jobInterval") match {
-      case Some(millis) => Duration.millis(millis)
-      case None => throw new RuntimeException("Missing config setting overdueSubmissions.jobInterval")
+    config.getLong(s"$jobName.jobIntervalMinutes") match {
+      case Some(d) => Duration.standardMinutes(d)
+      case None => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }
   }
 
   override protected def runJob()(implicit ec: ExecutionContext): Future[Unit] = {
     for {
-      subs <- mongoBufferService.findOverdue(LocalDateTime.now.minusHours(overduePeriod.getStandardHours))
+      subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.getStandardMinutes, ChronoUnit.MINUTES))
       _ <- handleOverdueSubmissions(subs)
     } yield Logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
   }
@@ -126,3 +127,5 @@ trait LockedJobScheduler {
     )(run())
   }
 }
+
+case class MissingConfiguration(key: String) extends RuntimeException(s"Missing configuration value $key")

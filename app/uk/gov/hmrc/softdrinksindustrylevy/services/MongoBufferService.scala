@@ -41,8 +41,9 @@ class MongoBufferService @Inject()(implicit mc: MongoConnector)
     ) map { _ => () }
   }
 
-  def findOverdue(olderThan: LocalDateTime)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
-    find("status" -> "PENDING", "timestamp" -> Json.obj("$lt" -> olderThan))
+  def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
+    val bsonDt = BSONDateTime(createdBefore.toEpochMilli)
+    find("status" -> "PENDING", "timestamp" -> Json.obj("$lt" -> bsonDt))
   }
 
   override def indexes: Seq[Index] = Seq(
