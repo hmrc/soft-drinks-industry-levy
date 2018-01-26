@@ -24,9 +24,9 @@ object MicroService extends Build {
   lazy val test = Seq(
     "org.scalatest" %% "scalatest" % "2.2.6" % "test",
     "com.typesafe.play" %% "play-test" % PlayVersion.current % "test",
-    "org.mockito" % "mockito-core" % "2.7.22" % "test",
+    "org.mockito" % "mockito-core" % "2.13.0" % "test",
     "org.pegdown" % "pegdown" % "1.6.0" % "test",
-    "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % "test",
+    "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % "test",
     "org.scalacheck" %% "scalacheck" % "1.13.4" % "test",
     "uk.gov.hmrc" %% "stub-data-generator" % "0.4.0" % "test",
     "com.fasterxml.jackson.core" % "jackson-core" % "2.8.1" % "test",
