@@ -22,12 +22,13 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import reactivemongo.api.commands._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.auth.core.retrieve.EmptyRetrieval
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -37,6 +38,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, Subscrip
 import scala.concurrent.Future
 
 class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
+
+  override def fakeApplication() = new GuiceApplicationBuilder().configure("auditing.enabled" -> "false").build()
 
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
@@ -54,9 +57,11 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
     reset(mockDesConnector)
   }
 
-  when(mockAuthConnector.authorise[Option[String]](any(), any())(any(), any()))
-    .thenReturn(Future.successful(Some("")))
+  when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
+    .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
+
   when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any())).thenReturn(Future.successful(()))
+
   when(mockEmailConnector.sendSubmissionReceivedEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
   "SdilController" should {
