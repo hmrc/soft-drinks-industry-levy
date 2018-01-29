@@ -111,13 +111,19 @@ trait LockedJobScheduler {
 
   protected def runJob()(implicit ec: ExecutionContext): Future[Unit]
 
-  private def run()(implicit ec: ExecutionContext): Future[Option[Unit]] = lock.tryToAcquireOrRenewLock {
+  private def run()(implicit ec: ExecutionContext): Future[Unit] = {
     Logger.info(s"Running job $jobName")
-    runJob() recoverWith {
-      case e: Exception =>
-        Logger.error(s"Job $jobName failed", e)
-        Future.failed(e)
+
+    lock.tryToAcquireOrRenewLock {
+      runJob() recoverWith {
+        case e: Exception =>
+          Logger.error(s"Job $jobName failed", e)
+          Future.failed(e)
+      }
+    } map {
+      _.getOrElse(Logger.info(s"Unable to run job $jobName"))
     }
+    
   }
 
   def start()(implicit ec: ExecutionContext): Cancellable = {
