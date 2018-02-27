@@ -1,0 +1,48 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsContact
+@(contact: VariationsContact, key: String)(implicit  messages: Messages)
+
+<h2>@Messages(s"variations.$key.title")</h2>
+
+@contact.addressLine1.map { address1 =>
+    <p>@Messages("variations.address-line-1")</p>
+}
+
+@contact.addressLine2.map { address2 =>
+    <p>@Messages("variations.address-line-2")</p>
+}
+
+@contact.addressLine3.map { address3 =>
+    <p>@Messages("variations.address-line-3")</p>
+}
+
+@contact.addressLine4.map { address4 =>
+    <p>@Messages("variations.address-line-4")</p>
+}
+
+@contact.postCode.map { pc =>
+    <p>@Messages("variations.post-code")</p>
+}
+
+@contact.telephoneNumber.map { phoneNumber =>
+    <p>@Messages("variations.telephone-number")</p>
+}
+
+@contact.emailAddress.map { eMail =>
+    <p>@Messages("variations.email-address")</p>
+}

@@ -1,0 +1,27 @@
+variations.title=Variations
+
+variations.organisation-details=Organisation Details
+variations.trading-name=Trading Name
+
+variations.business-contact.title=Business Contact Details
+variations.correspondence-contact.title=Correspondence Contact Details
+variations.address-line-1=Address line 1
+variations.address-line-2=Address line 2
+variations.address-line-3=Address line 3
+variations.address-line-4=Address line 4
+variations.post-code=Postcode
+variations.telephone-number=Telephone Number
+variations.email-address=Email Address
+
+variations.primary-person-contact.title=Primary Person Contact Details
+variations.primary-person-contact.name=Name
+variations.primary-person-contact.postion=Position
+
+variations.voluntary-registration.actor-status=Voluntary Registration
+variations.small-producer.actor-status=Small Producer
+variations.large.actor-status=Large Producer
+variations.contract-packer.actor-status=Contract Packer
+variations.importer.actor-status=Importer
+
+variations.yes=Yes
+variations.no=No

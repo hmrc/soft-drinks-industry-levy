@@ -1,0 +1,80 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
+@(variationsRequest: VariationsRequest)(implicit request: Request[_], messages: Messages)
+
+@variationsRequest.tradingName.map { name =>
+    <h2>@Messages("variations.organisation-details")</h2>
+    <p>@Messages("variations.trading-name")</p>
+}
+
+@variationsRequest.businessContact.map { contact =>
+    @contact_details_helper(contact, "business-contact")
+}
+
+@variationsRequest.correspondenceContact.map { contact =>
+    @contact_details_helper(contact, "correspondence-contact")
+}
+
+@variationsRequest.primaryPersonContact.map { contact =>
+    <h2>@Messages("variations.primary-person-contact.title")</h2>
+
+@contact.name.map { name =>
+    <p>@Messages("variations.primary-person-contact.name")</p>
+}
+
+@contact.position.map { position =>
+    <p>@Messages("variations.primary-person-contact.postion")</p>
+}
+
+@contact.telephoneNumber.map { phoneNumber =>
+    <p>@Messages("variations.telephone-number")</p>
+}
+
+@contact.emailAddress.map { email =>
+    <p>@Messages("variations.email-address")</p>
+    }
+}
+
+@variationsRequest.sdilActivity.map { sdilActivity =>
+    <h2>@Messages("variations.sdil-activity.title")</h2>
+    @*TODO Do not use Activty as it uses mandatory booleans *@
+@sdilActivity.produceLessThanOneMillionLitres.map { produceLessThanOneMillionLitres =>
+    @if(produceLessThanOneMillionLitres) {
+        <p>@Messages("variations.yes")</p>
+    } else {
+        <p>@Messages("variations.no")</p>
+    }
+}
+
+@sdilActivity.smallProducerExemption.map { smallProducerExemption =>
+    @if(smallProducerExemption) {
+        <p>@Messages("variations.yes")</p>
+    } else {
+        <p>@Messages("variations.no")</p>
+    }
+}
+
+@sdilActivity.usesContractPacker.map { usesContractPacker =>
+    @if(usesContractPacker) {
+        <p>@Messages("variations.yes")</p>
+    } else {
+        <p>@Messages("variations.no")</p>
+    }
+}
+}
+
