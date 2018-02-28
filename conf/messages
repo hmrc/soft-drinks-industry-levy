@@ -17,11 +17,21 @@ variations.primary-person-contact.title=Primary Person Contact Details
 variations.primary-person-contact.name=Name
 variations.primary-person-contact.postion=Position
 
-variations.voluntary-registration.actor-status=Voluntary Registration
-variations.small-producer.actor-status=Small Producer
-variations.large.actor-status=Large Producer
-variations.contract-packer.actor-status=Contract Packer
-variations.importer.actor-status=Importer
+variations.sdil-activity.title=Soft Drinks Industry Levy Details
+variations.ProducedOwnBrand=Producer
+variations.Imported=Importer
+variations.CopackerAll=Contract Packer
 
 variations.yes=Yes
 variations.no=No
+variations.reason-for-amendment=Reason For Amendment
+
+variations.litres-ProducedOwnBrand=Litres Produced in UK each year
+variations.litres-Imported=Litres Imported into UK each year
+variations.litres-CopackerAll=Litres Packaged in UK each year
+variations.higher-rate=Higher Rate
+variations.lower-rate=Lower Rate
+variations-estimated-tax-amount=Estimated amount of tax in the next 12 months
+variations-tax-start-date=Tax Obligation Start Date
+variations-declaration-title=Declaration
+variations-declaration-authorised-official=Authorised Official

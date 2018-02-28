@@ -14,11 +14,15 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.softdrinksindustrylevy.models.SdilActivity
-@(key: Boolean)(implicit  messages: Messages)
+@import uk.gov.hmrc.softdrinksindustrylevy.models._
+@import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType
 
-@if(key) {
-    <p>@Messages("variations.yes")</p>
-} else {
-    <p>@Messages("variations.no")</p>
+@(internalActivity: Map[ActivityType.Value, LitreBands], activityType: ActivityType.Value)(implicit messages: Messages)
+
+@internalActivity.get(activityType).map { p =>
+    <p>@Messages(s"variations.${activityType}")</p>
+    <p>@Messages(s"variations.litres-${activityType}")</p>
+    <p>@Messages("variations.higher-rate") @p._2</p>
+    <p>@Messages("variations.lower-rate") @p._1</p>
 }
+

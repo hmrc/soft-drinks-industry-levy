@@ -70,7 +70,7 @@ case class SdilActivity(
                          //If true then the user does not have to file returns
                          usesContractPacker: Option[Boolean],
                          voluntarilyRegistered: Option[Boolean],
-                         reasonForAmmendment: Option[String],
+                         reasonForAmendment: Option[String],
                          estimatedTaxAmount: Option[BigDecimal],
                          taxObligationStartDate: Option[LocalDate]
                        )

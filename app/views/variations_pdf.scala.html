@@ -14,7 +14,9 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
+@import uk.gov.hmrc.softdrinksindustrylevy.models._
+@import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
+
 @(variationsRequest: VariationsRequest)(implicit request: Request[_], messages: Messages)
 
 @variationsRequest.tradingName.map { name =>
@@ -47,34 +49,49 @@
 
 @contact.emailAddress.map { email =>
     <p>@Messages("variations.email-address")</p>
-    }
+}
 }
 
 @variationsRequest.sdilActivity.map { sdilActivity =>
     <h2>@Messages("variations.sdil-activity.title")</h2>
     @*TODO Do not use Activty as it uses mandatory booleans *@
-@sdilActivity.produceLessThanOneMillionLitres.map { produceLessThanOneMillionLitres =>
-    @if(produceLessThanOneMillionLitres) {
-        <p>@Messages("variations.yes")</p>
-    } else {
-        <p>@Messages("variations.no")</p>
+@sdilActivity.activity match {
+    case InternalActivity(a) => {
+        @internal_activity_helper(a, ProducedOwnBrand)
+        @internal_activity_helper(a, Imported)
+        @internal_activity_helper(a, CopackerAll)
     }
+}
+
+@sdilActivity.produceLessThanOneMillionLitres.map { produceLessThanOneMillionLitres =>
+    @yes_or_no_helper(produceLessThanOneMillionLitres)
 }
 
 @sdilActivity.smallProducerExemption.map { smallProducerExemption =>
-    @if(smallProducerExemption) {
-        <p>@Messages("variations.yes")</p>
-    } else {
-        <p>@Messages("variations.no")</p>
-    }
+    @yes_or_no_helper(smallProducerExemption)
 }
 
 @sdilActivity.usesContractPacker.map { usesContractPacker =>
-    @if(usesContractPacker) {
-        <p>@Messages("variations.yes")</p>
-    } else {
-        <p>@Messages("variations.no")</p>
-    }
+    @yes_or_no_helper(usesContractPacker)
+}
+
+@sdilActivity.voluntarilyRegistered.map { voluntarilyRegistered =>
+    @yes_or_no_helper(voluntarilyRegistered)
+}
+
+@sdilActivity.reasonForAmendment.map { reasonForAmendment =>
+    <p>@Messages("variations.reason-for-amendment")</p>
+}
+
+@sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
+    <p>@Messages("variations-estimated-tax-amount")</p>
+}
+
+@sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
+    <p>@Messages("variations-tax-start-date")</p>
 }
 }
+    <h2>@Messages("variations-declaration-title")</h2>
+    <p>@Messages("variations-declaration-authorised-official")</p>
+
 
