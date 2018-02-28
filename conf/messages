@@ -33,12 +33,19 @@ variations.use-contract-packer=Do you use a Contract Packer?
 variations.voluntarily-registered=Customer is accepted as voluntarily reqistered?
 variations.reason-for-amendment=Reason For Amendment
 
+variations.activity-dependent-questions.title=SDIL Activity dependent questions
 variations.litres-ProducedOwnBrand=Litres Produced in UK each year
 variations.litres-Imported=Litres Imported into UK each year
 variations.litres-CopackerAll=Litres Packaged in UK each year
 variations.higher-rate=Higher Rate
 variations.lower-rate=Lower Rate
-variations-estimated-tax-amount=Estimated amount of tax in the next 12 months
-variations-tax-start-date=Tax Obligation Start Date
-variations-declaration-title=Declaration
-variations-declaration-authorised-official=Authorised Official
+
+variations.further-questions.title=SDIL Further Questions
+variations.estimated-tax-amount=Estimated amount of tax in the next 12 months
+
+variations.return-periods.title=Return Periods
+variations.tax-start-date=Tax Obligation Start Date
+
+variations.declaration.title=Declaration
+variations.declaration.status=Status
+variations.declaration.authorised-official=Authorised Official

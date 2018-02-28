@@ -116,16 +116,29 @@
 }
 
 @sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
-    <p>@Messages("variations-estimated-tax-amount")</p>
+    <h2>
+        @Messages("variations.further-questions.title")
+    </h2>
+@table_helper {
+    @table_row_helper("estimated-tax-amount", estimatedTaxAmount.toString())
+}
 }
 
 @sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
-    <p>@Messages("variations-tax-start-date")</p>
+    <h2>
+        @Messages("variations.return-periods.title")
+    </h2>
+@table_helper {
+    @table_row_helper("tax-start-date", taxObligationStartDate.toString())
 }
 }
-<h2>@Messages("variations-declaration-title")</h2>
-<p>@Messages("variations-declaration-authorised-official")</p>
-
+}
+<h2>
+@Messages("variations.declaration.title")
+</h2>
+@table_helper {
+    @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))
+}
 
 <style>
 
