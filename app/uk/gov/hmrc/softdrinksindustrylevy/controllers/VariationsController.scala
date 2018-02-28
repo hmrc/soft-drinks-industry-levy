@@ -20,21 +20,24 @@ import javax.inject.Inject
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
-import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.AuthProviders
-import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Subscription, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.PdfGeneratorConnector
+import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class VariationsController @Inject()(val messagesApi: MessagesApi)extends BaseController with I18nSupport {
+class VariationsController @Inject()(val messagesApi: MessagesApi,
+                                     pdfConnector: PdfGeneratorConnector) extends BaseController with I18nSupport {
 
   def generateVariations = {
     Action.async(parse.json) { implicit request =>
       //      authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
       withJsonBody[VariationsRequest](data => {
-        Future.successful(Ok(views.html.variations_pdf(data)))
+        val page = views.html.variations_pdf(data).toString
+        pdfConnector.generatePdf(page) map {
+          result =>
+            Ok(result.bodyAsBytes).as("application/pdf")
+        }
       }
       )
     }
