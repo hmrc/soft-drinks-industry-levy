@@ -14,12 +14,13 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType
-@import uk.gov.hmrc.softdrinksindustrylevy.models._
+@(questionKey: String, rowData: String)(implicit messages: Messages)
 
-@(internalActivity: Map[ActivityType.Value, LitreBands], activityType: ActivityType.Value)(implicit messages: Messages)
-
-@internalActivity.get(activityType).map { p =>
-    @table_row_helper(activityType.toString, Messages("variations.true"))
-}
-
+<tr>
+    <td>
+        @Messages(s"variations.$questionKey")
+    </td>
+    <td>
+    @rowData
+    </td>
+</tr>

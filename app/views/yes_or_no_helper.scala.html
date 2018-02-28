@@ -15,10 +15,13 @@
  *@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.SdilActivity
-@(key: Boolean)(implicit  messages: Messages)
+@(key: String, rowData: Boolean)(implicit messages: Messages)
 
-@if(key) {
-    <p>@Messages("variations.yes")</p>
-} else {
-    <p>@Messages("variations.no")</p>
-}
+<tr>
+    <td>
+        @Messages(s"variations.$key")
+    </td>
+    <td>
+    @Messages(s"variations.$rowData")
+    </td>
+</tr>

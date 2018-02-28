@@ -15,34 +15,36 @@
  *@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsContact
-@(contact: VariationsContact, key: String)(implicit  messages: Messages)
+@(contact: VariationsContact, key: String)(implicit messages: Messages)
 
-<h2>@Messages(s"variations.$key.title")</h2>
+@table_helper {
 
-@contact.addressLine1.map { address1 =>
-    <p>@Messages("variations.address-line-1")</p>
-}
+    @contact.addressLine1.map { address1 =>
+        @table_row_helper("address-line-1", address1)
+    }
 
-@contact.addressLine2.map { address2 =>
-    <p>@Messages("variations.address-line-2")</p>
-}
+    @contact.addressLine2.map { address2 =>
+        @table_row_helper("address-line-2", address2)
+    }
 
-@contact.addressLine3.map { address3 =>
-    <p>@Messages("variations.address-line-3")</p>
-}
+    @contact.addressLine3.map { address3 =>
+        @table_row_helper("address-line-3", address3)
+    }
 
-@contact.addressLine4.map { address4 =>
-    <p>@Messages("variations.address-line-4")</p>
-}
+    @contact.addressLine4.map { address4 =>
+        @table_row_helper("address-line-4", address4)
+    }
 
-@contact.postCode.map { pc =>
-    <p>@Messages("variations.post-code")</p>
-}
+    @contact.postCode.map { pc =>
+        @table_row_helper("post-code", pc)
+    }
 
-@contact.telephoneNumber.map { phoneNumber =>
-    <p>@Messages("variations.telephone-number")</p>
-}
+    @contact.telephoneNumber.map { phoneNumber =>
+        @table_row_helper("telephone-number", phoneNumber)
+    }
 
-@contact.emailAddress.map { eMail =>
-    <p>@Messages("variations.email-address")</p>
+    @contact.emailAddress.map { email =>
+        @table_row_helper("email-address", email)
+    }
+
 }
