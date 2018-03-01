@@ -17,6 +17,8 @@
 @import uk.gov.hmrc.softdrinksindustrylevy.models._
 @import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 @import java.time.format.DateTimeFormatter
+@import java.text.NumberFormat
+@import java.util.Locale
 
 @(variationsRequest: VariationsRequest)(implicit request: Request[_], messages: Messages)
 
@@ -108,7 +110,14 @@
 @sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
 
 @table_helper("further-questions") {
-    @table_row_helper("estimated-tax-amount",Messages("variationspound")s"${estimatedTaxAmount.toString}")
+    <tr>
+        <td>
+        @Messages("variations.estimated-tax-amount")
+        </td>
+        <td>
+                    &pound;@estimatedTaxAmount.formatted("%,1.2f")
+        </td>
+    </tr>
 }
 }
 
