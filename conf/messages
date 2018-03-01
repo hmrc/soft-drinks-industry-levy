@@ -1,6 +1,7 @@
-variations.title=Soft Drinks Industry Levy Variation Form
+variations.sdil.header=Soft Drinks Industry Levy Variation Form
 variations.hmrc=HM Revenue & Customs
 variations.internal-hmrc-copy=Internal HMRC Copy
+variations.internal-information=Internal Information
 
 variations.organisation-details.title=Organisation Details
 variations.trading-name=Trading Name
@@ -26,6 +27,8 @@ variations.CopackerAll=Contract Packer
 
 variations.true=Yes
 variations.false=No
+
+variations.further-activity.title=
 
 variations.less-than-million=Do you produce less than 1 million litres of leviable product per annum?
 variations.small-producer-exemption=Are you requesting Small Producer Exemption?

@@ -17,7 +17,7 @@
 @import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsContact
 @(contact: VariationsContact, key: String)(implicit messages: Messages)
 
-@table_helper {
+@table_helper(key) {
 
     @contact.addressLine1.map { address1 =>
         @table_row_helper("address-line-1", address1)

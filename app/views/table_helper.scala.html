@@ -14,11 +14,21 @@
  * limitations under the License.
  *@
 
-@(rowContent: Html)(implicit messages: Messages)
+@(tableTitle: String)(rowContent: Html)(implicit messages: Messages)
 
 <table>
+    <thead>
+        <tr>
+            <td colspan="2">
+                <h2>
+                    @Messages(s"variations.$tableTitle.title")
+                </h2>
+            </td>
+            <td colspan="2"></td>
+        </tr>
+    </thead>
     <tbody>
-        @rowContent
+    @rowContent
     </tbody>
 </table>
 <br>
