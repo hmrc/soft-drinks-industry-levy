@@ -1,0 +1,54 @@
+variations.sdil.header=Soft Drinks Industry Levy Variation Form
+variations.hmrc=HM Revenue & Customs
+variations.internal-hmrc-copy=Internal HMRC Copy
+variations.internal-information=Internal Information
+
+variations.organisation-details.title=Organisation Details
+variations.trading-name=Trading Name
+
+variations.business-contact.title=Business Contact Details
+variations.correspondence-contact.title=Correspondence Contact Details
+variations.address-line-1=Address line 1
+variations.address-line-2=Address line 2
+variations.address-line-3=Address line 3
+variations.address-line-4=Address line 4
+variations.post-code=Postcode
+variations.telephone-number=Telephone Number
+variations.email-address=Email Address
+
+variations.primary-person-contact.title=Primary Person Contact Details
+variations.primary-person-contact.name=Name
+variations.primary-person-contact.postion=Position
+
+variations.sdil-activity.title=Soft Drinks Industry Levy Details
+variations.ProducedOwnBrand=Producer
+variations.Imported=Importer
+variations.CopackerAll=Contract Packer
+
+variations.true=Yes
+variations.false=No
+
+variations.further-activity.title=
+
+variations.less-than-million=Do you produce less than 1 million litres of leviable product per annum?
+variations.small-producer-exemption=Are you requesting Small Producer Exemption?
+variations.use-contract-packer=Do you use a Contract Packer?
+variations.voluntarily-registered=Customer is accepted as voluntarily reqistered?
+variations.reason-for-amendment=Reason For Amendment
+
+variations.activity-dependent-questions.title=SDIL Activity dependent questions
+variations.litres-ProducedOwnBrand=Litres Produced in UK each year
+variations.litres-Imported=Litres Imported into UK each year
+variations.litres-CopackerAll=Litres Packaged in UK each year
+variations.higher-rate=Higher Rate
+variations.lower-rate=Lower Rate
+
+variations.further-questions.title=SDIL Further Questions
+variations.estimated-tax-amount=Estimated amount of tax in the next 12 months
+
+variations.return-periods.title=Return Periods
+variations.tax-start-date=Tax Obligation Start Date
+
+variations.declaration.title=Declaration
+variations.declaration.status=Status
+variations.declaration.authorised-official=Authorised Official
