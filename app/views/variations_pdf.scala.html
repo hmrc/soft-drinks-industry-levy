@@ -16,6 +16,7 @@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models._
 @import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
+@import java.time.format.DateTimeFormatter
 
 @(variationsRequest: VariationsRequest)(implicit request: Request[_], messages: Messages)
 
@@ -66,48 +67,54 @@
 }
 
 @variationsRequest.sdilActivity.map { sdilActivity =>
-@table_helper("sdil-activity") {
-    @sdilActivity.activity match {
-        case InternalActivity(a) => {
-            @internal_activity_helper(a, ProducedOwnBrand)
-            @internal_activity_helper(a, Imported)
-            @internal_activity_helper(a, CopackerAll)
+    @table_helper("sdil-activity") {
+        @sdilActivity.activity match {
+            case InternalActivity(a) => {
+                @internal_activity_helper(a, ProducedOwnBrand)
+                @internal_activity_helper(a, Imported)
+                @internal_activity_helper(a, CopackerAll)
+            }
+        }
+
+        @sdilActivity.produceLessThanOneMillionLitres.map { produceLessThanOneMillionLitres =>
+            @yes_or_no_helper("less-than-million", produceLessThanOneMillionLitres)
+        }
+
+        @sdilActivity.smallProducerExemption.map { smallProducerExemption =>
+            @yes_or_no_helper("small-producer-exemption", smallProducerExemption)
+        }
+
+        @sdilActivity.usesContractPacker.map { usesContractPacker =>
+            @yes_or_no_helper("use-contract-packer", usesContractPacker)
+        }
+
+        @sdilActivity.voluntarilyRegistered.map { voluntarilyRegistered =>
+            @yes_or_no_helper("voluntarily-registered", voluntarilyRegistered)
+        }
+
+        @sdilActivity.reasonForAmendment.map { reasonForAmendment =>
+            @table_row_helper("reason-for-amendment", reasonForAmendment)
         }
     }
-}
-
-@table_helper("further-activity") {
-    @sdilActivity.produceLessThanOneMillionLitres.map { produceLessThanOneMillionLitres =>
-        @yes_or_no_helper("less-than-million", produceLessThanOneMillionLitres)
+    @sdilActivity.activity match {
+        case InternalActivity(a) => {
+            @table_helper("activity-dependent-questions"){
+                @litreage_helper(a, ProducedOwnBrand)
+                @litreage_helper(a, Imported)
+                @litreage_helper(a, CopackerAll)
+            }
+        }
     }
-
-    @sdilActivity.smallProducerExemption.map { smallProducerExemption =>
-        @yes_or_no_helper("small-producer-exemption", smallProducerExemption)
-    }
-
-    @sdilActivity.usesContractPacker.map { usesContractPacker =>
-        @yes_or_no_helper("use-contract-packer", usesContractPacker)
-    }
-
-    @sdilActivity.voluntarilyRegistered.map { voluntarilyRegistered =>
-        @yes_or_no_helper("voluntarily-registered", voluntarilyRegistered)
-    }
-
-    @sdilActivity.reasonForAmendment.map { reasonForAmendment =>
-        @table_row_helper("reason-for-amendment", reasonForAmendment)
-    }
-}
-
 @sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
 
 @table_helper("further-questions") {
-    @table_row_helper("estimated-tax-amount", estimatedTaxAmount.toString)
+    @table_row_helper("estimated-tax-amount",Messages("variationspound")s"${estimatedTaxAmount.toString}")
 }
 }
 
 @sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
 @table_helper("return-periods") {
-    @table_row_helper("tax-start-date", taxObligationStartDate.toString)
+    @table_row_helper("tax-start-date", taxObligationStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 }
 }
 }
@@ -121,6 +128,9 @@
             background-color: black;
             width: 100%;
             height: 100px;
+        }
+        .table-heading{
+            white-space: nowrap;
         }
 
         #service-info-logo {
