@@ -35,37 +35,37 @@
 <h1>@Messages("variations.internal-information")</h1>
 
 @variationsRequest.tradingName.map { name =>
-@table_helper("organisation-details") {
-    @table_row_helper("trading-name", name)
-}
+    @table_helper("organisation-details") {
+        @table_row_helper("trading-name", name)
+    }
 }
 
 @variationsRequest.businessContact.map { contact =>
-@contact_details_helper(contact, "business-contact")
+    @contact_details_helper(contact, "business-contact")
 }
 
 @variationsRequest.correspondenceContact.map { contact =>
-@contact_details_helper(contact, "correspondence-contact")
+    @contact_details_helper(contact, "correspondence-contact")
 }
 
 @variationsRequest.primaryPersonContact.map { contact =>
-@table_helper("primary-person-contact") {
-    @contact.name.map { name =>
-        @table_row_helper("primary-person-contact.name", name)
-    }
+    @table_helper("primary-person-contact") {
+        @contact.name.map { name =>
+            @table_row_helper("primary-person-contact.name", name)
+        }
 
-    @contact.position.map { position =>
-        @table_row_helper("primary-person-contact.postion", position)
-    }
+        @contact.position.map { position =>
+            @table_row_helper("primary-person-contact.postion", position)
+        }
 
-    @contact.telephoneNumber.map { phoneNumber =>
-        @table_row_helper("telephone-number", phoneNumber)
-    }
+        @contact.telephoneNumber.map { phoneNumber =>
+            @table_row_helper("telephone-number", phoneNumber)
+        }
 
-    @contact.emailAddress.map { email =>
-        @table_row_helper("email-address", email)
+        @contact.emailAddress.map { email =>
+            @table_row_helper("email-address", email)
+        }
     }
-}
 }
 
 @variationsRequest.sdilActivity.map { sdilActivity =>
@@ -100,33 +100,34 @@
     }
     @sdilActivity.activity match {
         case InternalActivity(a) => {
-            @table_helper("activity-dependent-questions"){
+            @table_helper("activity-dependent-questions") {
                 @litreage_helper(a, ProducedOwnBrand)
                 @litreage_helper(a, Imported)
                 @litreage_helper(a, CopackerAll)
             }
         }
     }
-@sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
+    @sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
 
-@table_helper("further-questions") {
-    <tr>
-        <td>
-        @Messages("variations.estimated-tax-amount")
-        </td>
-        <td>
+        @table_helper("further-questions") {
+            <tr>
+                <td>
+                    @Messages("variations.estimated-tax-amount")
+                </td>
+                <td>
                     &pound;@estimatedTaxAmount.formatted("%,1.2f")
-        </td>
-    </tr>
-}
+                </td>
+            </tr>
+        }
+    }
+
+    @sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
+        @table_helper("return-periods") {
+            @table_row_helper("tax-start-date", taxObligationStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+        }
+    }
 }
 
-@sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
-@table_helper("return-periods") {
-    @table_row_helper("tax-start-date", taxObligationStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-}
-}
-}
 @table_helper("declaration") {
     @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))
 }
@@ -138,7 +139,8 @@
             width: 100%;
             height: 100px;
         }
-        .table-heading{
+
+        .table-heading {
             white-space: nowrap;
         }
 

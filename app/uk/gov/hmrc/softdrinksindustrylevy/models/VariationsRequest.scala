@@ -26,12 +26,12 @@ object VariationsRequest {
 }
 
 case class VariationsRequest(
-                       tradingName: Option[String],
-                       businessContact: Option[VariationsContact],
-                       correspondenceContact: Option[VariationsContact],
-                       primaryPersonContact: Option[VariationsPersonalDetails],
-                       sdilActivity: Option[SdilActivity]
-                     )
+                              tradingName: Option[String],
+                              businessContact: Option[VariationsContact],
+                              correspondenceContact: Option[VariationsContact],
+                              primaryPersonContact: Option[VariationsPersonalDetails],
+                              sdilActivity: Option[SdilActivity]
+                            )
 
 object VariationsContact {
   implicit val reads: Reads[VariationsContact] = Json.reads[VariationsContact]
@@ -66,8 +66,7 @@ object SdilActivity {
 case class SdilActivity(
                          activity: Activity,
                          produceLessThanOneMillionLitres: Option[Boolean],
-                         smallProducerExemption: Option[Boolean],
-                         //If true then the user does not have to file returns
+                         smallProducerExemption: Option[Boolean], //If true then the user does not have to file returns
                          usesContractPacker: Option[Boolean],
                          voluntarilyRegistered: Option[Boolean],
                          reasonForAmendment: Option[String],

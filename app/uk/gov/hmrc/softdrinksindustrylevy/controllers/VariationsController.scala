@@ -31,7 +31,6 @@ class VariationsController @Inject()(val messagesApi: MessagesApi,
 
   def generateVariations = {
     Action.async(parse.json) { implicit request =>
-      //      authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
       withJsonBody[VariationsRequest](data => {
         val page = views.html.variations_pdf(data).toString
         pdfConnector.generatePdf(page) map {
