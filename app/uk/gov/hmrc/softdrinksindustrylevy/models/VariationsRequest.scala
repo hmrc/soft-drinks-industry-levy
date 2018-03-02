@@ -25,27 +25,23 @@ object VariationsRequest {
   implicit val reads: Reads[VariationsRequest] = Json.reads[VariationsRequest]
 }
 
-case class VariationsRequest(
-                              tradingName: Option[String],
-                              businessContact: Option[VariationsContact],
-                              correspondenceContact: Option[VariationsContact],
-                              primaryPersonContact: Option[VariationsPersonalDetails],
-                              sdilActivity: Option[SdilActivity]
-                            )
+case class VariationsRequest(tradingName: Option[String] = None,
+                             businessContact: Option[VariationsContact] = None,
+                             correspondenceContact: Option[VariationsContact] = None,
+                             primaryPersonContact: Option[VariationsPersonalDetails] = None,
+                             sdilActivity: Option[SdilActivity] = None)
 
 object VariationsContact {
   implicit val reads: Reads[VariationsContact] = Json.reads[VariationsContact]
 }
 
-case class VariationsContact(
-                              addressLine1: Option[String],
-                              addressLine2: Option[String],
-                              addressLine3: Option[String],
-                              addressLine4: Option[String],
-                              postCode: Option[String],
-                              telephoneNumber: Option[String],
-                              emailAddress: Option[String]
-                            )
+case class VariationsContact(addressLine1: Option[String] = None,
+                             addressLine2: Option[String] = None,
+                             addressLine3: Option[String] = None,
+                             addressLine4: Option[String] = None,
+                             postCode: Option[String] = None,
+                             telephoneNumber: Option[String] = None,
+                             emailAddress: Option[String] = None)
 
 object VariationsPersonalDetails {
   implicit val reads: Reads[VariationsPersonalDetails] = Json.reads[VariationsPersonalDetails]
