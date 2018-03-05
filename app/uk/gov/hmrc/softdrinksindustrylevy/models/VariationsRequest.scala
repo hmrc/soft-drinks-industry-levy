@@ -30,7 +30,8 @@ case class VariationsRequest(
                               businessContact: Option[VariationsContact],
                               correspondenceContact: Option[VariationsContact],
                               primaryPersonContact: Option[VariationsPersonalDetails],
-                              sdilActivity: Option[SdilActivity]
+                              sdilActivity: Option[SdilActivity],
+                              deregistrationText: Option[String]
                             )
 
 object VariationsContact {

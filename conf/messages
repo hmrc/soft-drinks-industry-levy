@@ -49,6 +49,12 @@ variations.estimated-tax-amount=Estimated amount of tax in the next 12 months
 variations.return-periods.title=Return Periods
 variations.tax-start-date=Tax Obligation Start Date
 
+variations.deregister.title=Deregister
+variations.deregister-date=Deregistration Date
+variations.deregister-reason=Deregistration Reason
+variations-deregister-reason-p1=No Longer Liable
+variations.deregister-reason-free-text=Deregistration Free Text Reason
+
 variations.declaration.title=Declaration
 variations.declaration.status=Status
 variations.declaration.authorised-official=Authorised Official

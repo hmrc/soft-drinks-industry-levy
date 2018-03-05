@@ -20,6 +20,7 @@
 @import java.text.NumberFormat
 @import java.util.Locale
 
+@import java.time.LocalDate
 @(variationsRequest: VariationsRequest)(implicit request: Request[_], messages: Messages)
 
 <div>
@@ -125,6 +126,14 @@
         @table_helper("return-periods") {
             @table_row_helper("tax-start-date", taxObligationStartDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
         }
+    }
+}
+
+@variationsRequest.deregistrationText.map { deregistrationText =>
+    @table_helper("deregister") {
+        @table_row_helper("deregister-date", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+        @table_row_helper("deregister-reason", Messages("variations-deregister-reason-p1"))
+        @table_row_helper("deregister-reason-free-text", deregistrationText)
     }
 }
 
