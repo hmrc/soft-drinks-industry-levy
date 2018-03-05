@@ -113,10 +113,10 @@
         @table_helper("further-questions") {
             <tr>
                 <td>
-                    @Messages("variations.estimated-tax-amount")
+                @Messages("variations.estimated-tax-amount")
                 </td>
                 <td>
-                    &pound;@estimatedTaxAmount.formatted("%,1.2f")
+                            &pound;@estimatedTaxAmount.formatted("%,1.2f")
                 </td>
             </tr>
         }
@@ -134,6 +134,15 @@
         @table_row_helper("deregister-date", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
         @table_row_helper("deregister-reason", Messages("variations-deregister-reason-p1"))
         @table_row_helper("deregister-reason-free-text", deregistrationText)
+    }
+}
+
+@variationsRequest.closeSites.map { closeSites =>
+    @table_helper("close-sites") {
+        @table_row_helper("site-reference", closeSites.siteReference)
+        @table_row_helper("date-of-closure", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+        @table_row_helper("reason-of-closure", closeSites.reasonOfClosure)
+        @table_row_helper("trading-name", closeSites.tradingName)
     }
 }
 

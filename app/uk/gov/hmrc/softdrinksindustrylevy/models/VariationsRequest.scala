@@ -31,7 +31,10 @@ case class VariationsRequest(
                               correspondenceContact: Option[VariationsContact],
                               primaryPersonContact: Option[VariationsPersonalDetails],
                               sdilActivity: Option[SdilActivity],
-                              deregistrationText: Option[String]
+                              deregistrationText: Option[String],
+                              newSites: List[VariationsSite],
+                              amendSites: List[VariationsSite],
+                              closeSites: List[CloseSites]
                             )
 
 object VariationsContact {
@@ -74,3 +77,24 @@ case class SdilActivity(
                          estimatedTaxAmount: Option[BigDecimal],
                          taxObligationStartDate: Option[LocalDate]
                        )
+
+object VariationsSite {
+  implicit val reads: Reads[VariationsSite] = Json.reads[VariationsSite]
+}
+
+case class VariationsSite(
+                           tradingName: String,
+                           siteReference: String,
+                           variationsContact: VariationsContact,
+                           typeOfSite: String
+                         )
+
+object CloseSites {
+  implicit val reads: Reads[CloseSites] = Json.reads[CloseSites]
+}
+
+case class CloseSites(
+                       tradingName: String,
+                       siteReference: String,
+                       reasonOfClosure: String
+                     )

@@ -121,7 +121,7 @@ package object create {
         orgName = (regJson \ "tradingName").as[String],
         orgType = (regJson \ "organisationType").asOpt[String],
         address = (regJson \ "businessContact" \ "addressDetails").as[Address],
-        activity = activity, // TODO this is wrong
+        activity = activity,
         liabilityDate = (regJson \ "taxStartDate").as[Date],
         productionSites = sites(production),
         warehouseSites = sites(warehouses),
