@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-
 import play.api.libs.json._
 
 object VariationsRequest {
@@ -32,9 +31,9 @@ case class VariationsRequest(
                               primaryPersonContact: Option[VariationsPersonalDetails] = None,
                               sdilActivity: Option[SdilActivity] = None,
                               deregistrationText: Option[String] = None,
-                              newSites: List[VariationsSite],
-                              amendSites: List[VariationsSite],
-                              closeSites: List[CloseSites]
+                              newSites: List[VariationsSite] = Nil,
+                              amendSites: List[VariationsSite] = Nil,
+                              closeSites: List[CloseSites] = Nil
                             )
 
 object VariationsContact {
