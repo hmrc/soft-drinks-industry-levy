@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy.controllers
+package uk.gov.hmrc.softdrinksindustrylevy.controllers.test
 
 import javax.inject.Inject
-
 import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.TestConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class TestingController @Inject()(testConnector: TestConnector,
-                                  buffer: MongoBufferService)
+                                  buffer: MongoBufferService,
+                                  fileUpload: FileUploadConnector)
   extends BaseController {
 
   def resetStore: Action[AnyContent] = Action.async {
@@ -40,6 +40,10 @@ class TestingController @Inject()(testConnector: TestConnector,
   def resetDb: Action[AnyContent] = Action.async {
     implicit request =>
       buffer.drop.flatMap(_ => Future(Status(OK)))
+  }
+
+  def getFile(envelopeId: String, fileName: String) = Action.async { implicit request =>
+    fileUpload.getFile(envelopeId, fileName) map { file => Ok(file) }
   }
 
 }

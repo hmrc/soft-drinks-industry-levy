@@ -10,6 +10,7 @@
 # Failing to follow this rule may result in test routes deployed in production.
 
 # Add all the application routes to the prod.routes file
-->         /                       prod.Routes
-GET        /test-only/reset        @uk.gov.hmrc.softdrinksindustrylevy.controllers.TestingController.resetStore
-GET        /test-only/reset-pending      @uk.gov.hmrc.softdrinksindustrylevy.controllers.TestingController.resetDb
+->         /                                              prod.Routes
+GET        /test-only/reset                               @uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.resetStore
+GET        /test-only/reset-pending                       @uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.resetDb
+GET        /test-only/get-file/:envelopeId/:fileId        @uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.getFile(envelopeId, fileId)
