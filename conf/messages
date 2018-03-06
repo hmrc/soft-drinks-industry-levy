@@ -52,7 +52,7 @@ variations.tax-start-date=Tax Obligation Start Date
 variations.deregister.title=Deregister
 variations.deregister-date=Deregistration Date
 variations.deregister-reason=Deregistration Reason
-variations-deregister-reason-p1=No Longer Liable
+variations.deregister-reason-p1=No Longer Liable
 variations.deregister-reason-free-text=Deregistration Free Text Reason
 
 variations.new-sites.title=SDIL Site details (New Site)
