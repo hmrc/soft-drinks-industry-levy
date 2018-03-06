@@ -17,28 +17,21 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import javax.inject.Inject
-
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
 import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.PdfGeneratorConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class VariationsController @Inject()(val messagesApi: MessagesApi,
-                                     pdfConnector: PdfGeneratorConnector) extends BaseController with I18nSupport {
+                                     gforms: GformConnector) extends BaseController with I18nSupport {
 
-  def generateVariations = {
-    Action.async(parse.json) { implicit request =>
-      withJsonBody[VariationsRequest](data => {
-        val page = views.html.variations_pdf(data).toString
-        pdfConnector.generatePdf(page) map {
-          result =>
-            Ok(result.bodyAsBytes).as("application/pdf")
-        }
-      }
-      )
+  def generateVariations(sdilNumber: String) = Action.async(parse.json) { implicit request =>
+    withJsonBody[VariationsRequest] { data =>
+      val page = views.html.variations_pdf(data).toString
+      gforms.submitToDms(page, sdilNumber) map { _ => NoContent }
     }
   }
 }

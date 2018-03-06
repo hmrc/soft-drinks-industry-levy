@@ -26,12 +26,12 @@ object VariationsRequest {
 }
 
 case class VariationsRequest(
-                              tradingName: Option[String],
-                              businessContact: Option[VariationsContact],
-                              correspondenceContact: Option[VariationsContact],
-                              primaryPersonContact: Option[VariationsPersonalDetails],
-                              sdilActivity: Option[SdilActivity],
-                              deregistrationText: Option[String],
+                              tradingName: Option[String] = None,
+                              businessContact: Option[VariationsContact] = None,
+                              correspondenceContact: Option[VariationsContact] = None,
+                              primaryPersonContact: Option[VariationsPersonalDetails] = None,
+                              sdilActivity: Option[SdilActivity] = None,
+                              deregistrationText: Option[String] = None,
                               newSites: List[VariationsSite],
                               amendSites: List[VariationsSite],
                               closeSites: List[CloseSites]
@@ -41,25 +41,23 @@ object VariationsContact {
   implicit val reads: Reads[VariationsContact] = Json.reads[VariationsContact]
 }
 
-case class VariationsContact(
-                              addressLine1: Option[String],
-                              addressLine2: Option[String],
-                              addressLine3: Option[String],
-                              addressLine4: Option[String],
-                              postCode: Option[String],
-                              telephoneNumber: Option[String],
-                              emailAddress: Option[String]
-                            )
+case class VariationsContact(addressLine1: Option[String] = None,
+                             addressLine2: Option[String] = None,
+                             addressLine3: Option[String] = None,
+                             addressLine4: Option[String] = None,
+                             postCode: Option[String] = None,
+                             telephoneNumber: Option[String] = None,
+                             emailAddress: Option[String] = None)
 
 object VariationsPersonalDetails {
   implicit val reads: Reads[VariationsPersonalDetails] = Json.reads[VariationsPersonalDetails]
 }
 
 case class VariationsPersonalDetails(
-                                      name: Option[String],
-                                      position: Option[String],
-                                      telephoneNumber: Option[String],
-                                      emailAddress: Option[String]
+                                      name: Option[String] = None,
+                                      position: Option[String] = None,
+                                      telephoneNumber: Option[String] = None,
+                                      emailAddress: Option[String] = None
                                     )
 
 object SdilActivity {
@@ -69,13 +67,13 @@ object SdilActivity {
 
 case class SdilActivity(
                          activity: Activity,
-                         produceLessThanOneMillionLitres: Option[Boolean],
-                         smallProducerExemption: Option[Boolean], //If true then the user does not have to file returns
-                         usesContractPacker: Option[Boolean],
-                         voluntarilyRegistered: Option[Boolean],
-                         reasonForAmendment: Option[String],
-                         estimatedTaxAmount: Option[BigDecimal],
-                         taxObligationStartDate: Option[LocalDate]
+                         produceLessThanOneMillionLitres: Option[Boolean] = None,
+                         smallProducerExemption: Option[Boolean] = None, //If true then the user does not have to file returns
+                         usesContractPacker: Option[Boolean] = None,
+                         voluntarilyRegistered: Option[Boolean] = None,
+                         reasonForAmendment: Option[String] = None,
+                         estimatedTaxAmount: Option[BigDecimal] = None,
+                         taxObligationStartDate: Option[LocalDate] = None
                        )
 
 object VariationsSite {

@@ -9,4 +9,4 @@ GET         /rosm-registration/lookup/:utr                 @uk.gov.hmrc.softdrin
 # the readme says this should be a GET, but we're receiving a POST...
 POST        /tax-enrolment-callback/                       @uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
 
-POST        /submit-variations                              @uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations
+POST        /submit-variations/sdil/:sdilNumber            @uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations(sdilNumber)
