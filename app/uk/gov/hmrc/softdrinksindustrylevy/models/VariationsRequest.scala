@@ -18,18 +18,23 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-
 import play.api.libs.json._
 
 object VariationsRequest {
   implicit val reads: Reads[VariationsRequest] = Json.reads[VariationsRequest]
 }
 
-case class VariationsRequest(tradingName: Option[String] = None,
-                             businessContact: Option[VariationsContact] = None,
-                             correspondenceContact: Option[VariationsContact] = None,
-                             primaryPersonContact: Option[VariationsPersonalDetails] = None,
-                             sdilActivity: Option[SdilActivity] = None)
+case class VariationsRequest(
+                              tradingName: Option[String] = None,
+                              businessContact: Option[VariationsContact] = None,
+                              correspondenceContact: Option[VariationsContact] = None,
+                              primaryPersonContact: Option[VariationsPersonalDetails] = None,
+                              sdilActivity: Option[SdilActivity] = None,
+                              deregistrationText: Option[String] = None,
+                              newSites: List[VariationsSite] = Nil,
+                              amendSites: List[VariationsSite] = Nil,
+                              closeSites: List[CloseSites] = Nil
+                            )
 
 object VariationsContact {
   implicit val reads: Reads[VariationsContact] = Json.reads[VariationsContact]
@@ -48,10 +53,10 @@ object VariationsPersonalDetails {
 }
 
 case class VariationsPersonalDetails(
-                                      name: Option[String],
-                                      position: Option[String],
-                                      telephoneNumber: Option[String],
-                                      emailAddress: Option[String]
+                                      name: Option[String] = None,
+                                      position: Option[String] = None,
+                                      telephoneNumber: Option[String] = None,
+                                      emailAddress: Option[String] = None
                                     )
 
 object SdilActivity {
@@ -61,11 +66,32 @@ object SdilActivity {
 
 case class SdilActivity(
                          activity: Activity,
-                         produceLessThanOneMillionLitres: Option[Boolean],
-                         smallProducerExemption: Option[Boolean], //If true then the user does not have to file returns
-                         usesContractPacker: Option[Boolean],
-                         voluntarilyRegistered: Option[Boolean],
-                         reasonForAmendment: Option[String],
-                         estimatedTaxAmount: Option[BigDecimal],
-                         taxObligationStartDate: Option[LocalDate]
+                         produceLessThanOneMillionLitres: Option[Boolean] = None,
+                         smallProducerExemption: Option[Boolean] = None, //If true then the user does not have to file returns
+                         usesContractPacker: Option[Boolean] = None,
+                         voluntarilyRegistered: Option[Boolean] = None,
+                         reasonForAmendment: Option[String] = None,
+                         estimatedTaxAmount: Option[BigDecimal] = None,
+                         taxObligationStartDate: Option[LocalDate] = None
                        )
+
+object VariationsSite {
+  implicit val reads: Reads[VariationsSite] = Json.reads[VariationsSite]
+}
+
+case class VariationsSite(
+                           tradingName: String,
+                           siteReference: String,
+                           variationsContact: VariationsContact,
+                           typeOfSite: String
+                         )
+
+object CloseSites {
+  implicit val reads: Reads[CloseSites] = Json.reads[CloseSites]
+}
+
+case class CloseSites(
+                       tradingName: String,
+                       siteReference: String,
+                       reasonOfClosure: String
+                     )
