@@ -55,11 +55,18 @@ variations.deregister-reason=Deregistration Reason
 variations-deregister-reason-p1=No Longer Liable
 variations.deregister-reason-free-text=Deregistration Free Text Reason
 
+variations.new-sites.title=SDIL Site details (New Site)
+variations.new-site-address.title=Site Address (New Site)
+variations.new-site-reference=New Site Reference
+variations.type-of-site=Type of Site
+
+variations.amend-sites.title=SDIL Site details (Amend Site)
+variations.amend-site-address.title=Site Address (Amend Site)
+variations.site-reference=Site Reference
+
 variations.close-sites.title=SDIL Site details (Site Closure)
-variations.close-sites.site-reference=Site Reference
 variations.close-sites.date-of-closure=Date of closure
 variations.close-sites.reason-of-closure=Please enter the reason for site closure
-variations.close-sites.trading-name=Trading Name
 
 variations.declaration.title=Declaration
 variations.declaration.status=Status

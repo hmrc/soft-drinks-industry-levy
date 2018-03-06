@@ -15,10 +15,9 @@
  *@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsContact
-@(contact: VariationsContact, key: String)(implicit messages: Messages)
+@(contact: VariationsContact, key: String, tableRequired: Boolean)(implicit messages: Messages)
 
-@table_helper(key) {
-
+    @contactDetails = {
     @contact.addressLine1.map { address1 =>
         @table_row_helper("address-line-1", address1)
     }
@@ -46,5 +45,12 @@
     @contact.emailAddress.map { email =>
         @table_row_helper("email-address", email)
     }
+    }
 
-}
+    @if(tableRequired) {
+        @table_helper(key) {
+            @contactDetails
+        }
+    } else {
+        @contactDetails
+    }

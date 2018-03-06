@@ -42,11 +42,11 @@
 }
 
 @variationsRequest.businessContact.map { contact =>
-    @contact_details_helper(contact, "business-contact")
+    @contact_details_helper(contact, "business-contact", true)
 }
 
 @variationsRequest.correspondenceContact.map { contact =>
-    @contact_details_helper(contact, "correspondence-contact")
+    @contact_details_helper(contact, "correspondence-contact", true)
 }
 
 @variationsRequest.primaryPersonContact.map { contact =>
@@ -136,12 +136,28 @@
         @table_row_helper("deregister-reason-free-text", deregistrationText)
     }
 }
+@variationsRequest.newSites.map { newSites =>
+    @table_helper("new-sites") {
+        @table_row_helper("trading-name", newSites.tradingName)
+        @table_row_helper("new-site-reference", newSites.siteReference)
+        @contact_details_helper(newSites.variationsContact, "new-site-address", false)
+        @table_row_helper("type-of-site", newSites.typeOfSite)
+    }
+}
+@variationsRequest.amendSites.map { amendSites =>
+    @table_helper("amend-sites") {
+        @table_row_helper("site-reference", amendSites.siteReference)
+        @table_row_helper("trading-name", amendSites.tradingName)
+        @contact_details_helper(amendSites.variationsContact, "amend-site-address", false)
+        @table_row_helper("type-of-site", amendSites.typeOfSite)
+    }
 
+}
 @variationsRequest.closeSites.map { closeSites =>
     @table_helper("close-sites") {
         @table_row_helper("site-reference", closeSites.siteReference)
-        @table_row_helper("date-of-closure", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-        @table_row_helper("reason-of-closure", closeSites.reasonOfClosure)
+        @table_row_helper("close-sites.date-of-closure", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+        @table_row_helper("close-sites.reason-of-closure", closeSites.reasonOfClosure)
         @table_row_helper("trading-name", closeSites.tradingName)
     }
 }
