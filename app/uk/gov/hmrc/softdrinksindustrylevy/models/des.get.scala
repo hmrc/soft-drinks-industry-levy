@@ -31,8 +31,8 @@ package object get {
 
     override def reads(json: JsValue): JsSuccess[Contact] = {
       JsSuccess(Contact(
-        name = Some((json \ "subscriptionDetails" \ "primaryContactName").as[String]),
-        positionInCompany = Some((json \ "subscriptionDetails" \ "primaryPositionInCompany").as[String]),
+        name = (json \ "subscriptionDetails" \ "primaryContactName").asOpt[String],
+        positionInCompany = (json \ "subscriptionDetails" \ "primaryPositionInCompany").asOpt[String],
         phoneNumber = (json \ "subscriptionDetails" \"primaryTelephone").as[String],
         email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
       ))
