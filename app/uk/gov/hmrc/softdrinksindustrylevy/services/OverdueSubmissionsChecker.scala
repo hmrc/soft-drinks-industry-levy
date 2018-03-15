@@ -31,12 +31,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class OverdueSubmissionsChecker @Inject()(val config: Configuration,
-                                          val mongoConnector: MongoConnector,
-                                          val actorSystem: ActorSystem,
-                                          mongoBufferService: MongoBufferService,
-                                          contactFrontend: ContactFrontendConnector)
-                                         (implicit val ec: ExecutionContext) extends LockedJobScheduler {
+class OverdueSubmissionsChecker(val config: Configuration,
+                                val mongoConnector: MongoConnector,
+                                val actorSystem: ActorSystem,
+                                mongoBufferService: MongoBufferService,
+                                contactFrontend: ContactFrontendConnector)
+                               (implicit val ec: ExecutionContext) extends LockedJobScheduler {
 
   override val jobName: String = "overdueSubmissions"
 
@@ -123,7 +123,7 @@ trait LockedJobScheduler {
     } map {
       _.getOrElse(Logger.info(s"Unable to run job $jobName"))
     }
-    
+
   }
 
   def start()(implicit ec: ExecutionContext): Cancellable = {

@@ -15,10 +15,14 @@ object MicroService extends Build {
 
   lazy val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % "6.15.0",
-    "uk.gov.hmrc" %% "simple-reactivemongo" % "6.0.0",
-    "uk.gov.hmrc" %% "auth-client" % "2.5.0",
-    "uk.gov.hmrc" %% "mongo-lock" % "5.0.0"
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "1.5.0",
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "6.1.0",
+    "uk.gov.hmrc" %% "auth-client" % "2.6.0",
+    "uk.gov.hmrc" %% "mongo-lock" % "5.1.0",
+    "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided",
+    "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided",
+    "com.softwaremill.macwire" %% "util" % "2.3.0",
+    "com.softwaremill.macwire" %% "proxy" % "2.3.0"
   )
 
   lazy val test = Seq(
@@ -61,8 +65,7 @@ object MicroService extends Build {
     .settings(
       libraryDependencies ++= compile ++ test,
       retrieveManaged := true,
-      evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
-      routesGenerator := StaticRoutesGenerator
+      evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
     )
     .settings(resolvers ++= Seq(
       Resolver.bintrayRepo("hmrc", "releases"),

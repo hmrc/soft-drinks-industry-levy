@@ -18,17 +18,20 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.{Instant, LocalDateTime, ZoneId}
 
+import play.api.Configuration
+import play.api.Mode.Mode
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionFormat
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContactFrontendConnector extends ServicesConfig {
-  val http: WSHttp = WSHttp
+class ContactFrontendConnector(http: HttpClient,
+                               val mode: Mode,
+                               val runModeConfiguration: Configuration) extends ServicesConfig {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 

@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy.connectors
+package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import play.api.Configuration
+import akka.stream.Materializer
+import play.api.{Configuration, Environment}
 import play.api.Mode.Mode
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
+import play.api.i18n.MessagesApi
+import play.api.inject.ApplicationLifecycle
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class TestConnector(http: HttpClient,
-                    val mode: Mode,
-                    val runModeConfiguration: Configuration) extends ServicesConfig {
+trait PlayWiring {
+  def applicationLifecycle: ApplicationLifecycle
+  def configuration: Configuration
+  def environment: Environment
+  implicit def executionContext: ExecutionContext
+  implicit def materializer: Materializer
+  def messagesApi: MessagesApi
 
-  val resetURL: String = s"${baseUrl("des")}/reset"
-
-  def sendReset(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.GET(resetURL)
-  }
-
+  lazy val mode: Mode = environment.mode
 }

@@ -19,17 +19,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.views
 import java.time.LocalDate
 
 import org.jsoup.Jsoup
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.mvc.Request
 import play.api.test.FakeRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import views.html.variations_pdf
 
 import scala.collection.JavaConverters._
 
-class VariationsSpec extends PlaySpec with GuiceOneAppPerSuite {
+class VariationsSpec extends FakeApplicationSpec {
 
   "The variations HTML" when {
     "the trading name has changed" should {
@@ -168,7 +167,6 @@ class VariationsSpec extends PlaySpec with GuiceOneAppPerSuite {
     }
   }
 
-  lazy val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
   implicit val messages: Messages = messagesApi.preferred(request)
   implicit lazy val request: Request[_] = FakeRequest()
 }

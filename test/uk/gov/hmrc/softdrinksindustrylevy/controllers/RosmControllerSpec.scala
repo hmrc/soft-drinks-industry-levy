@@ -21,28 +21,23 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, _}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
-import uk.gov.hmrc.http._
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import com.softwaremill.macwire._
 
 import scala.concurrent.Future
 
-class RosmControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach
-  with ScalaFutures {
-
-  override def fakeApplication() = new GuiceApplicationBuilder().configure("auditing.enabled" -> "false").build()
+class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val mockRosmController = new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector)
+  val mockRosmController = wire[RosmController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

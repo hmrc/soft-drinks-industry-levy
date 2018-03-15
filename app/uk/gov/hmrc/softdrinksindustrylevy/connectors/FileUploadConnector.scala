@@ -17,13 +17,18 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import akka.util.ByteString
-import javax.inject.Inject
+import play.api.Configuration
+import play.api.Mode.Mode
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FileUploadConnector @Inject()(ws: WSClient)(implicit ec: ExecutionContext) extends ServicesConfig {
+class FileUploadConnector(ws: WSClient,
+                          val mode: Mode,
+                          val runModeConfiguration: Configuration)
+                         (implicit ec: ExecutionContext) extends ServicesConfig {
+
   val url: String = baseUrl("file-upload")
 
   def getFile(envelopeId: String, fileName: String): Future[ByteString] = {

@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers.test
 
-import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TestingController @Inject()(testConnector: TestConnector,
-                                  buffer: MongoBufferService,
-                                  fileUpload: FileUploadConnector)
+class TestingController(testConnector: TestConnector,
+                        buffer: MongoBufferService,
+                        fileUpload: FileUploadConnector)
   extends BaseController {
 
   def resetStore: Action[AnyContent] = Action.async {

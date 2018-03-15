@@ -17,24 +17,26 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import javax.inject.Singleton
-
-import play.api.Logger
+import play.api.Mode.Mode
 import play.api.libs.json.{Format, JsObject, Json}
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TaxEnrolmentConnector extends ServicesConfig {
+class TaxEnrolmentConnector(http: HttpClient,
+                            val mode: Mode,
+                            val runModeConfiguration: Configuration) extends ServicesConfig {
 
   val callbackUrl: String = getConfString("tax-enrolments.callback", "")
   val serviceName: String = getConfString("tax-enrolments.serviceName", "")
 
   def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    WSHttp.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
+    http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
       Result => Result
     } recover {
       case e: UnauthorizedException => {
@@ -47,7 +49,7 @@ class TaxEnrolmentConnector extends ServicesConfig {
   }
 
   def getSubscription(subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] = {
-    WSHttp.GET[TaxEnrolmentsSubscription](s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId")
+    http.GET[TaxEnrolmentsSubscription](s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId")
   }
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {

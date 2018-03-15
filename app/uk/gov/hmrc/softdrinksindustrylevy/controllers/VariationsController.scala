@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Action
-import uk.gov.hmrc.play.microservice.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VariationsController @Inject()(val messagesApi: MessagesApi,
-                                     gforms: GformConnector) extends BaseController with I18nSupport {
+class VariationsController(val messagesApi: MessagesApi,
+                           gforms: GformConnector) extends BaseController with I18nSupport {
 
   def generateVariations(sdilNumber: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>

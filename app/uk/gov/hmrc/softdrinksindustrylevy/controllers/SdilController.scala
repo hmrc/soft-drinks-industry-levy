@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.{Inject, Singleton}
-
+import javax.inject.Singleton
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
@@ -26,8 +25,8 @@ import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
@@ -38,11 +37,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class SdilController @Inject()(val authConnector: AuthConnector,
-                               taxEnrolmentConnector: TaxEnrolmentConnector,
-                               desConnector: DesConnector,
-                               buffer: MongoBufferService,
-                               emailConnector: EmailConnector)
+class SdilController(val authConnector: AuthConnector,
+                     taxEnrolmentConnector: TaxEnrolmentConnector,
+                     desConnector: DesConnector,
+                     buffer: MongoBufferService,
+                     emailConnector: EmailConnector,
+                     auditing: AuditConnector)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
@@ -55,7 +55,7 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _ <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _ <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
-            _ <- MicroserviceAuditConnector.sendExtendedEvent(
+            _ <- auditing.sendExtendedEvent(
               new SdilSubscriptionEvent(
                 request.uri, buildSubscriptionAudit(data, creds.providerId, Some(res.formBundleNumber), "SUCCESS")
               )
@@ -64,14 +64,14 @@ class SdilController @Inject()(val authConnector: AuthConnector,
             Ok(Json.toJson(res))
           }) recoverWith {
             case e: LastError if e.code.contains(11000) => {
-              MicroserviceAuditConnector.sendExtendedEvent(
+              auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
               ) map {
                 _ => Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
               }
             }
             case e =>
-              MicroserviceAuditConnector.sendExtendedEvent(
+              auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
               ) map {
                 throw e

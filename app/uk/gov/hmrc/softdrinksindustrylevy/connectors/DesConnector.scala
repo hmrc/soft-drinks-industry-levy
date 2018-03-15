@@ -17,21 +17,23 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import javax.inject.Singleton
-
+import play.api.Configuration
+import play.api.Mode.Mode
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector extends ServicesConfig with OptionHttpReads {
+class DesConnector(http: HttpClient,
+                   val mode: Mode,
+                   val runModeConfiguration: Configuration) extends ServicesConfig with OptionHttpReads {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
-  val http: WSHttp = WSHttp
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {

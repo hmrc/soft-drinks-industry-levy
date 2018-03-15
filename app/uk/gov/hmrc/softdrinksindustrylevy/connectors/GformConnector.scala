@@ -18,16 +18,19 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.util.Base64
 
+import play.api.Configuration
+import play.api.Mode.Mode
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GformConnector extends ServicesConfig {
+class GformConnector(http: HttpClient,
+                     val mode: Mode,
+                     val runModeConfiguration: Configuration) extends ServicesConfig {
 
-  val http: WSHttp = WSHttp
   val gformUrl: String = baseUrl("gform")
 
   def submitToDms(html: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {

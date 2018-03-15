@@ -31,7 +31,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-class MongoBufferService @Inject()(implicit mc: MongoConnector)
+class MongoBufferService(implicit mc: MongoConnector)
   extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly) {
 
   def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] = {

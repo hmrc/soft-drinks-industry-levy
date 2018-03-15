@@ -16,16 +16,18 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import play.api.Configuration
+import play.api.Mode.Mode
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailConnector extends ServicesConfig {
-
-  val http: WSHttp = WSHttp
+class EmailConnector(http: HttpClient,
+                     val mode: Mode,
+                     val runModeConfiguration: Configuration) extends ServicesConfig {
 
   val emailUrl: String = baseUrl("email")
 
