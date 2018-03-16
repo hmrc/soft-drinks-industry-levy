@@ -19,9 +19,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -30,12 +27,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import com.softwaremill.macwire._
 
 import scala.concurrent.Future
 
-class TaxEnrolmentCallbackControllerSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
-
-  override def fakeApplication() = new GuiceApplicationBuilder().configure("auditing.enabled" -> "false").build()
+class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with MockitoSugar {
 
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {
@@ -98,5 +95,5 @@ class TaxEnrolmentCallbackControllerSpec extends PlaySpec with GuiceOneAppPerSui
   val mockBuffer = mock[MongoBufferService]
   val mockEmail = mock[EmailConnector]
   val mockTaxEnrolments = mock[TaxEnrolmentConnector]
-  lazy val testController = new TaxEnrolmentCallbackController(mockBuffer, mockEmail, mockTaxEnrolments)
+  lazy val testController = wire[TaxEnrolmentCallbackController]
 }

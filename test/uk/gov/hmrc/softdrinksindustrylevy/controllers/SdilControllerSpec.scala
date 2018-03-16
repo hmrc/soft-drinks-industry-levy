@@ -20,9 +20,6 @@ import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -34,12 +31,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import com.softwaremill.macwire._
 
 import scala.concurrent.Future
 
-class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
-
-  override def fakeApplication() = new GuiceApplicationBuilder().configure("auditing.enabled" -> "false").build()
+class SdilControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
 
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
@@ -47,9 +44,7 @@ class SdilControllerSpec extends PlaySpec with MockitoSugar with GuiceOneAppPerS
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
 
-  val testSdilController = new SdilController(
-    mockAuthConnector, mockTaxEnrolmentConnector, mockDesConnector, mockBuffer, mockEmailConnector
-  )
+  val testSdilController = wire[SdilController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

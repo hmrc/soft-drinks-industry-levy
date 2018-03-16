@@ -19,11 +19,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.play.it.Port
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-trait WiremockSpec extends PlaySpec with BeforeAndAfterAll with BeforeAndAfterEach with GuiceOneAppPerSuite {
+trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll {
   val port = Port.randomAvailable
   val mockServer = new WireMockServer(port)
 

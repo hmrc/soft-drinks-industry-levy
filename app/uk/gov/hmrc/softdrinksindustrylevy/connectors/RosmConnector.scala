@@ -16,22 +16,22 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import javax.inject.Singleton
-
+import play.api.Configuration
+import play.api.Mode.Mode
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.config.WSHttp
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
-class RosmConnector extends ServicesConfig {
+class RosmConnector(http: HttpClient,
+                    val mode: Mode,
+                    val runModeConfiguration: Configuration) extends ServicesConfig {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "registration/organisation"
-  val http = WSHttp
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.withExtraHeaders(

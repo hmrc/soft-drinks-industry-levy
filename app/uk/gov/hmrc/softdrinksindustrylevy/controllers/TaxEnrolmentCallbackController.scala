@@ -16,15 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.{Inject, Singleton}
-
-import play.api.Logger
+import play.api.Mode.Mode
 import play.api.libs.json._
 import play.api.mvc.Action
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.config.MicroserviceAuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
@@ -32,10 +31,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
-class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
-                                               emailConnector: EmailConnector,
-                                               taxEnrolments: TaxEnrolmentConnector)
+class TaxEnrolmentCallbackController(buffer: MongoBufferService,
+                                     emailConnector: EmailConnector,
+                                     taxEnrolments: TaxEnrolmentConnector,
+                                     val mode: Mode,
+                                     val runModeConfiguration: Configuration,
+                                     auditing: AuditConnector)
   extends BaseController with ServicesConfig {
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
@@ -46,14 +47,14 @@ class TaxEnrolmentCallbackController @Inject()(buffer: MongoBufferService,
           pendingSub <- buffer.findById(teSub.etmpId)
           _ <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(pendingSub.map(_.subscription.orgName), pendingSub.map(_.subscription.contact.email), getSdilNumber(teSub), formBundleNumber)
-          _ <- MicroserviceAuditConnector.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
+          _ <- auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
         } yield {
           Logger.info("Tax-enrolments callback successful")
           NoContent
         }
       } else {
         Logger.error(s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
-        MicroserviceAuditConnector.sendExtendedEvent(
+        auditing.sendExtendedEvent(
           buildAuditEvent(body, request.uri, formBundleNumber)) map {
           _ => NoContent
         }

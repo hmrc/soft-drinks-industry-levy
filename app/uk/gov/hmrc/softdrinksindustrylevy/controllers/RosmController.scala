@@ -16,23 +16,24 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.{Inject, Singleton}
-
+import play.api.Configuration
+import play.api.Mode.Mode
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-@Singleton
-class RosmController @Inject()(val authConnector: AuthConnector,
-                               rosmConnector: RosmConnector,
-                               taxEnrolmentConnector: TaxEnrolmentConnector)
+class RosmController(val authConnector: AuthConnector,
+                     rosmConnector: RosmConnector,
+                     taxEnrolmentConnector: TaxEnrolmentConnector,
+                     val mode: Mode,
+                     val runModeConfiguration: Configuration)
   extends BaseController with ServicesConfig with AuthorisedFunctions {
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
