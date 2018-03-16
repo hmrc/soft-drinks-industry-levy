@@ -134,7 +134,7 @@ class VariationsSpec extends PlaySpec with GuiceOneAppPerSuite {
     "the SDIL activity has changed" should {
       "contain the updated SDIL activity" in {
         val activity = SdilActivity(
-          activity = InternalActivity(Map(ActivityType.ProducedOwnBrand -> (100L, 200L))),
+          activity = InternalActivity(Map(ActivityType.ProducedOwnBrand -> (100L, 200L)), isLarge = false),
           produceLessThanOneMillionLitres = Some(true),
           smallProducerExemption = Some(true),
           usesContractPacker = Some(true),

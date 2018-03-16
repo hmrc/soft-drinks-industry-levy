@@ -39,10 +39,7 @@ package object controllers {
       |      "lower" : 677551,
       |      "upper" : 491823
       |    },
-      |    "CopackerSmall" : {
-      |      "lower" : 272828,
-      |      "upper" : 168877
-      |    }
+      |    "isLarge" : true
       |  },
       |  "liabilityDate" : "1977-07-08",
       |  "productionSites" : [ {

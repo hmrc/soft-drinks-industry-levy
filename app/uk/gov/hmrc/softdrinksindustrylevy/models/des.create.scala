@@ -112,8 +112,9 @@ package object create {
       def activity = {
         val produced = ActivityType.ProducedOwnBrand -> litreReads("Produced")
         val imported = ActivityType.Imported -> litreReads("Imported")
+        val isLarge = (regJson \ "activityQuestions" \ "isLarge").as[Boolean]
 
-        InternalActivity(Map(produced, imported))
+        InternalActivity(Map(produced, imported), isLarge)
       }
 
       JsSuccess(Subscription(
@@ -139,7 +140,7 @@ package object create {
           case a: InternalActivity => Map(
             "Produced" -> a.totalProduced,
             "Imported" -> a.activity.get(Imported),
-            "Packaged" -> a.liableCopacked
+            "Packaged" -> a.activity.get(CopackerAll)
           ) flatMap {
             case (k, Some((l, h))) => Map(
               s"litres${k}UKLower" -> JsNumber(l),

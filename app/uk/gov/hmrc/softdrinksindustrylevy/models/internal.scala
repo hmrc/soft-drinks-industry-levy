@@ -56,15 +56,15 @@ package object internal {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
             InternalActivity(ActivityType.values.map{ at =>
                (json \ at.toString).asOpt[LitreBands].map{at -> _}
-            }.flatten.toMap)
+            }.flatten.toMap, (json \ "isLarge").as[Boolean])
           }
 
 
     def writes(activity: Activity): JsValue = JsObject(
       activity match {
-        case InternalActivity(a) => a.map { case (t, lb) =>
+        case InternalActivity(a, lg) => a.map { case (t, lb) =>
           t.toString -> litreBandsFormat.writes(lb)
-        }
+        } ++ Map("isLarge" -> JsBoolean(lg))
         case a:RetrievedActivity => Map(
           "voluntaryRegistration" -> JsBoolean(a.isVoluntaryRegistration),
           "smallProducer" -> JsBoolean(a.isSmallProducer),
