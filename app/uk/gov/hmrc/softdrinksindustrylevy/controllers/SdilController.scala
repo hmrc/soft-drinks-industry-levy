@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.Singleton
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
@@ -36,7 +35,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-@Singleton
 class SdilController(val authConnector: AuthConnector,
                      taxEnrolmentConnector: TaxEnrolmentConnector,
                      desConnector: DesConnector,

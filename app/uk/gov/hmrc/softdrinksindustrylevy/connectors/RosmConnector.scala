@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import javax.inject.Singleton
 import play.api.Configuration
 import play.api.Mode.Mode
 import uk.gov.hmrc.http.HeaderCarrier
@@ -27,7 +26,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
 class RosmConnector(http: HttpClient,
                     val mode: Mode,
                     val runModeConfiguration: Configuration) extends ServicesConfig {

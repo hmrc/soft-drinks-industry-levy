@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import javax.inject.Singleton
 import play.api.Mode.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import play.api.{Configuration, Logger}
@@ -27,7 +26,6 @@ import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
 class TaxEnrolmentConnector(http: HttpClient,
                             val mode: Mode,
                             val runModeConfiguration: Configuration) extends ServicesConfig {

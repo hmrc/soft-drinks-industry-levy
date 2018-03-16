@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import javax.inject.{Inject, Singleton}
 import play.api.Mode.Mode
 import play.api.libs.json._
 import play.api.mvc.Action
