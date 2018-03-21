@@ -135,9 +135,9 @@ class SdilController(val authConnector: AuthConnector,
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
       def writes(activity: Activity): JsValue = JsObject(
         activity match {
-          case InternalActivity(a) => a.map { case (t, lb) =>
+          case InternalActivity(a, lg) => a.map { case (t, lb) =>
             (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
-          }
+          } ++ Map("isLarge" -> JsBoolean(lg))
         }
       )
     }

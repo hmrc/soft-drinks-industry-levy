@@ -49,7 +49,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val copackeeSmallProd = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((100L, 100L)),
       Copackee -> ((100L, 100L))
-    )))
+    ), isLarge = false))
 
     val transformedJson = Json.toJson(copackeeSmallProd)
     val details = (transformedJson \\ "details").head
@@ -68,7 +68,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   test("Large producer conversion includes only produceMillionLitres and producerClassification") {
     val largeProducer = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1000000L, 1000000L))
-    )))
+    ), isLarge = true))
 
     val transformedJson = Json.toJson(largeProducer)
     val details = (transformedJson \\ "details").head
@@ -88,7 +88,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val largeProducerImport = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1000000L, 1000000L)),
       Imported -> ((1L, 1L))
-    )))
+    ), isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerImport)
     val details = (transformedJson \\ "details").head
@@ -108,7 +108,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val largeProducerCopacker = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1000000L, 1000000L)),
       CopackerAll -> ((1L, 1L))
-    )))
+    ), isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopacker)
     val details = (transformedJson \\ "details").head
@@ -129,7 +129,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
       ProducedOwnBrand -> ((1000000L, 1000000L)),
       CopackerAll -> ((1L, 1L)),
       Imported -> ((1L, 1L))
-    )))
+    ), isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -149,7 +149,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val largeProducerCopackerImport = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1000000L, 1000000L)),
       Copackee -> ((1L, 1L))
-    )))
+    ), isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -169,7 +169,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val smallProducerCopacker = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1L, 1L)),
       CopackerAll -> ((1L, 1L))
-    )))
+    ), isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopacker)
     val details = (transformedJson \\ "details").head
@@ -189,7 +189,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val smallProducerImport = baseSubscription.copy(activity = InternalActivity(Map(
       ProducedOwnBrand -> ((1L, 1L)),
       Imported -> ((1L, 1L))
-    )))
+    ), isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerImport)
     val details = (transformedJson \\ "details").head
@@ -210,7 +210,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
       ProducedOwnBrand -> ((1L, 1L)),
       Imported -> ((1L, 1L)),
       CopackerAll -> ((1L, 1L))
-    )))
+    ), isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -231,7 +231,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
       ProducedOwnBrand -> ((1L, 1L)),
       Imported -> ((1L, 1L)),
       Copackee -> ((1L, 1L))
-    )))
+    ), isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopackeeImport)
     val details = (transformedJson \\ "details").head
@@ -250,7 +250,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   private lazy val baseSubscription = Subscription("1111111111",
     "I AM THE ORGANISATION TO RULE",
     Some("3"), UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
-    InternalActivity(Map.empty),
+    InternalActivity(Map.empty, isLarge = false),
     LocalDate.parse("2018-04-06"),
     List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None)),
     List(Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None),

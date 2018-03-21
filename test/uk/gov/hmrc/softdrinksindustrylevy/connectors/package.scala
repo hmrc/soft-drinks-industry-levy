@@ -74,8 +74,9 @@ package object gen {
         typeL -> _
       }
     })
+    isLarge <- Gen.boolean
   } yield {
-    InternalActivity(typeTuples.asScala.toMap)
+    InternalActivity(typeTuples.asScala.toMap, isLarge)
   }
 
   def genIsProducer(isLarge: Boolean) = {

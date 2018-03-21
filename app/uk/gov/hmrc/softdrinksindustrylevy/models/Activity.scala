@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 object ActivityType extends Enumeration {
-  val ProducedOwnBrand, Imported, CopackerAll, CopackerSmall, Copackee = Value
+  val ProducedOwnBrand, Imported, CopackerAll, Copackee = Value
 }
 
 sealed trait Activity {
@@ -36,7 +36,7 @@ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPa
   // not optional
 }
 
-case class InternalActivity(activity: Map[ActivityType.Value, LitreBands]) extends Activity {
+case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLarge: Boolean) extends Activity {
 
   import ActivityType._
 
@@ -49,7 +49,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands]) exten
     Seq(
       totalProduced.getOrElse(zero),
       activity.getOrElse(Imported, zero),
-      liableCopacked.getOrElse(zero)
+      activity.getOrElse(CopackerAll, zero)
     ).foldLeft(zero) { case ((accLow, accHigh), (low, high)) => (accLow + low, accHigh + high) }
   }
 
@@ -62,18 +62,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands]) exten
     }
   }
 
-  lazy val liableCopacked: Option[LitreBands] = {
-    (activity.get(CopackerAll), activity.get(CopackerSmall)) match {
-      case (Some(ca), Some(cs)) => Some((ca._1 - cs._1, ca._2 - cs._2))
-      case (Some(ca), None) => Some(ca)
-      case (None, Some(cs)) => Some(cs)
-      case (None, None) => None
-    }
-  }
-
   def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
-
-  def isLarge: Boolean = totalProduced.forall { case (l, h) => l + h >= 1000000 }
 
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
 
