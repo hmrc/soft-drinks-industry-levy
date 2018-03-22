@@ -35,7 +35,7 @@ Looks up the Business Partner Record in ROSM. Returns 404 NOT_FOUND if no organi
 #### POST       /tax-enrolment-callback/
 Handles the callback from tax enrolments when the subscription is activated.
 
-See [here](https://github.tools.tax.service.gov.uk/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidissuer) and [here](https://github.tools.tax.service.gov.uk/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidsubscriber) for details
+See [here](https://github.com/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidissuer) and [here](https://github.com/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidsubscriber) for details
 
 ## Running from source
 Clone the repository using SSH:
