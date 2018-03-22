@@ -224,7 +224,7 @@ package object create {
           }),
           "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> s.activity.taxEstimation,
-          "taxObligationStartDate" -> s.liabilityDate.toString
+          "taxObligationStartDate" -> Date.now
         ),
         "sites" -> (siteList(s.warehouseSites, isWarehouse = true) ++
           siteList(s.productionSites, isWarehouse = false, offset = s.warehouseSites.size))
