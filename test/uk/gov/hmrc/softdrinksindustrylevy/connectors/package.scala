@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import java.util
+
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
 
@@ -48,13 +50,11 @@ package object gen {
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(500000, 1000000).sometimes.map {
-      _.getOrElse(0).toLong
-    }
-    h <- Gen.choose(500000, 1000000).sometimes.map {
-      _.getOrElse(0).toLong
-    }
-  } yield ((l, h))
+    l <- Gen.choose(0, 1000000L)
+    h <- Gen.choose(0, 1000000L)
+  } yield l -> h
+
+  val dontGenLitreBands: Gen[VolumeBands] = genLitreBands map { case (l, h) => VolumeBands(l, h) }
 
   val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
@@ -70,9 +70,10 @@ package object gen {
   val genActivity: Gen[Activity] = for {
     types <- genActivityTypes flatMap (s => s map { t => t.flatten })
     typeTuples <- Gen.sequence(types.map {
-      typeL => genLitreBands.flatMap {
-        typeL -> _
-      }
+      typeL =>
+        genLitreBands.flatMap {
+          typeL -> _
+        }
     })
     isLarge <- Gen.boolean
   } yield {
@@ -139,11 +140,57 @@ package object gen {
       productionSites, warehouseSites, contact)
   }
 
+  val genSdil: Gen[String] = {
+    for {
+      f <- Gen.alphaUpperChar
+      alsoF <- pattern"999999"
+    } yield s"X${f}SDIL000$alsoF"
+  }
+
+  val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] = {
+    for {
+      ref <- genSdil
+      litres <- dontGenLitreBands
+    } yield SmallProducerVolume(ref, litres)
+  }
+
+  val genReturnsPackaging: Gen[ReturnsPackaging] = {
+    for {
+      smallProds <- Gen.listOf(genReturnsSmallProducerVolume)
+      litres <- dontGenLitreBands
+    } yield ReturnsPackaging(smallProds, litres)
+  }
+
+  val genReturnsImporting: Gen[ReturnsImporting] = {
+    for {
+      smallVols <- dontGenLitreBands
+      largeVols <- dontGenLitreBands
+    } yield ReturnsImporting(smallVols, largeVols)
+  }
+
+  val genReturnActivityMap: Gen[Map[ActivityType.Value, VolumeBands]] = {
+    val a = for {
+      a <- Gen.oneOf(ActivityType.Wastage, ActivityType.Exported)
+      b <- dontGenLitreBands
+    } yield a -> b
+
+    Gen.oneOf(Gen.mapOfN(2, a), Gen.const(Map.empty[ActivityType.Value, VolumeBands]))
+  }
+
+  val genReturnsRequest: Gen[ReturnsRequest] = {
+    for {
+      packaged <- genReturnsPackaging.sometimes
+      imported <- genReturnsImporting.sometimes
+      activity <- genReturnActivityMap
+    } yield ReturnsRequest(packaged, imported, activity)
+  }
+
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity = Arbitrary(genActivity)
   implicit val arbAddress = Arbitrary(genUkAddress)
   implicit val arbContact = Arbitrary(genContact)
   implicit val arbSite = Arbitrary(genSite)
   implicit val arbSubRequest = Arbitrary(genSubscription)
+  implicit val arbReturnReq = Arbitrary(genReturnsRequest)
 
 }
