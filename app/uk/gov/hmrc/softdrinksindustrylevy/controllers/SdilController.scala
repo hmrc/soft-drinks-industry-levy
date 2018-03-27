@@ -26,9 +26,10 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
@@ -113,6 +114,15 @@ class SdilController(val authConnector: AuthConnector,
         }
       }
     }
+  }
+
+  def submitReturn(sdilRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+    //    authorised(AuthProviders(GovernmentGateway)) {
+    withJsonBody[ReturnsRequest](data => {
+      Future successful Ok(Json.obj("VALID" -> data.toString))
+    }
+    )
+    //    }
   }
 
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {
