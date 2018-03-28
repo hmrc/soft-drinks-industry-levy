@@ -29,19 +29,18 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SdilController(val authConnector: AuthConnector,
-                     taxEnrolmentConnector: TaxEnrolmentConnector,
-                     desConnector: DesConnector,
-                     buffer: MongoBufferService,
-                     emailConnector: EmailConnector,
-                     auditing: AuditConnector)
+class RegistrationController(val authConnector: AuthConnector,
+                             taxEnrolmentConnector: TaxEnrolmentConnector,
+                             desConnector: DesConnector,
+                             buffer: MongoBufferService,
+                             emailConnector: EmailConnector,
+                             auditing: AuditConnector)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
@@ -114,15 +113,6 @@ class SdilController(val authConnector: AuthConnector,
         }
       }
     }
-  }
-
-  def submitReturn(sdilRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    //    authorised(AuthProviders(GovernmentGateway)) {
-    withJsonBody[ReturnsRequest](data => {
-      Future successful Ok(Json.obj("VALID" -> data.toString))
-    }
-    )
-    //    }
   }
 
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {

@@ -16,21 +16,25 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-case class ReturnsRequest(packaged: Option[ReturnsPackaging], imported: Option[ReturnsImporting], otherActivity: Map[ActivityType.Value, VolumeBands]) {
+import cats.implicits._
+import cats.kernel.Monoid
+
+case class ReturnsRequest(packaged: Option[ReturnsPackaging], imported: Option[ReturnsImporting], exported: Option[VolumeBands], wastage: Option[VolumeBands]) {
+
   lazy val totalLevy: BigDecimal = totalVolumes.dueLevy
 
-  private lazy val totalVolumes: VolumeBands = Seq(
+  private lazy val totalVolumes: VolumeBands = Monoid.combineAll(Seq(
     packaged.map(_.totalSmallProdVolumes),
     packaged.map(_.largeProducerVolumes),
     imported.map(_.smallProducerVolumes),
     imported.map(_.largeProducerVolumes),
-    otherActivity.get(ActivityType.Exported),
-    otherActivity.get(ActivityType.Wastage)
-  ).flatten.foldLeft(VolumeBands.zero)(_ + _)
+    exported,
+    wastage
+  ).flatten)
 }
 
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: VolumeBands) {
-  lazy val totalSmallProdVolumes: VolumeBands = smallProducerVolumes.foldLeft(VolumeBands.zero)(_ + _.volumes)
+  lazy val totalSmallProdVolumes: VolumeBands = smallProducerVolumes.foldLeft(Monoid[VolumeBands].empty)(_ |+| _.volumes)
 }
 
 case class ReturnsImporting(smallProducerVolumes: VolumeBands, largeProducerVolumes: VolumeBands)
@@ -42,10 +46,12 @@ case class VolumeBands(low: Long, high: Long) {
   lazy val highLevy: BigDecimal = high * BigDecimal("0.24")
 
   lazy val dueLevy: BigDecimal = lowLevy + highLevy
-
-  def +(other: VolumeBands) = VolumeBands(low + other.low, high + other.high)
 }
 
 object VolumeBands {
-  val zero = VolumeBands(0, 0)
+  implicit val volBandMonoid: Monoid[VolumeBands] = new Monoid[VolumeBands] {
+    override def empty: VolumeBands = VolumeBands(0, 0)
+
+    override def combine(x: VolumeBands, y: VolumeBands): VolumeBands = VolumeBands(x.low + y.low, x.high + y.high)
+  }
 }

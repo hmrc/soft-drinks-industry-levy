@@ -22,7 +22,8 @@ object MicroService extends Build {
     "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided",
     "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided",
     "com.softwaremill.macwire" %% "util" % "2.3.0",
-    "com.softwaremill.macwire" %% "proxy" % "2.3.0"
+    "com.softwaremill.macwire" %% "proxy" % "2.3.0",
+    "org.typelevel" %% "cats-core" % "0.9.0"
   )
 
   lazy val test = Seq(

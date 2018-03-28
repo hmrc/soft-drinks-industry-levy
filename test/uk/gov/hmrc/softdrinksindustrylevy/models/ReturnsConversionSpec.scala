@@ -37,7 +37,6 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
     forAll { r: ReturnsRequest =>
       val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
       val report = validator.validate(schema, json)
-      println(json.toString)
       assert(report.isSuccess, report)
     }
   }

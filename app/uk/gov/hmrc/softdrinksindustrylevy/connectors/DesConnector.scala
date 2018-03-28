@@ -64,7 +64,7 @@ class DesConnector(http: HttpClient,
   }
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
+    http.POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)(implicitly, implicitly, addHeaders, implicitly)
   }
 
 }

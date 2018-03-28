@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import play.api.libs.json._
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ActivityType, _}
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object returns {
   implicit val returnsRequestFormat: Format[ReturnsRequest] = new Format[ReturnsRequest] {
@@ -55,15 +55,19 @@ package object returns {
         case _ => None
       }
 
-      def otherActivity(activityType: ActivityType.Value): Map[ActivityType.Value, VolumeBands] = {
-        json \ activityType.toString.toLowerCase match {
-          case JsDefined(activityJs) =>
-            Map(activityType -> litreReads(activityJs))
-          case _ => Map.empty
+      def volumeBlock(activity: ActivityType.Value): Option[VolumeBands] = {
+        json \ activity.toString.toLowerCase match {
+          case JsDefined(act) => Some(litreReads(act))
+          case _ => None
         }
       }
 
-      JsSuccess(ReturnsRequest(returnsPackaging, returnsImporting, otherActivity(ActivityType.Exported) ++ otherActivity(ActivityType.Wastage)))
+      JsSuccess(ReturnsRequest(
+        returnsPackaging,
+        returnsImporting,
+        volumeBlock(ActivityType.Exported),
+        volumeBlock(ActivityType.Wastage)
+      ))
     }
 
     override def writes(o: ReturnsRequest): JsValue = {
@@ -106,7 +110,7 @@ package object returns {
         )
       }
 
-      val exported = o.otherActivity.get(ActivityType.Exported).fold(Json.obj()) { e =>
+      val exported = o.exported.fold(Json.obj()) { e =>
         Json.obj(
           "exporting" -> Json.obj(
             "volumes" -> litresWrites(e),
@@ -115,7 +119,7 @@ package object returns {
         )
       }
 
-      val wastage = o.otherActivity.get(ActivityType.Wastage).fold(Json.obj()) { w =>
+      val wastage = o.wastage.fold(Json.obj()) { w =>
         Json.obj(
           "wastage" -> Json.obj(
             "volumes" -> litresWrites(w),
