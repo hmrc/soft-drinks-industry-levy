@@ -27,18 +27,17 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import scala.concurrent.ExecutionContext
 
 class ReturnsController(val authConnector: AuthConnector,
-                        desConnector: DesConnector)(implicit ec: ExecutionContext)
+                        desConnector: DesConnector)
+                       (implicit ec: ExecutionContext)
   extends BaseController with AuthorisedFunctions {
 
 
   def submitReturn(sdilRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    //    authorised(AuthProviders(GovernmentGateway)) {
     withJsonBody[ReturnsRequest] { returnsReq =>
       desConnector.submitReturn(sdilRef, returnsReq) map {
-        _ => Ok(Json.obj("VALID" -> returnsReq.toString))
+        _ => Ok(Json.toJson(returnsReq))
       }
     }
-    //    }
   }
 
 }

@@ -95,7 +95,7 @@ package object returns {
               ) ++ litresWrites(vols.volumes)
             },
             "volumeLarge" -> litresWrites(p.largeProducerVolumes),
-            "monetaryValues" -> monetaryWrites(p.largeProducerVolumes, p.totalSmallProdVolumes)
+            "monetaryValues" -> monetaryWrites(p.largeProducerVolumes)
           )
         )
       }
@@ -105,7 +105,7 @@ package object returns {
           "importing" -> Json.obj(
             "volumeSmall" -> litresWrites(i.smallProducerVolumes),
             "volumeLarge" -> litresWrites(i.largeProducerVolumes),
-            "monetaryValues" -> monetaryWrites(i.smallProducerVolumes, i.largeProducerVolumes)
+            "monetaryValues" -> monetaryWrites(i.largeProducerVolumes)
           )
         )
       }

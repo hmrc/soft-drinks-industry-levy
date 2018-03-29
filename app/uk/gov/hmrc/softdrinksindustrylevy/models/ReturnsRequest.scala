@@ -21,16 +21,12 @@ import cats.kernel.Monoid
 
 case class ReturnsRequest(packaged: Option[ReturnsPackaging], imported: Option[ReturnsImporting], exported: Option[VolumeBands], wastage: Option[VolumeBands]) {
 
-  lazy val totalLevy: BigDecimal = totalVolumes.dueLevy
+  lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
-  private lazy val totalVolumes: VolumeBands = Monoid.combineAll(Seq(
-    packaged.map(_.totalSmallProdVolumes),
-    packaged.map(_.largeProducerVolumes),
-    imported.map(_.smallProducerVolumes),
-    imported.map(_.largeProducerVolumes),
-    exported,
-    wastage
-  ).flatten)
+  private lazy val liableVolumes: VolumeBands = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes)).getOrElse(Monoid[VolumeBands].empty)
+
+  private lazy val nonLiableVolumes: VolumeBands = (exported |+| wastage).getOrElse(Monoid[VolumeBands].empty)
+
 }
 
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: VolumeBands) {
