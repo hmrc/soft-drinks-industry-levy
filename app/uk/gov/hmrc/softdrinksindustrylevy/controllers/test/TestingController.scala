@@ -22,23 +22,26 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestC
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class TestingController(testConnector: TestConnector,
                         buffer: MongoBufferService,
                         fileUpload: FileUploadConnector)
   extends BaseController {
 
-  def resetStore: Action[AnyContent] = Action.async {
-    implicit request =>
-      testConnector.sendReset map {
-        r => Status(r.status)
-      }
+  def resetRegistrations: Action[AnyContent] = Action.async { implicit request =>
+    testConnector.resetRegistrations map {
+      r => Status(r.status)
+    }
   }
 
-  def resetDb: Action[AnyContent] = Action.async {
-    implicit request =>
-      buffer.drop.flatMap(_ => Future(Status(OK)))
+  def resetReturns: Action[AnyContent] = Action.async { implicit request =>
+    testConnector.resetReturns map {
+      r => Status(r.status)
+    }
+  }
+
+  def resetDb: Action[AnyContent] = Action.async { implicit request =>
+    buffer.drop.map(_ => Ok)
   }
 
   def getFile(envelopeId: String, fileName: String) = Action.async { implicit request =>
