@@ -26,7 +26,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, EmailConnector, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
@@ -35,12 +35,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SdilController(val authConnector: AuthConnector,
-                     taxEnrolmentConnector: TaxEnrolmentConnector,
-                     desConnector: DesConnector,
-                     buffer: MongoBufferService,
-                     emailConnector: EmailConnector,
-                     auditing: AuditConnector)
+class RegistrationController(val authConnector: AuthConnector,
+                             taxEnrolmentConnector: TaxEnrolmentConnector,
+                             desConnector: DesConnector,
+                             buffer: MongoBufferService,
+                             emailConnector: EmailConnector,
+                             auditing: AuditConnector)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {

@@ -36,7 +36,7 @@ import com.softwaremill.macwire._
 
 import scala.concurrent.Future
 
-class SdilControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
+class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
 
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
@@ -44,7 +44,7 @@ class SdilControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
 
-  val testSdilController = wire[SdilController]
+  val testSdilController = wire[RegistrationController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

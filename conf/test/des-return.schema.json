@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "API#1357 - SDIL Create Return request schema v1.0",
+  "type": "object",
+  "required": [
+    "periodKey",
+    "formBundleType",
+    "netLevyDueTotal"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "periodKey": {
+      "type": "string",
+      "description": "Identifies the period the return is being filed for; first 2 digits identify the year, i.e. 18 for 2018, last digit identifies the quearter within the year",
+      "pattern": "^[0-9]{2}C[1-4]{1}$"
+    },
+    "formBundleType": {
+      "type": "string",
+      "description": "Currently only ZSD1 is allowed",
+      "pattern": "^ZSD1$"
+    },
+    "netLevyDueTotal": {
+      "$ref": "#/definitions/posNegMonetary"
+    },
+    "packaging": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "volumeSmall": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "producerRef": {
+                "description": "The producer's SDIL reference",
+                "$ref": "#/definitions/sdilReference"
+              },
+              "lowVolume": {
+                "$ref": "#/definitions/volumeStringType"
+              },
+              "highVolume": {
+                "$ref": "#/definitions/volumeStringType"
+              }
+            }
+          }
+        },
+        "volumeLarge": {
+          "$ref": "#/definitions/volumesType"
+        },
+        "monetaryValues": {
+          "$ref": "#/definitions/monetaryValuesType"
+        }
+      }
+    },
+    "importing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "volumeSmall": {
+          "$ref": "#/definitions/volumesType"
+        },
+        "volumeLarge": {
+          "$ref": "#/definitions/volumesType"
+        },
+        "monetaryValues": {
+          "$ref": "#/definitions/monetaryValuesType"
+        }
+      }
+    },
+    "exporting": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "volumes": {
+          "$ref": "#/definitions/volumesType"
+        },
+        "monetaryValues": {
+          "$ref": "#/definitions/monetaryValuesType"
+        }
+      }
+    },
+    "wastage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "volumes": {
+          "$ref": "#/definitions/volumesType"
+        },
+        "monetaryValues": {
+          "$ref": "#/definitions/monetaryValuesType"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "sdilReference": {
+      "type": "string",
+      "pattern": "^X[A-Z]SDIL000[0-9]{6}$"
+    },
+    "volumeStringType": {
+      "type": "string",
+      "pattern": "^[0-9]{1,13}$"
+    },
+    "volumesType": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lowVolume": {
+          "$ref": "#/definitions/volumeStringType"
+        },
+        "highVolume": {
+          "$ref": "#/definitions/volumeStringType"
+        }
+      }
+    },
+    "monetaryValuesType": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lowVolume": {
+          "$ref": "#/definitions/posNegMonetary"
+        },
+        "highVolume": {
+          "$ref": "#/definitions/posNegMonetary"
+        },
+        "levySubtotal": {
+          "$ref": "#/definitions/posNegMonetary"
+        }
+      }
+    },
+    "dateString": {
+      "type": "string",
+      "description": "Format YYYY-MM-DD",
+      "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "posNegMonetary": {
+      "type": "number",
+      "multipleOf": 0.01,
+      "minimum": -50000000000.00,
+      "maximum": 50000000000.00
+    }
+  }
+}

@@ -48,13 +48,11 @@ package object gen {
   }
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(500000, 1000000).sometimes.map {
-      _.getOrElse(0).toLong
-    }
-    h <- Gen.choose(500000, 1000000).sometimes.map {
-      _.getOrElse(0).toLong
-    }
-  } yield ((l, h))
+    l <- Gen.choose(0, 1000000L)
+    h <- Gen.choose(0, 1000000L)
+  } yield l -> h
+
+  val genVolBands: Gen[VolumeBands] = genLitreBands map { case (l, h) => VolumeBands(l, h) }
 
   val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
@@ -70,9 +68,10 @@ package object gen {
   val genActivity: Gen[Activity] = for {
     types <- genActivityTypes flatMap (s => s map { t => t.flatten })
     typeTuples <- Gen.sequence(types.map {
-      typeL => genLitreBands.flatMap {
-        typeL -> _
-      }
+      typeL =>
+        genLitreBands.flatMap {
+          typeL -> _
+        }
     })
     isLarge <- Gen.boolean
   } yield {
@@ -139,11 +138,49 @@ package object gen {
       productionSites, warehouseSites, contact)
   }
 
+  val genSdil: Gen[String] = {
+    for {
+      char <- Gen.alphaUpperChar
+      suffix <- pattern"999999"
+    } yield s"X${char}SDIL000$suffix"
+  }
+
+  val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] = {
+    for {
+      ref <- genSdil
+      litres <- genVolBands
+    } yield SmallProducerVolume(ref, litres)
+  }
+
+  val genReturnsPackaging: Gen[ReturnsPackaging] = {
+    for {
+      smallProds <- Gen.listOf(genReturnsSmallProducerVolume)
+      litres <- genVolBands
+    } yield ReturnsPackaging(smallProds, litres)
+  }
+
+  val genReturnsImporting: Gen[ReturnsImporting] = {
+    for {
+      smallVols <- genVolBands
+      largeVols <- genVolBands
+    } yield ReturnsImporting(smallVols, largeVols)
+  }
+
+  val genReturnsRequest: Gen[ReturnsRequest] = {
+    for {
+      packaged <- genReturnsPackaging.sometimes
+      imported <- genReturnsImporting.sometimes
+      exported <- genVolBands.sometimes
+      wastage <- genVolBands.sometimes
+    } yield ReturnsRequest(packaged, imported, exported, wastage)
+  }
+
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity = Arbitrary(genActivity)
   implicit val arbAddress = Arbitrary(genUkAddress)
   implicit val arbContact = Arbitrary(genContact)
   implicit val arbSite = Arbitrary(genSite)
   implicit val arbSubRequest = Arbitrary(genSubscription)
+  implicit val arbReturnReq = Arbitrary(genReturnsRequest)
 
 }

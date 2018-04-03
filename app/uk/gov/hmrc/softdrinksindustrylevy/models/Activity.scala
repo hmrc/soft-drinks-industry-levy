@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 object ActivityType extends Enumeration {
-  val ProducedOwnBrand, Imported, CopackerAll, Copackee = Value
+  val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exported, Wastage = Value
 }
 
 sealed trait Activity {

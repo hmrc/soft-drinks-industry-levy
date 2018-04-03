@@ -21,7 +21,7 @@ import com.softwaremill.macwire._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.health.AdminController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController
-import uk.gov.hmrc.softdrinksindustrylevy.controllers.{RosmController, SdilController, TaxEnrolmentCallbackController, VariationsController}
+import uk.gov.hmrc.softdrinksindustrylevy.controllers._
 
 trait ControllerWiring {
   self: ConnectorWiring with PlayWiring with ServicesWiring =>
@@ -33,8 +33,9 @@ trait ControllerWiring {
   lazy val adminController: AdminController = wire[AdminController]
   lazy val metricsController: MetricsController = wire[MetricsController]
   lazy val rosmController: RosmController = wire[RosmController]
-  lazy val sdilController: SdilController = wire[SdilController]
+  lazy val sdilController: RegistrationController = wire[RegistrationController]
   lazy val taxEnrolmentCallbackController: TaxEnrolmentCallbackController = wire[TaxEnrolmentCallbackController]
   lazy val testingController: TestingController = wire[TestingController]
   lazy val variationsController: VariationsController = wire[VariationsController]
+  lazy val returnsController: ReturnsController = wire[ReturnsController]
 }
