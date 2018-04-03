@@ -28,10 +28,14 @@ class TestConnector(http: HttpClient,
                     val mode: Mode,
                     val runModeConfiguration: Configuration) extends ServicesConfig {
 
-  val resetURL: String = s"${baseUrl("des")}/reset"
+  val resetURL: String = baseUrl("des")
 
-  def sendReset(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.GET(resetURL)
+  def resetRegistrations(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    http.GET(s"$resetURL/reset-registration")
+  }
+
+  def resetReturns(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    http.GET(s"$resetURL/reset-returns")
   }
 
 }
