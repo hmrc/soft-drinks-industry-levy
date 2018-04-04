@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import cats.implicits._
-import cats.kernel.{Group, Monoid}
+import cats.kernel.Monoid
 
 case class ReturnsRequest(packaged: Option[ReturnsPackaging],
                           imported: Option[ReturnsImporting],
@@ -29,12 +29,12 @@ case class ReturnsRequest(packaged: Option[ReturnsPackaging],
   private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
     .getOrElse(Monoid[LitreBands].empty)
 
-  private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Group[LitreBands].empty)
+  private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
 
 }
 
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: LitreBands) {
-  lazy val totalSmallProdVolumes: (Litres, Litres) = smallProducerVolumes.foldLeft(Group[LitreBands].empty)(_ |+| _.volumes)
+  lazy val totalSmallProdVolumes: (Litres, Litres) = smallProducerVolumes.foldLeft(Monoid[LitreBands].empty)(_ |+| _.volumes)
 }
 
 case class ReturnsImporting(smallProducerVolumes: LitreBands, largeProducerVolumes: LitreBands)
