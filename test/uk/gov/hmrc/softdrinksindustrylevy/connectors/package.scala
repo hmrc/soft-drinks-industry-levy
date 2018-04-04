@@ -52,8 +52,6 @@ package object gen {
     h <- Gen.choose(0, 1000000L)
   } yield l -> h
 
-  val genVolBands: Gen[VolumeBands] = genLitreBands map { case (l, h) => VolumeBands(l, h) }
-
   val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map {
       x: ActivityType.Value =>
@@ -148,21 +146,21 @@ package object gen {
   val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] = {
     for {
       ref <- genSdil
-      litres <- genVolBands
+      litres <- genLitreBands
     } yield SmallProducerVolume(ref, litres)
   }
 
   val genReturnsPackaging: Gen[ReturnsPackaging] = {
     for {
       smallProds <- Gen.listOf(genReturnsSmallProducerVolume)
-      litres <- genVolBands
+      litres <- genLitreBands
     } yield ReturnsPackaging(smallProds, litres)
   }
 
   val genReturnsImporting: Gen[ReturnsImporting] = {
     for {
-      smallVols <- genVolBands
-      largeVols <- genVolBands
+      smallVols <- genLitreBands
+      largeVols <- genLitreBands
     } yield ReturnsImporting(smallVols, largeVols)
   }
 
@@ -170,8 +168,8 @@ package object gen {
     for {
       packaged <- genReturnsPackaging.sometimes
       imported <- genReturnsImporting.sometimes
-      exported <- genVolBands.sometimes
-      wastage <- genVolBands.sometimes
+      exported <- genLitreBands.sometimes
+      wastage <- genLitreBands.sometimes
     } yield ReturnsRequest(packaged, imported, exported, wastage)
   }
 

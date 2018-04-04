@@ -19,15 +19,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import cats.Monoid
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import cats.implicits._
 
 package object returns {
   implicit val returnsRequestFormat: Format[ReturnsRequest] = new Format[ReturnsRequest] {
     override def reads(json: JsValue): JsResult[ReturnsRequest] = {
-      def litreReads(json: JsValue): VolumeBands = VolumeBands(
-        (json \ "lowRateVolume").as[Long],
-        (json \ "highRateVolume").as[Long]
+      def litreReads(json: JsValue): LitreBands = (
+        (json \ "lowRateVolume").as[Long], (json \ "highRateVolume").as[Long]
       )
 
       val returnsPackaging: Option[ReturnsPackaging] = json \ "packaged" match {
@@ -55,7 +56,7 @@ package object returns {
         case _ => None
       }
 
-      def volumeBlock(activity: ActivityType.Value): Option[VolumeBands] = {
+      def volumeBlock(activity: ActivityType.Value): Option[LitreBands] = {
         json \ activity.toString.toLowerCase match {
           case JsDefined(act) => Some(litreReads(act))
           case _ => None
@@ -65,25 +66,34 @@ package object returns {
       JsSuccess(ReturnsRequest(
         returnsPackaging,
         returnsImporting,
-        volumeBlock(ActivityType.Exported),
+        volumeBlock(ActivityType.Exporting),
         volumeBlock(ActivityType.Wastage)
       ))
     }
 
     override def writes(o: ReturnsRequest): JsValue = {
-      def litresWrites(litres: VolumeBands): JsObject = Json.obj(
-        "lowVolume" -> litres.low.toString,
-        "highVolume" -> litres.high.toString
+      def litresWrites(litres: LitreBands): JsObject = Json.obj(
+        "lowVolume" -> litres._1.toString,
+        "highVolume" -> litres._2.toString
       )
 
-      def monetaryWrites(litreBands: VolumeBands*): JsObject = {
-        val zero = BigDecimal(0)
-
+      def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject = {
         Json.obj(
-          "lowVolume" -> litreBands.foldLeft(zero)(_ + _.lowLevy),
-          "highVolume" -> litreBands.foldLeft(zero)(_ + _.highLevy),
-          "levySubtotal" -> litreBands.foldLeft(zero)(_ + _.dueLevy)
+          "lowVolume" -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
+          "highVolume" -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
+          "levySubtotal" -> litreBands.foldLeft(mb.empty)(_ + _.dueLevy)
         )
+      }
+
+      def optLitreObj(litres: Option[LitreBands], activityType: ActivityType.Value) = {
+        litres.fold(Json.obj()) { l =>
+          Json.obj(
+            activityType.toString.toLowerCase -> Json.obj(
+              "volumes" -> litresWrites(l),
+              "monetaryValues" -> monetaryWrites(l)
+            )
+          )
+        }
       }
 
       val packaged = o.packaged.fold(Json.obj()) { p =>
@@ -110,23 +120,8 @@ package object returns {
         )
       }
 
-      val exported = o.exported.fold(Json.obj()) { e =>
-        Json.obj(
-          "exporting" -> Json.obj(
-            "volumes" -> litresWrites(e),
-            "monetaryValues" -> monetaryWrites(e)
-          )
-        )
-      }
-
-      val wastage = o.wastage.fold(Json.obj()) { w =>
-        Json.obj(
-          "wastage" -> Json.obj(
-            "volumes" -> litresWrites(w),
-            "monetaryValues" -> monetaryWrites(w)
-          )
-        )
-      }
+      val exported = optLitreObj(o.exported, ActivityType.Exporting)
+      val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
       Json.obj(
         "periodKey" -> LocalDate.now.format(DateTimeFormatter.ofPattern("yy'C'q")),
