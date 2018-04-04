@@ -25,9 +25,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 package object returns {
   implicit val returnsRequestFormat: Format[ReturnsRequest] = new Format[ReturnsRequest] {
     override def reads(json: JsValue): JsResult[ReturnsRequest] = {
-      def litreReads(json: JsValue): VolumeBands = VolumeBands(
-        (json \ "lowRateVolume").as[Long],
-        (json \ "highRateVolume").as[Long]
+      def litreReads(json: JsValue): LitreBands = (
+        (json \ "lowRateVolume").as[Long], (json \ "highRateVolume").as[Long]
       )
 
       val returnsPackaging: Option[ReturnsPackaging] = json \ "packaged" match {
@@ -55,7 +54,7 @@ package object returns {
         case _ => None
       }
 
-      def volumeBlock(activity: ActivityType.Value): Option[VolumeBands] = {
+      def volumeBlock(activity: ActivityType.Value): Option[LitreBands] = {
         json \ activity.toString.toLowerCase match {
           case JsDefined(act) => Some(litreReads(act))
           case _ => None
@@ -71,12 +70,12 @@ package object returns {
     }
 
     override def writes(o: ReturnsRequest): JsValue = {
-      def litresWrites(litres: VolumeBands): JsObject = Json.obj(
-        "lowVolume" -> litres.low.toString,
-        "highVolume" -> litres.high.toString
+      def litresWrites(litres: LitreBands): JsObject = Json.obj(
+        "lowVolume" -> litres._1.toString,
+        "highVolume" -> litres._2.toString
       )
 
-      def monetaryWrites(litreBands: VolumeBands*): JsObject = {
+      def monetaryWrites(litreBands: LitreBands*): JsObject = {
         val zero = BigDecimal(0)
 
         Json.obj(

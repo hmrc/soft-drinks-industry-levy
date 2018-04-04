@@ -48,6 +48,8 @@ class RegistrationController(val authConnector: AuthConnector,
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[Subscription](data => {
           Logger.info("SDIL Subscription submission sent to DES")
+          import json.des.create._
+          Logger.info(Json.toJson(data).toString)
           (for {
             res <- desConnector.createSubscription(data, idType, idNumber)
             _ <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))

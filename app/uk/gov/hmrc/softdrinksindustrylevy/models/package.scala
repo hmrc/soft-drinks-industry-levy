@@ -16,11 +16,25 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy
 
+import cats.kernel.Group
+
 package object models {
 
   type Litres = Long
-  type PhoneNo = String
-  type EmailAddress = String
   type LitreBands = (Litres, Litres)
+
+  implicit val litreBandsGroup: Group[(Litres, Litres)] = new Group[(LitreBands)] {
+    override def inverse(a: (Litres, Litres)): (Litres, Litres) = (-a._1, -a._2)
+
+    override def empty: (Litres, Litres) = (0, 0)
+
+    override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
+  }
+
+  implicit class LitreOps(litreBands: LitreBands) {
+    lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
+    lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
+    lazy val dueLevy: BigDecimal = lowLevy + highLevy
+  }
 
 }
