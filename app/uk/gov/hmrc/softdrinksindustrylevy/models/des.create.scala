@@ -90,9 +90,8 @@ package object create {
     def reads(json: JsValue): JsResult[Subscription] = {
 
       val (warehouses, production) = json \ "sites" match {
-        case JsDefined(JsArray(sites)) => {
+        case JsDefined(JsArray(sites)) =>
           sites.partition(site => (site \ "siteType").as[String] == "1")
-        }
         case _ => (Nil, Nil)
       }
 

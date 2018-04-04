@@ -19,8 +19,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import cats.Monoid
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import cats.implicits._
 
 package object returns {
   implicit val returnsRequestFormat: Format[ReturnsRequest] = new Format[ReturnsRequest] {
@@ -75,14 +77,23 @@ package object returns {
         "highVolume" -> litres._2.toString
       )
 
-      def monetaryWrites(litreBands: LitreBands*): JsObject = {
-        val zero = BigDecimal(0)
-
+      def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject = {
         Json.obj(
-          "lowVolume" -> litreBands.foldLeft(zero)(_ + _.lowLevy),
-          "highVolume" -> litreBands.foldLeft(zero)(_ + _.highLevy),
-          "levySubtotal" -> litreBands.foldLeft(zero)(_ + _.dueLevy)
+          "lowVolume" -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
+          "highVolume" -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
+          "levySubtotal" -> litreBands.foldLeft(mb.empty)(_ + _.dueLevy)
         )
+      }
+
+      def optLitreObj(litres: Option[LitreBands], activityType: ActivityType.Value) = {
+        litres.fold(Json.obj()) { l =>
+          Json.obj(
+            activityType.toString.toLowerCase -> Json.obj(
+              "volumes" -> litresWrites(l),
+              "monetaryValues" -> monetaryWrites(l)
+            )
+          )
+        }
       }
 
       val packaged = o.packaged.fold(Json.obj()) { p =>
@@ -109,23 +120,8 @@ package object returns {
         )
       }
 
-      val exported = o.exported.fold(Json.obj()) { e =>
-        Json.obj(
-          "exporting" -> Json.obj(
-            "volumes" -> litresWrites(e),
-            "monetaryValues" -> monetaryWrites(e)
-          )
-        )
-      }
-
-      val wastage = o.wastage.fold(Json.obj()) { w =>
-        Json.obj(
-          "wastage" -> Json.obj(
-            "volumes" -> litresWrites(w),
-            "monetaryValues" -> monetaryWrites(w)
-          )
-        )
-      }
+      val exported = optLitreObj(o.exported, ActivityType.Exported)
+      val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
       Json.obj(
         "periodKey" -> LocalDate.now.format(DateTimeFormatter.ofPattern("yy'C'q")),
