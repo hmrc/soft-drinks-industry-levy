@@ -66,7 +66,7 @@ package object returns {
       JsSuccess(ReturnsRequest(
         returnsPackaging,
         returnsImporting,
-        volumeBlock(ActivityType.Exported),
+        volumeBlock(ActivityType.Exporting),
         volumeBlock(ActivityType.Wastage)
       ))
     }
@@ -120,7 +120,7 @@ package object returns {
         )
       }
 
-      val exported = optLitreObj(o.exported, ActivityType.Exported)
+      val exported = optLitreObj(o.exported, ActivityType.Exporting)
       val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
       Json.obj(

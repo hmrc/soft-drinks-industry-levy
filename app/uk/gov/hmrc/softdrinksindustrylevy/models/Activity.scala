@@ -20,7 +20,7 @@ import cats.kernel.Group
 import cats.implicits._
 
 object ActivityType extends Enumeration {
-  val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exported, Wastage = Value
+  val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exporting, Wastage = Value
 }
 
 sealed trait Activity {
