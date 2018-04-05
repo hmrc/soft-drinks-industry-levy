@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import cats.implicits._
+import cats.syntax.semigroup._
+import cats.instances.option._
 import cats.kernel.Monoid
 
 case class ReturnsRequest(packaged: Option[ReturnsPackaging],
