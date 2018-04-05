@@ -23,7 +23,7 @@ package object models {
   type Litres = Long
   type LitreBands = (Litres, Litres)
 
-  implicit val litreBandsGroup: Monoid[(Litres, Litres)] = new Monoid[(LitreBands)] {
+  implicit val litreBandsMonoid: Monoid[(LitreBands)] = new Monoid[(LitreBands)] {
     override def empty: (Litres, Litres) = (0, 0)
 
     override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
