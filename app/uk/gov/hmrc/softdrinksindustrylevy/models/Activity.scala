@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import cats.kernel.Group
-import cats.implicits._
+import cats.kernel.Monoid
+import cats.syntax.semigroup._
 
 object ActivityType extends Enumeration {
   val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exporting, Wastage = Value
@@ -50,7 +50,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
   import ActivityType._
 
   def totalLiableLitres: LitreBands = {
-    Group.combineAll(Seq(
+    Monoid.combineAll(Seq(
       totalProduced,
       activity.get(Imported),
       activity.get(CopackerAll)
