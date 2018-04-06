@@ -26,6 +26,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -39,7 +40,10 @@ class RosmController(val authConnector: AuthConnector,
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
-        case r if r.exists(res => res.organisation.isDefined || res.individual.isDefined) => Ok(Json.toJson(r))
+        case r if r.exists {
+          JsonSchemaChecker.checkAgainstSchema[RosmRegisterResponse](r.get, JsonSchemaChecker.rosmSchema)
+          res => res.organisation.isDefined || res.individual.isDefined
+        } => Ok(Json.toJson(r))
         case _ => NotFound
       }
     }

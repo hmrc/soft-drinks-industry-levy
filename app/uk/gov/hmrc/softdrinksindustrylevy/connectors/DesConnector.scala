@@ -53,7 +53,7 @@ class DesConnector(http: HttpClient,
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
     import json.des.create._
 
-    JsonSchemaChecker.checkAgainstSchema[Subscription](request)
+    JsonSchemaChecker.checkAgainstSchema[Subscription](request, JsonSchemaChecker.subscriptionSchema)
     http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)(implicitly, implicitly, addHeaders, implicitly)
   }
 
