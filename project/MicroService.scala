@@ -23,7 +23,8 @@ object MicroService extends Build {
     "com.softwaremill.macwire" %% "macrosakka" % "2.3.0" % "provided",
     "com.softwaremill.macwire" %% "util" % "2.3.0",
     "com.softwaremill.macwire" %% "proxy" % "2.3.0",
-    "org.typelevel" %% "cats-core" % "0.9.0"
+    "org.typelevel" %% "cats-core" % "0.9.0",
+    "com.github.fge" % "json-schema-validator" % "2.2.6"
   )
 
   lazy val test = Seq(
@@ -36,7 +37,6 @@ object MicroService extends Build {
     "uk.gov.hmrc" %% "stub-data-generator" % "0.4.0" % "test",
     "com.fasterxml.jackson.core" % "jackson-core" % "2.8.1" % "test",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.1" % "test",
-    "com.github.fge" % "json-schema-validator" % "2.2.6" % "test",
     "com.github.tomakehurst" % "wiremock" % "2.14.0" % "test",
     "uk.gov.hmrc" %% "hmrctest" % "3.0.0" % "test",
     "org.jsoup" % "jsoup" % "1.11.2" % "test"
