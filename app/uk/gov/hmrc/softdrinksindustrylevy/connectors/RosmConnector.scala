@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import play.api.Configuration
 import play.api.Mode.Mode
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -42,6 +43,8 @@ class RosmConnector(http: HttpClient,
   def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] = {
     http.POST[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)(implicitly, implicitly, addHeaders, implicitly)
+
+
   }
 
 }

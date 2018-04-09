@@ -27,17 +27,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
+import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
   test("∀ Subscription: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator
-
-    val stream = getClass.getResourceAsStream(
-      "/test/des-create-subscription.schema.json")
-    val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
-    stream.close
-    val schema = JsonLoader.fromString(schemaText)
+    val schema = JsonSchemaChecker.subscriptionSchema
     forAll { r: Subscription =>
       val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
       val report = validator.validate(schema, json)

@@ -24,6 +24,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
+import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,6 +53,7 @@ class DesConnector(http: HttpClient,
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
     import json.des.create._
 
+    JsonSchemaChecker.checkAgainstSchema[Subscription](request, JsonSchemaChecker.subscriptionSchema)
     http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)(implicitly, implicitly, addHeaders, implicitly)
   }
 

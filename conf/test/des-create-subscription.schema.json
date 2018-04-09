@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "04BZ - SDIL - API 1203 v1.0 Subscription Create - Request Schema",
-  "description": "SDIL Subscription request from MDTP to ETMP",
+  "title": "04BZ - SDIL - API 1203 v1.4 Subscription Create - Request Schema",
+  "description": "SDIL Subscription Create request from MDTP to ETMP",
   "type": "object",
   "required": [
     "registration"
@@ -83,28 +83,23 @@
           ],
           "properties": {
             "name": {
+              "description": "Allows upper and lowercase alphabetic, Space, Ampersand, Grave Accent, Hyphen-Minus, Apostrophe, Full Stop, and Circumflex Accent. Min 1, max 40 characters",
               "type": "string",
-              "minLength": 1,
-              "maxLength": 40
+              "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,40}$"
             },
             "positionInCompany": {
+              "description": "Allows upper and lowercase alphabetic, Space, Ampersand, Grave Accent, Hyphen-Minus, Apostrophe, Full Stop, and Circumflex Accent. Min 1, max 155 characters",
               "type": "string",
-              "minLength": 1,
-              "maxLength": 155
+              "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,155}$"
             },
             "telephone": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 24
+              "$ref": "#/definitions/telephoneType"
             },
             "mobile": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 24
+              "$ref": "#/definitions/telephoneType"
             },
             "email": {
-              "type": "string",
-              "format": "email"
+              "$ref": "#/definitions/emailType"
             }
           },
           "additionalProperties": false
@@ -202,8 +197,7 @@
           },
           "newSiteRef": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 20
+            "pattern": "^[a-zA-Z0-9 ,.\\/]{1,20}$"
           },
           "siteAddress": {
             "type": "object",
@@ -224,7 +218,7 @@
           "siteType": {
             "description": "Type of Site 1 = Warehouse 2 = Production Site",
             "type": "string",
-            "pattern": "^[1-2]{1}$"
+            "pattern": "^[12]{1}$"
           }
         },
         "additionalProperties": false
@@ -252,7 +246,7 @@
           "entityType": {
             "description": "Type of Entity Possible Value 4 - Partner",
             "type": "string",
-            "pattern": "^4$"
+            "pattern": "^[4]{1}$"
           },
           "organisationType": {
             "$ref": "#/definitions/organisationType"
@@ -286,17 +280,28 @@
     }
   },
   "additionalProperties": false,
+
   "definitions": {
+    "emailType": {
+      "description": "Standard RFC5322 email address.",
+      "type": "string",
+      "format": "email",
+      "maxLength": 132
+    },
+    "telephoneType": {
+      "description": "Covers landline, mobile, and fax numbers",
+      "type": "string",
+      "pattern": "^[A-Z0-9 )/(\\-*#+]{1,24}$"
+    },
     "organisationType": {
       "description": "1 = Sole proprietor,  2 = LLP,  3 = Partnership,  5 = Unincorporated body,  7 = Limited Company",
       "type": "string",
-      "pattern": "^[1|2|3|5|7]{1}$"
+      "pattern": "^[12357]{1}$"
     },
     "cinType": {
-      "description": "Customer Identifcation Number",
+      "description": "Customer Identification Number. Allows digits, upper and lowercase alphabetic characters, comma, full stop, forward slash, hyphen, and colon. Min 1, max 15 characters",
       "type": "string",
-      "minLength": 1,
-      "maxLength": 15
+      "pattern": "^[a-zA-Z0-9 ,\\.\\/\\-:]{1,15}$"
     },
     "wholeLitres": {
       "type": "number",
@@ -313,9 +318,9 @@
       "description": "Defines a monetary value (to 2 decimal places), between 0 and 99999999999.99"
     },
     "tradingNameType": {
+      "description": "Allows upper and lowercase alphabetic, numeric, Space, Apostrophe, Full Stop, Ampersand, Solidus (forward slash) characters. Min 1, max 160 characters",
       "type": "string",
-      "minLength": 1,
-      "maxLength": 160
+      "pattern": "^[a-zA-Z0-9 '.&\\/]{1,160}$"
     },
     "producerDetailsType": {
       "type": "object",
@@ -331,7 +336,7 @@
         "producerClassification": {
           "description": "Mandatory if SDIL Producer Actor (producer) field is true. 1 = Large Producer 0 = Small Producer",
           "type": "string",
-          "pattern": "^[0-1]{1}$"
+          "pattern": "^[01]{1}$"
         },
         "smallProducerExemption": {
           "description": "Are you requesting Small Producer Exemption? true (Yes) false (No)",
@@ -356,21 +361,16 @@
       ],
       "properties": {
         "telephone": {
-          "type": "string",
-          "pattern": "^[0-9 ()+--]{1,24}$"
+          "$ref": "#/definitions/telephoneType"
         },
         "mobile": {
-          "type": "string",
-          "pattern": "^[0-9 ()+--]{1,24}$"
+          "$ref": "#/definitions/telephoneType"
         },
         "fax": {
-          "type": "string",
-          "pattern": "^[0-9 ()+--]{1,24}$"
+          "$ref": "#/definitions/telephoneType"
         },
         "email": {
-          "type": "string",
-          "format": "email",
-          "maxLength": 132
+          "$ref": "#/definitions/emailType"
         }
       },
       "additionalProperties": false
@@ -406,7 +406,7 @@
         },
         "postCode": {
           "type": "string",
-          "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,5}$"
+          "pattern": "^[A-Z]{1,2}[0-9][0-9A-Z]?\\s?[0-9][A-Z]{2}$|BFPO\\s?[0-9]{1,3}$"
         },
         "country": {
           "$ref": "#/definitions/countryCodes"
@@ -680,6 +680,7 @@
         "ZW",
         "ZZ"
       ]
+
     }
   }
 }
