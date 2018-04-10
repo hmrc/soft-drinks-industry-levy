@@ -125,7 +125,8 @@ package object create {
         liabilityDate = (regJson \ "taxStartDate").as[Date],
         productionSites = sites(production),
         warehouseSites = sites(warehouses),
-        contact = (regJson \ "primaryPersonContact").as[Contact]
+        contact = (regJson \ "primaryPersonContact").as[Contact],
+        endDate = None
       ))
 
     }

@@ -16,35 +16,37 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import java.time.{LocalDateTime, LocalDate => Date}
+import java.time.{LocalDateTime, LocalDate}
 
 case class Site(
-  address: Address,
-  ref: Option[String]
-)
+                 address: Address,
+                 ref: Option[String]
+               )
 
 case class Contact(
-  name: Option[String],
-  positionInCompany: Option[String],
-  phoneNumber: String,
-  email: String
-)
+                    name: Option[String],
+                    positionInCompany: Option[String],
+                    phoneNumber: String,
+                    email: String
+                  )
 
-case class Subscription (
-                          utr: String,
-                          orgName: String,
-                          orgType: Option[String],
-                          address: Address,
-                          activity: Activity,
-                          liabilityDate: Date,
-                          productionSites: List[Site],
-                          warehouseSites: List[Site],
-                          contact: Contact
-)
+case class Subscription(utr: String,
+                        orgName: String,
+                        orgType: Option[String],
+                        address: Address,
+                        activity: Activity,
+                        liabilityDate: LocalDate,
+                        productionSites: List[Site],
+                        warehouseSites: List[Site],
+                        contact: Contact,
+                        endDate: Option[LocalDate]) {
+
+  def isDeregistered: Boolean = endDate.forall(_.isBefore(LocalDate.now))
+}
 
 /* Probably overkill */
 case class CreateSubscriptionResponse(
-  processingDate: LocalDateTime,
-  formBundleNumber: String
-)
+                                       processingDate: LocalDateTime,
+                                       formBundleNumber: String
+                                     )
 
