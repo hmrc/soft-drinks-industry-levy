@@ -33,7 +33,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
   test("∀ Subscription: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator
-    val schema = JsonSchemaChecker.subscriptionSchema
+    val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
     forAll { r: Subscription =>
       val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
       val report = validator.validate(schema, json)

@@ -37,12 +37,8 @@ class TaxEnrolmentConnector(http: HttpClient,
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
       Result => Result
     } recover {
-      case e: UnauthorizedException => {
-        handleError(e, formBundleNumber)
-      }
-      case e: BadRequestException =>  {
-        handleError(e, formBundleNumber)
-      }
+      case e: UnauthorizedException => handleError(e, formBundleNumber)
+      case e: BadRequestException => handleError(e, formBundleNumber)
     }
   }
 
@@ -64,12 +60,6 @@ class TaxEnrolmentConnector(http: HttpClient,
       "callback" -> s"$callbackUrl?subscriptionId=$formBundleNumber",
       "etmpId" -> safeId
     )
-  }
-
-  private def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
-    hc.withExtraHeaders(
-      "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
   }
 
 }
