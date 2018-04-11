@@ -41,7 +41,7 @@ class RosmController(val authConnector: AuthConnector,
     authorised(AuthProviders(GovernmentGateway)) {
       rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
         case r if r.exists {
-          JsonSchemaChecker.checkAgainstSchema[RosmRegisterResponse](r.get, JsonSchemaChecker.rosmSchema)
+          JsonSchemaChecker[RosmRegisterResponse](r.get, "rosm-response")
           res => res.organisation.isDefined || res.individual.isDefined
         } => Ok(Json.toJson(r))
         case _ => NotFound

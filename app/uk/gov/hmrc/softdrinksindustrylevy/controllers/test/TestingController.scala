@@ -17,27 +17,21 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers.test
 
 import play.api.mvc.{Action, AnyContent}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class TestingController(testConnector: TestConnector,
                         buffer: MongoBufferService,
                         fileUpload: FileUploadConnector)
   extends BaseController {
 
-  def resetRegistrations: Action[AnyContent] = Action.async { implicit request =>
-    testConnector.resetRegistrations map {
-      r => Status(r.status)
-    }
-  }
-
-  def resetReturns: Action[AnyContent] = Action.async { implicit request =>
-    testConnector.resetReturns map {
-      r => Status(r.status)
-    }
+  def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
+    testConnector.reset(url) map (r => Status(r.status))
   }
 
   def resetDb: Action[AnyContent] = Action.async { implicit request =>

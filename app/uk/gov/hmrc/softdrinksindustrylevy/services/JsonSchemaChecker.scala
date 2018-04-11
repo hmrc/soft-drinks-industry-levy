@@ -22,34 +22,31 @@ import com.github.fge.jsonschema.core.report.ProcessingReport
 import com.github.fge.jsonschema.main.JsonSchemaFactory
 import play.api.Logger
 import play.api.libs.json.{Format, Json}
+
 import scala.collection.JavaConversions._
 
 object JsonSchemaChecker {
 
-  def subscriptionSchema: JsonNode = {
-    schema("/test/des-create-subscription.schema.json")
-  }
+  def retrieveSchema(file: String): JsonNode = schema(s"/test/$file.schema.json")
 
-  def rosmSchema: JsonNode = {
-    schema("/test/rosm-response.schema.json")
-  }
-
-  def schema(path: String): JsonNode = {
+  private def schema(path: String): JsonNode = {
     val stream = getClass.getResourceAsStream(path)
     val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
     stream.close()
     JsonLoader.fromString(schemaText)
   }
 
-  def checkAgainstSchema[A](model: A, schema: JsonNode)(implicit format: Format[A]): Unit = {
+  def apply[A](model: A, file: String)(implicit format: Format[A]): Unit = {
+    val schema = retrieveSchema(file)
     val validator = JsonSchemaFactory.byDefault.getValidator
     val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(model)))
     val processingReport: ProcessingReport = validator.validate(schema, json)
     if (!processingReport.isSuccess) processingReport.foreach {
-      x => Logger.warn(
-            s"failed to validate against json schema, schema: ${x.asJson().get("schema")}, " +
-              s"instance: ${x.asJson().get("instance")}, problem: ${x.asJson().get("keyword")}"
-      )
+      x =>
+        Logger.warn(
+          s"failed to validate against json schema, schema: ${x.asJson().get("schema")}, " +
+            s"instance: ${x.asJson().get("instance")}, problem: ${x.asJson().get("keyword")}"
+        )
     }
   }
 

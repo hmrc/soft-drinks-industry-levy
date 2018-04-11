@@ -35,7 +35,7 @@ case class ReturnsRequest(packaged: Option[ReturnsPackaging],
 }
 
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: LitreBands) {
-  lazy val totalSmallProdVolumes: (Litres, Litres) = smallProducerVolumes.foldLeft(Monoid[LitreBands].empty)(_ |+| _.volumes)
+  lazy val totalSmallProdVolumes: LitreBands = smallProducerVolumes.foldLeft(Monoid[LitreBands].empty)(_ |+| _.volumes)
 }
 
 case class ReturnsImporting(smallProducerVolumes: LitreBands, largeProducerVolumes: LitreBands)

@@ -16,28 +16,25 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import play.api.Configuration
-import play.api.Mode.Mode
-import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.libs.json.Writes
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RosmConnector(val http: HttpClient,
-                    val mode: Mode,
-                    val runModeConfiguration: Configuration)
-  extends ServicesConfig with DesHelpers {
+trait DesHelpers extends ServicesConfig {
 
-  val desURL: String = baseUrl("des")
-  val serviceURL: String = "registration/organisation"
+  val http: HttpClient
 
-  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] = {
-    desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)
+  def desPost[I, O](url: String, body: I)(implicit wts: Writes[I], rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
+    http.POST[I, O](url, body)(wts, rds, addHeaders, ec)
+
+  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
+    hc.withExtraHeaders(
+      "Environment" -> getConfString("des.environment", "")
+    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
   }
 
 }
