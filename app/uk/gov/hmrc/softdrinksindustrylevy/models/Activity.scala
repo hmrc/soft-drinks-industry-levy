@@ -66,7 +66,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
     }
   }
 
-  def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
+  def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee) || isLarge
 
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
 
