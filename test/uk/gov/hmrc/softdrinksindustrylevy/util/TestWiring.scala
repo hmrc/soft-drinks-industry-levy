@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
 import java.io.File
+import java.time.Clock
 
 import com.softwaremill.macwire._
 import play.api.Mode.Mode
@@ -31,4 +32,5 @@ trait TestWiring {
   lazy val environment: Environment = Environment.simple(new File("."))
   lazy val mode: Mode = environment.mode
   lazy val messagesApi: MessagesApi = new DefaultMessagesApi(environment, configuration, new DefaultLangs(configuration))
+  implicit def clock: Clock = Clock.systemDefaultZone()
 }

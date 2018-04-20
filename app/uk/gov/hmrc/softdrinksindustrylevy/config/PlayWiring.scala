@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
+import java.time.Clock
+
 import akka.stream.Materializer
 import play.api.{Configuration, Environment}
 import play.api.Mode.Mode
@@ -31,6 +33,7 @@ trait PlayWiring {
   implicit def executionContext: ExecutionContext
   implicit def materializer: Materializer
   def messagesApi: MessagesApi
+  implicit def clock: Clock = Clock.systemDefaultZone()
 
   lazy val mode: Mode = environment.mode
 }

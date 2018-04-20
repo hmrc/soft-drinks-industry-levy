@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time.Clock
+
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
@@ -28,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnsController(val authConnector: AuthConnector,
                         desConnector: DesConnector)
-                       (implicit ec: ExecutionContext)
+                       (implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
   def validateSmallProducer(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>

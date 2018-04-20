@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
-import java.time.LocalDate
+import java.time.{Clock, LocalDate}
 import java.time.format.DateTimeFormatter
 
 import cats.Monoid
@@ -25,7 +25,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import cats.implicits._
 
 package object returns {
-  implicit val returnsRequestFormat: Format[ReturnsRequest] = new Format[ReturnsRequest] {
+  implicit def returnsRequestFormat(implicit clock: Clock): Format[ReturnsRequest] = new Format[ReturnsRequest] {
     override def reads(json: JsValue): JsResult[ReturnsRequest] = {
       def litreReads(json: JsValue): LitreBands = (
         (json \ "lowRateVolume").as[Long], (json \ "highRateVolume").as[Long]
@@ -123,8 +123,22 @@ package object returns {
       val exported = optLitreObj(o.exported, ActivityType.Exporting)
       val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
+      val now = LocalDate.now(clock)
+
+      val (day, month) = (now.getDayOfMonth, now.getMonthValue)
+      val lastYY = now.minusYears(1).format(DateTimeFormatter.ofPattern("yy"))
+      val currentYY = now.format(DateTimeFormatter.ofPattern("yy"))
+
+      val quarter = {
+        if (month == 1 && day < 6) lastYY + "C3"
+        else if (month < 4 || (month == 4 && day < 6)) lastYY + "C4"
+        else if (month < 7 || (month == 7 && day < 6)) currentYY + "C1"
+        else if (month < 10 || (month == 10 && day < 6)) currentYY + "C2"
+        else currentYY + "C3"
+      }
+
       Json.obj(
-        "periodKey" -> LocalDate.now.format(DateTimeFormatter.ofPattern("yy'C'q")),
+        "periodKey" -> quarter,
         "formBundleType" -> "ZSD1",
         "netLevyDueTotal" -> o.totalLevy
       ) ++ packaged ++ imported ++ exported ++ wastage
