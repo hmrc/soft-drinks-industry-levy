@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import play.api.libs.json.Json
+import java.text.Normalizer
 
 case class OrganisationResponse(
                                  organisationName: String
@@ -35,17 +36,43 @@ object IndividualResponse {
   implicit val format: Format[IndividualResponse] = Json.format[IndividualResponse]
 }
 
-case class RosmResponseAddress(
-                                addressLine1: String,
-                                addressLine2: Option[String],
-                                addressLine3: Option[String],
-                                addressLine4: Option[String],
-                                countryCode: String,
-                                postalCode: String
-                              )
+abstract case class RosmResponseAddress private[models](
+  addressLine1: String,
+  addressLine2: Option[String],
+  addressLine3: Option[String],
+  addressLine4: Option[String],
+  countryCode: String,
+  postalCode: String
+)
 
 object RosmResponseAddress {
   implicit val rosmResponseAddressFormat = Json.format[RosmResponseAddress]
+
+  /** ROSM schemas permit any characters, but the SDIL schemas are more
+    * restrictive. Convert all non-standard latin characters to their standard
+    * equivalent (e.g. 'é' becomes 'e') and remove any non-permitted symbols
+    * such as parenthesis */
+  implicit class RichStr(i: String) {
+    def clean = Normalizer.normalize(i, Normalizer.Form.NFD)
+      .replaceAll("\\p{M}", "")
+      .replaceAll("[^A-Za-z0-9 \\-,.&'\\/]", "")
+  }
+
+  def apply(
+    addressLine1: String,
+    addressLine2: Option[String],
+    addressLine3: Option[String],
+    addressLine4: Option[String],
+    countryCode: String,
+    postalCode: String
+  ): RosmResponseAddress = new RosmResponseAddress(
+    addressLine1.clean,
+    addressLine2.map(_.clean),
+    addressLine3.map(_.clean),
+    addressLine4.map(_.clean),
+    countryCode,
+    postalCode
+  ) {}
 }
 
 case class RosmResponseContactDetails(
