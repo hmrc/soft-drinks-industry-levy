@@ -79,7 +79,7 @@
 
 @variationsRequest.sdilActivity.map { sdilActivity =>
     @table_helper("sdil-activity") {
-        @sdilActivity.activity match {
+        @sdilActivity.activity.map {
             case InternalActivity(a, _) => {
                 @internal_activity_helper(a, ProducedOwnBrand)
                 @internal_activity_helper(a, Imported)
@@ -108,7 +108,7 @@
         }
     }
 
-    @sdilActivity.activity match {
+    @sdilActivity.activity.map {
         case InternalActivity(a, _) => {
             @table_helper("activity-dependent-questions") {
                 @litreage_helper(a, ProducedOwnBrand)
@@ -118,18 +118,16 @@
         }
     }
 
-    @sdilActivity.estimatedTaxAmount.map { estimatedTaxAmount =>
-
-        @table_helper("further-questions") {
-            <tr>
-                <td>
-                @Messages("variations.estimated-tax-amount")
-                </td>
-                <td>
-                            &pound;@estimatedTaxAmount.formatted("%,1.2f")
-                </td>
-            </tr>
+    @sdilActivity.activity.map {
+        case a: InternalActivity if a.activity.nonEmpty => {
+            @table_helper("further-questions") {
+                <tr>
+                    <td>@Messages("variations.estimated-tax-amount")</td>
+                    <td>&pound;@a.taxEstimation.formatted("%,1.2f")</td>
+                </tr>
+            }
         }
+        case _ => {}
     }
 
     @sdilActivity.taxObligationStartDate.map { taxObligationStartDate =>
