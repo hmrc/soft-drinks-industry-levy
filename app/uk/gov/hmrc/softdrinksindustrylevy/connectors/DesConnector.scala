@@ -46,9 +46,16 @@ class DesConnector(val http: HttpClient,
   def createSubscription(request: Subscription, idType: String, idNumber: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
     import json.des.create._
+    import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
+    val formattedLines = request.address.lines.map { line => line.clean }
+    val formattedAddress = request.address match {
+      case a: UkAddress => a.copy(lines = formattedLines)
+      case b: ForeignAddress => b.copy(lines = formattedLines)
+    }
+    val submission = request.copy(address = formattedAddress)
 
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
-    desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
+    desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
