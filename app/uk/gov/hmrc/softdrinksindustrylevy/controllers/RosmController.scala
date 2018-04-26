@@ -40,10 +40,9 @@ class RosmController(val authConnector: AuthConnector,
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
-        case r if r.exists {
-          JsonSchemaChecker[RosmRegisterResponse](r.get, "rosm-response")
-          res => res.organisation.isDefined || res.individual.isDefined
-        } => Ok(Json.toJson(r))
+        case Some(r) if r.organisation.isDefined || r.individual.isDefined =>
+          JsonSchemaChecker[RosmRegisterResponse](r, "rosm-response")
+          Ok(Json.toJson(r))
         case _ => NotFound
       }
     }
