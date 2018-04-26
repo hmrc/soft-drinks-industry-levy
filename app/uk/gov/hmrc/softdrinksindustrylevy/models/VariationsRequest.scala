@@ -65,13 +65,12 @@ object SdilActivity {
 }
 
 case class SdilActivity(
-                         activity: Activity,
+                         activity: Option[Activity],
                          produceLessThanOneMillionLitres: Option[Boolean] = None,
                          smallProducerExemption: Option[Boolean] = None, //If true then the user does not have to file returns
                          usesContractPacker: Option[Boolean] = None,
                          voluntarilyRegistered: Option[Boolean] = None,
                          reasonForAmendment: Option[String] = None,
-                         estimatedTaxAmount: Option[BigDecimal] = None,
                          taxObligationStartDate: Option[LocalDate] = None
                        )
 
