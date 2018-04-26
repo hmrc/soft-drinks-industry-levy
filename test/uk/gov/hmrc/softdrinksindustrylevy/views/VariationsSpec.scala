@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.views
 import java.time.LocalDate
 
 import org.jsoup.Jsoup
-import play.api.i18n.{Messages, MessagesApi}
+import play.api.i18n.Messages
 import play.api.mvc.Request
 import play.api.test.FakeRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -133,13 +133,12 @@ class VariationsSpec extends FakeApplicationSpec {
     "the SDIL activity has changed" should {
       "contain the updated SDIL activity" in {
         val activity = SdilActivity(
-          activity = InternalActivity(Map(ActivityType.ProducedOwnBrand -> ((100L, 200L))), isLarge = false),
+          activity = Some(InternalActivity(Map(ActivityType.ProducedOwnBrand -> ((100L, 200L))), isLarge = false)),
           produceLessThanOneMillionLitres = Some(true),
           smallProducerExemption = Some(true),
           usesContractPacker = Some(true),
           voluntarilyRegistered = Some(true),
           reasonForAmendment = Some("""¯\_(ツ)_/¯"""),
-          estimatedTaxAmount = Some(0),
           taxObligationStartDate = Some(LocalDate.now)
         )
 
@@ -158,7 +157,7 @@ class VariationsSpec extends FakeApplicationSpec {
           """Reason For Amendment ¯\_(ツ)_/¯""",
           "Litres Produced in UK each year Higher Rate 200",
           "Lower Rate 100",
-          "Estimated amount of tax in the next 12 months £0.00"
+          "Estimated amount of tax in the next 12 months £66.00"
         )
 
         rows must contain (subheading)
