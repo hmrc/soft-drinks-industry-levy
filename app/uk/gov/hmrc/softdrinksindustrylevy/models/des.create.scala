@@ -96,8 +96,12 @@ package object create {
       }
 
       def sites(siteJson: Seq[JsValue]) = {
-        siteJson map {
-          site => Site(address = (site \ "siteAddress" \ "addressDetails").as[Address], ref = (site \ "newSiteRef").asOpt[String])
+        siteJson map { site =>
+          Site(
+            address = (site \ "siteAddress" \ "addressDetails").as[Address],
+            ref = (site \ "newSiteRef").asOpt[String],
+            closureDate = (site \ "closureDate").asOpt[Date]
+          )
         }
       }.toList
 
