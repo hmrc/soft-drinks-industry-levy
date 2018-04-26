@@ -33,7 +33,7 @@ package object get {
       JsSuccess(Contact(
         name = (json \ "subscriptionDetails" \ "primaryContactName").asOpt[String],
         positionInCompany = (json \ "subscriptionDetails" \ "primaryPositionInCompany").asOpt[String],
-        phoneNumber = (json \ "subscriptionDetails" \"primaryTelephone").as[String],
+        phoneNumber = (json \ "subscriptionDetails" \ "primaryTelephone").as[String],
         email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
       ))
     }
@@ -72,7 +72,7 @@ package object get {
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map{ case (v,i) =>
+      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
         s"line${i + 1}" -> JsString(v)
       }
 
@@ -95,40 +95,24 @@ package object get {
   implicit val siteFormat: Format[Site] = (
     (JsPath \ "siteAddress").format[Address] and
       (JsPath \ "siteReference").formatNullable[String]
-    )(Site.apply, unlift(Site.unapply))
+    ) (Site.apply, unlift(Site.unapply))
 
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
 
     override def writes(o: Subscription): JsValue = {
 
-      def writeSites(siteType: Int): List[JsObject] = {
-        val siteTradingName = o.orgName
-        val s = siteType match {
-          case 1 => o.productionSites
-          case 2 => o.warehouseSites
-        }
-        s.map {
-          x => JsObject(Map(
-              "tradingName" -> JsString(siteTradingName),
-              "siteAddress" -> addressFormat.writes(x.address)
-            ))
-        }
-      }
-
       def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
-        sites map {
-          site =>
-            Json.obj(
-              "tradingName" -> o.orgName,
-              "siteReference" -> site.ref,
-              "siteAddress" -> site.address,
-              "siteContact" -> Json.obj(
-                  "telephone" -> o.contact.phoneNumber,
-                  "email" -> o.contact.email
-                ),
-              "siteType" -> (if (isWarehouse) "1" else "2"))
-
+        sites map { site =>
+          Json.obj(
+            "tradingName" -> o.orgName,
+            "siteReference" -> site.ref,
+            "siteAddress" -> site.address,
+            "siteContact" -> Json.obj(
+              "telephone" -> o.contact.phoneNumber,
+              "email" -> o.contact.email
+            ),
+            "siteType" -> (if (isWarehouse) "1" else "2"))
         }
       }
 
@@ -172,10 +156,13 @@ package object get {
           isImporter = importer.contains(true)
         )
       }
+
       def getSites(siteType: String): List[Site] =
         json \ "sites" match {
           case JsDefined(JsArray(arr)) => arr.toList.collect {
-            case obj: JsObject if {obj \ "siteType"}.as[String] == siteType => obj.as[Site]
+            case obj: JsObject if {
+              obj \ "siteType"
+            }.as[String] == siteType => obj.as[Site]
           }
           case _ => List.empty[Site]
         }
@@ -189,10 +176,11 @@ package object get {
         liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
         productionSites = getSites("2"),
         warehouseSites = getSites("1"),
-        contact = json.as[Contact]
+        contact = json.as[Contact],
+        endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate]
       ))
     }
 
   }
-    
+
 }

@@ -16,17 +16,26 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import cats.kernel.Monoid
+import cats.syntax.semigroup._
+
 object ActivityType extends Enumeration {
-  val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exported, Wastage = Value
+  val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exporting, Wastage = Value
 }
 
 sealed trait Activity {
   def isProducer: Boolean
+
   def isLarge: Boolean
+
   def isContractPacker: Boolean
+
   def isImporter: Boolean
+
   def isVoluntaryRegistration: Boolean = isProducer && !isLarge && !isImporter && !isContractPacker
+
   def isSmallProducer: Boolean = isProducer && !isLarge
+
   def taxEstimation: BigDecimal
 }
 
@@ -40,43 +49,32 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   import ActivityType._
 
-  private lazy val lowerRate: BigDecimal = BigDecimal("0.18")
-  private lazy val upperRate: BigDecimal = BigDecimal("0.24")
-
   def totalLiableLitres: LitreBands = {
-    val zero: LitreBands = (0, 0)
-
-    Seq(
-      totalProduced.getOrElse(zero),
-      activity.getOrElse(Imported, zero),
-      activity.getOrElse(CopackerAll, zero)
-    ).foldLeft(zero) { case ((accLow, accHigh), (low, high)) => (accLow + low, accHigh + high) }
+    Monoid.combineAll(Seq(
+      totalProduced,
+      activity.get(Imported),
+      activity.get(CopackerAll)
+    ).flatten)
   }
 
   lazy val totalProduced: Option[LitreBands] = {
     (activity.get(ProducedOwnBrand), activity.get(Copackee)) match {
-      case (Some(pob), Some(c)) => Some((pob._1 + c._1, pob._2 + c._2))
+      case (Some(p), Some(c)) => Some(p |+| c)
       case (Some(pob), None) => Some(pob)
       case (None, Some(c)) => Some(c)
       case (None, None) => None
     }
   }
 
-  def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee)
+  def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee) || isLarge
 
   def isContractPacker: Boolean = activity.keySet.contains(CopackerAll)
 
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
   override def taxEstimation: BigDecimal = {
-    val estimate = totalLiableLitres._1 * lowerRate + totalLiableLitres._2 * upperRate
     val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
-
-    if (estimate > biggestNumberThatETMPCanHandle) {
-      biggestNumberThatETMPCanHandle
-    } else {
-      estimate
-    }
+    totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
   }
 }
 

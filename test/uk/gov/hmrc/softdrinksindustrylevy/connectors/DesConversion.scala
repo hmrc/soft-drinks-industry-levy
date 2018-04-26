@@ -27,17 +27,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
+import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
   test("∀ Subscription: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator
-
-    val stream = getClass.getResourceAsStream(
-      "/test/des-create-subscription.schema.json")
-    val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
-    stream.close
-    val schema = JsonLoader.fromString(schemaText)
+    val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
     forAll { r: Subscription =>
       val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
       val report = validator.validate(schema, json)
@@ -247,15 +243,25 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
   }
 
-  private lazy val baseSubscription = Subscription("1111111111",
-    "I AM THE ORGANISATION TO RULE",
-    Some("3"), UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
-    InternalActivity(Map.empty, isLarge = false),
-    LocalDate.parse("2018-04-06"),
-    List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None)),
-    List(Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None),
-      Site(UkAddress(List("17 Trebarthen Terrace", "Northampton"), "NN08 2CC"), None)),
-    Contact(Some("Evelyn Hindmarsh"),
-      Some("pimirzalvqlsljtiwgIiqzljnKpofqguhwKiwkcbzfoykggiwskbarsbikwwfsgI"), "00779 705682", "nkzkjldisu@zmzlddpexr.co.uk"))
+  private lazy val baseSubscription = Subscription(
+    utr = "1111111111",
+    orgName = "I AM THE ORGANISATION TO RULE",
+    orgType = Some("3"),
+    address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
+    activity = InternalActivity(Map.empty, isLarge = false),
+    liabilityDate = LocalDate.parse("2018-04-06"),
+    productionSites = List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None)),
+    warehouseSites = List(
+      Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None),
+      Site(UkAddress(List("17 Trebarthen Terrace", "Northampton"), "NN08 2CC"), None)
+    ),
+    contact = Contact(
+      Some("Evelyn Hindmarsh"),
+      Some("pimirzalvqlsljtiwgIiqzljnKpofqguhwKiwkcbzfoykggiwskbarsbikwwfsgI"),
+      "00779 705682",
+      "nkzkjldisu@zmzlddpexr.co.uk"
+    ),
+    endDate = None
+  )
 
 }

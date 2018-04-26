@@ -4,6 +4,7 @@ POST        /subscription/:idType/:idNumber/:safeId        uk.gov.hmrc.softdrink
 GET         /subscription/:idType/:idNumber                uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrieveSubscriptionDetails(idType, idNumber)
 GET         /check-enrolment-status/:utr                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
 
+GET         /small-producer/sdil/:sdilRef                  uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)
 POST        /returns/:sdilRef                              uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.submitReturn(sdilRef)
 
 GET         /rosm-registration/lookup/:utr                 uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)

@@ -16,11 +16,23 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy
 
+import cats.kernel.Monoid
+
 package object models {
 
   type Litres = Long
-  type PhoneNo = String
-  type EmailAddress = String
   type LitreBands = (Litres, Litres)
+
+  implicit val litreBandsMonoid: Monoid[(LitreBands)] = new Monoid[(LitreBands)] {
+    override def empty: (Litres, Litres) = (0, 0)
+
+    override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
+  }
+
+  implicit class LitreOps(litreBands: LitreBands) {
+    lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
+    lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
+    lazy val dueLevy: BigDecimal = lowLevy + highLevy
+  }
 
 }

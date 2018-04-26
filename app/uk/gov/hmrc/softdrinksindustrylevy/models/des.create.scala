@@ -86,7 +86,52 @@ package object create {
     }
   }
 
-  implicit val subscriptionWrites: Writes[Subscription] = new Writes[Subscription] {
+  implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
+    def reads(json: JsValue): JsResult[Subscription] = {
+
+      val (warehouses, production) = json \ "sites" match {
+        case JsDefined(JsArray(sites)) =>
+          sites.partition(site => (site \ "siteType").as[String] == "1")
+        case _ => (Nil, Nil)
+      }
+
+      def sites(siteJson: Seq[JsValue]) = {
+        siteJson map {
+          site => Site(address = (site \ "siteAddress" \ "addressDetails").as[Address], ref = (site \ "newSiteRef").asOpt[String])
+        }
+      }.toList
+
+      val regJson = json \ "registration"
+
+      def litreReads(activityField: String) = (
+        (regJson \ "activityQuestions" \ s"litres${activityField}UKLower").as[Litres],
+        (regJson \ "activityQuestions" \ s"litres${activityField}UKHigher").as[Litres]
+      )
+
+      def activity = {
+        val produced = ActivityType.ProducedOwnBrand -> litreReads("Produced")
+        val imported = ActivityType.Imported -> litreReads("Imported")
+        val isLarge = (regJson \ "activityQuestions" \ "isLarge").as[Boolean]
+
+        InternalActivity(Map(produced, imported), isLarge)
+      }
+
+      JsSuccess(Subscription(
+        utr = (regJson \ "cin").as[String],
+        orgName = (regJson \ "tradingName").as[String],
+        orgType = (regJson \ "organisationType").asOpt[String],
+        address = (regJson \ "businessContact" \ "addressDetails").as[Address],
+        activity = activity,
+        liabilityDate = (regJson \ "taxStartDate").as[Date],
+        productionSites = sites(production),
+        warehouseSites = sites(warehouses),
+        contact = (regJson \ "primaryPersonContact").as[Contact],
+        endDate = None
+      ))
+
+    }
+
+
     def writes(s: Subscription): JsValue = {
 
       def activityMap: Map[String, JsValue] = {
@@ -179,7 +224,7 @@ package object create {
           }),
           "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> s.activity.taxEstimation,
-          "taxObligationStartDate" -> s.liabilityDate.toString
+          "taxObligationStartDate" -> Date.now.toString
         ),
         "sites" -> (siteList(s.warehouseSites, isWarehouse = true) ++
           siteList(s.productionSites, isWarehouse = false, offset = s.warehouseSites.size))

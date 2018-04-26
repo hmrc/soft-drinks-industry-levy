@@ -19,17 +19,18 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import play.api.Configuration
 import play.api.Mode.Mode
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
+import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DesConnector(http: HttpClient,
+class DesConnector(val http: HttpClient,
                    val mode: Mode,
-                   val runModeConfiguration: Configuration) extends ServicesConfig with OptionHttpReads {
+                   val runModeConfiguration: Configuration)
+  extends ServicesConfig with OptionHttpReads with DesHelpers {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
@@ -42,29 +43,22 @@ class DesConnector(http: HttpClient,
     }
   }
 
-  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
-    hc.withExtraHeaders(
-      "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
-  }
-
   def createSubscription(request: Subscription, idType: String, idNumber: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
     import json.des.create._
 
-    http.POST[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)(implicitly, implicitly, addHeaders, implicitly)
+    JsonSchemaChecker[Subscription](request, "des-create-subscription")
+    desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", request)
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import json.des.get._
-
     http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
-
   }
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)(implicitly, implicitly, addHeaders, implicitly)
+    desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
   }
 
 }

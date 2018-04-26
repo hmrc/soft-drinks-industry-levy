@@ -18,11 +18,11 @@ package uk.gov.hmrc.softdrinksindustrylevy.util
 
 import java.io.File
 
+import com.softwaremill.macwire._
+import play.api.Mode.Mode
 import play.api.i18n.{DefaultLangs, DefaultMessagesApi, MessagesApi}
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import com.softwaremill.macwire._
-import play.api.Mode.Mode
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
 
 trait TestWiring {

@@ -30,12 +30,8 @@ class TestConnector(http: HttpClient,
 
   val resetURL: String = baseUrl("des")
 
-  def resetRegistrations(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.GET(s"$resetURL/reset-registration")
-  }
-
-  def resetReturns(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
-    http.GET(s"$resetURL/reset-returns")
+  def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    http.GET(s"$resetURL/$url")
   }
 
 }
