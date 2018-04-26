@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import java.time.Clock
+
 import play.api.Configuration
 import play.api.Mode.Mode
 import uk.gov.hmrc.http._
@@ -30,6 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
                    val runModeConfiguration: Configuration)
+                  (implicit clock: Clock)
   extends ServicesConfig with OptionHttpReads with DesHelpers {
 
   val desURL: String = baseUrl("des")

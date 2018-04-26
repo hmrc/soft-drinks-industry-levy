@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import java.time.Clock
+
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
