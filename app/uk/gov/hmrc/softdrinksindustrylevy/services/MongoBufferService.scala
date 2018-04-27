@@ -16,8 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.{Instant, LocalDateTime}
-import javax.inject.Inject
+import java.time.Instant
 
 import play.api.libs.json._
 import reactivemongo.api.indexes.{Index, IndexType}
