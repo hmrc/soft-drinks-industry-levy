@@ -22,16 +22,22 @@ import play.api.mvc.Action
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
+import uk.gov.hmrc.softdrinksindustrylevy.services.VariationSubmissionService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class VariationsController(val messagesApi: MessagesApi,
-                           gforms: GformConnector) extends BaseController with I18nSupport {
+                           gforms: GformConnector,
+                           submissions: VariationSubmissionService) extends BaseController with I18nSupport {
 
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data).toString
-      gforms.submitToDms(page, sdilNumber) map { _ => NoContent }
+
+      for {
+        _ <- gforms.submitToDms(page, sdilNumber)
+        _ <- submissions.save(data, sdilNumber)
+      } yield NoContent
     }
   }
 }
