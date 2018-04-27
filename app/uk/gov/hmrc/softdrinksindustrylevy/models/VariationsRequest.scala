@@ -21,7 +21,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import play.api.libs.json._
 
 object VariationsRequest {
-  implicit val reads: Reads[VariationsRequest] = Json.reads[VariationsRequest]
+  implicit val format: Format[VariationsRequest] = Json.format[VariationsRequest]
 }
 
 case class VariationsRequest(
@@ -37,7 +37,7 @@ case class VariationsRequest(
                             )
 
 object VariationsContact {
-  implicit val reads: Reads[VariationsContact] = Json.reads[VariationsContact]
+  implicit val format: Format[VariationsContact] = Json.format[VariationsContact]
 }
 
 case class VariationsContact(addressLine1: Option[String] = None,
@@ -49,7 +49,7 @@ case class VariationsContact(addressLine1: Option[String] = None,
                              emailAddress: Option[String] = None)
 
 object VariationsPersonalDetails {
-  implicit val reads: Reads[VariationsPersonalDetails] = Json.reads[VariationsPersonalDetails]
+  implicit val format: Format[VariationsPersonalDetails] = Json.format[VariationsPersonalDetails]
 }
 
 case class VariationsPersonalDetails(
@@ -61,7 +61,7 @@ case class VariationsPersonalDetails(
 
 object SdilActivity {
 
-  implicit val reads: Reads[SdilActivity] = Json.reads[SdilActivity]
+  implicit val format: Format[SdilActivity] = Json.format[SdilActivity]
 }
 
 case class SdilActivity(
@@ -75,7 +75,7 @@ case class SdilActivity(
                        )
 
 object VariationsSite {
-  implicit val reads: Reads[VariationsSite] = Json.reads[VariationsSite]
+  implicit val format: Format[VariationsSite] = Json.format[VariationsSite]
 }
 
 case class VariationsSite(
@@ -86,7 +86,7 @@ case class VariationsSite(
                          )
 
 object CloseSites {
-  implicit val reads: Reads[CloseSites] = Json.reads[CloseSites]
+  implicit val format: Format[CloseSites] = Json.format[CloseSites]
 }
 
 case class CloseSites(

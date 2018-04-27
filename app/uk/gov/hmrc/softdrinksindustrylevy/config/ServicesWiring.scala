@@ -17,10 +17,11 @@
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import com.softwaremill.macwire._
-import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, VariationSubmissionService}
 
 trait ServicesWiring {
-  self: ConnectorWiring =>
+  self: ConnectorWiring with PlayWiring =>
 
   lazy val mongoBufferService: MongoBufferService = wire[MongoBufferService]
+  lazy val variationSubmissionService: VariationSubmissionService = wire[VariationSubmissionService]
 }
