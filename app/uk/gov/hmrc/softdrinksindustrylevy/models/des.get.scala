@@ -94,7 +94,8 @@ package object get {
 
   implicit val siteFormat: Format[Site] = (
     (JsPath \ "siteAddress").format[Address] and
-      (JsPath \ "siteReference").formatNullable[String]
+      (JsPath \ "siteReference").formatNullable[String] and
+      (__ \ "closureDate").formatNullable[LocalDate]
     ) (Site.apply, unlift(Site.unapply))
 
 

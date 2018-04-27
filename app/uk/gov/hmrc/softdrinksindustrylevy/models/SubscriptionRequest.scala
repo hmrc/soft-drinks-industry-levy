@@ -18,10 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.{LocalDateTime, LocalDate}
 
-case class Site(
-                 address: Address,
-                 ref: Option[String]
-               )
+case class Site(address: Address,
+                ref: Option[String],
+                closureDate: Option[LocalDate])
 
 case class Contact(
                     name: Option[String],
