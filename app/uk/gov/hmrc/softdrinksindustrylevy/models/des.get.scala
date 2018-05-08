@@ -95,6 +95,7 @@ package object get {
   implicit val siteFormat: Format[Site] = (
     (JsPath \ "siteAddress").format[Address] and
       (JsPath \ "siteReference").formatNullable[String] and
+      (JsPath \ "tradingName").formatNullable[String] and
       (__ \ "closureDate").formatNullable[LocalDate]
     ) (Site.apply, unlift(Site.unapply))
 
@@ -106,7 +107,7 @@ package object get {
       def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
         sites map { site =>
           Json.obj(
-            "tradingName" -> o.orgName,
+            "tradingName" -> site.tradingName,
             "siteReference" -> site.ref,
             "siteAddress" -> site.address,
             "siteContact" -> Json.obj(

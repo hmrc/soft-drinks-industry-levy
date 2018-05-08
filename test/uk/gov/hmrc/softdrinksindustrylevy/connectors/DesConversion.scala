@@ -250,10 +250,10 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
     activity = InternalActivity(Map.empty, isLarge = false),
     liabilityDate = LocalDate.parse("2018-04-06"),
-    productionSites = List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None, None)),
+    productionSites = List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None, None, None)),
     warehouseSites = List(
-      Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None, None),
-      Site(UkAddress(List("17 Trebarthen Terrace", "Northampton"), "NN08 2CC"), None, None)
+      Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None, None, None),
+      Site(UkAddress(List("17 Trebarthen Terrace", "Northampton"), "NN08 2CC"), None, None, None)
     ),
     contact = Contact(
       Some("Evelyn Hindmarsh"),

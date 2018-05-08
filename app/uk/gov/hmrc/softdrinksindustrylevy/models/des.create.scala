@@ -100,6 +100,7 @@ package object create {
           Site(
             address = (site \ "siteAddress" \ "addressDetails").as[Address],
             ref = (site \ "newSiteRef").asOpt[String],
+            tradingName = (site \ "tradingName").asOpt[String],
             closureDate = (site \ "closureDate").asOpt[Date]
           )
         }
@@ -173,7 +174,7 @@ package object create {
           case (site, idx) =>
             Json.obj(
               "action" -> "1",
-              "tradingName" -> s.orgName,
+              "tradingName" -> JsString(site.tradingName.getOrElse(s.orgName)),
               "newSiteRef" -> JsString(site.ref.getOrElse(s"${idx + offset}")),
               "siteAddress" -> Json.obj(
                 "addressDetails" -> site.address,

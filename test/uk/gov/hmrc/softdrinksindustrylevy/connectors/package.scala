@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 
 package object gen {
 
-  implicit def addressToSite(ad: Address): Site = Site(ad, None, None)
+  implicit def addressToSite(ad: Address): Site = Site(ad, None, None, None)
 
   private val nonEmptyString =
     Gen.alphaStr.flatMap { t => Gen.alphaChar.map(_ + t) }
@@ -111,8 +111,8 @@ package object gen {
     address <- genUkAddress
     activity <- genActivity
     liabilityDate <- Gen.date
-    productionSites <- Gen.listOf(genUkAddress map addressToSite)
-    warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
+    productionSites <- Gen.listOf(genSite)
+    warehouseSites <- Gen.listOf(genSite)
     contact <- genContact
   } yield Subscription(utr, orgName, Some(orgType), address, activity, liabilityDate,
     productionSites, warehouseSites, contact, None)
@@ -120,7 +120,8 @@ package object gen {
   val genSite: Gen[Site] = for {
     ref <- Gen.oneOf("a", "b")
     address <- genUkAddress
-  } yield Site(address, Some(ref), None)
+    tradingName <- genName
+  } yield Site(address, Some(ref), Some(tradingName), None)
 
   def genRetrievedSubscription: Gen[Subscription] = {
     for {

@@ -20,6 +20,7 @@ import java.time.{LocalDateTime, LocalDate}
 
 case class Site(address: Address,
                 ref: Option[String],
+                tradingName: Option[String],
                 closureDate: Option[LocalDate])
 
 case class Contact(
