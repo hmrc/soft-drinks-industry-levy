@@ -46,26 +46,8 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
     }
   }
 
-  test("Period key is previous year and third quarter when date is before 6th January") {
+  test("Period key is first quarter when date is before 1st April") {
     val date = LocalDateTime.of(2018, 1, 1, 12, 0).atZone(zone).toInstant
-    implicit val clock: Clock = Clock.fixed(date, zone)
-    forAll { r: ReturnsRequest =>
-      val json = Json.toJson(r)
-      assert((json \ "periodKey").as[String] == "17C3")
-    }
-  }
-
-  test("Period key is previous year and fourth quarter when date is equal to or after 6th January") {
-    val date = LocalDateTime.of(2018, 1, 6, 12, 0).atZone(zone).toInstant
-    implicit val clock: Clock = Clock.fixed(date, zone)
-    forAll { r: ReturnsRequest =>
-      val json = Json.toJson(r)
-      assert((json \ "periodKey").as[String] == "17C4")
-    }
-  }
-
-  test("Period key is current year and first quarter when date is equal to or after 6th April") {
-    val date = LocalDateTime.of(2018, 4, 6, 12, 0).atZone(zone).toInstant
     implicit val clock: Clock = Clock.fixed(date, zone)
     forAll { r: ReturnsRequest =>
       val json = Json.toJson(r)
@@ -73,8 +55,8 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
     }
   }
 
-  test("Period key is current year and second quarter when date is equal to or after 6th July") {
-    val date = LocalDateTime.of(2018, 7, 6, 12, 0).atZone(zone).toInstant
+  test("Period key is second quarter when date is equal to or after 1st April and before 1st July") {
+    val date = LocalDateTime.of(2018, 6, 30, 12, 0).atZone(zone).toInstant
     implicit val clock: Clock = Clock.fixed(date, zone)
     forAll { r: ReturnsRequest =>
       val json = Json.toJson(r)
@@ -82,12 +64,21 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
     }
   }
 
-  test("Period key is current year and third quarter when date is equal to or after 6th October") {
-    val date = LocalDateTime.of(2018, 10, 6, 12, 0).atZone(zone).toInstant
+  test("Period key is third quarter when date is equal to or after 1st July and before 1st October") {
+    val date = LocalDateTime.of(2018, 7, 1, 12, 0).atZone(zone).toInstant
     implicit val clock: Clock = Clock.fixed(date, zone)
     forAll { r: ReturnsRequest =>
       val json = Json.toJson(r)
       assert((json \ "periodKey").as[String] == "18C3")
+    }
+  }
+
+  test("Period key is fourth quarter when date is equal to or after 1st October and equal to or before 31st December") {
+    val date = LocalDateTime.of(2018, 12, 31, 12, 0).atZone(zone).toInstant
+    implicit val clock: Clock = Clock.fixed(date, zone)
+    forAll { r: ReturnsRequest =>
+      val json = Json.toJson(r)
+      assert((json \ "periodKey").as[String] == "18C4")
     }
   }
 

@@ -123,19 +123,7 @@ package object returns {
       val exported = optLitreObj(o.exported, ActivityType.Exporting)
       val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
-      val now = LocalDate.now(clock)
-
-      val (day, month) = (now.getDayOfMonth, now.getMonthValue)
-      val lastYY = now.minusYears(1).format(DateTimeFormatter.ofPattern("yy"))
-      val currentYY = now.format(DateTimeFormatter.ofPattern("yy"))
-
-      val quarter = {
-        if (month == 1 && day < 6) lastYY + "C3"
-        else if (month < 4 || (month == 4 && day < 6)) lastYY + "C4"
-        else if (month < 7 || (month == 7 && day < 6)) currentYY + "C1"
-        else if (month < 10 || (month == 10 && day < 6)) currentYY + "C2"
-        else currentYY + "C3"
-      }
+      val quarter = LocalDate.now(clock).format(DateTimeFormatter.ofPattern("yy'C'q"))
 
       Json.obj(
         "periodKey" -> quarter,
