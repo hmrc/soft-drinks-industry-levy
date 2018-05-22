@@ -16,19 +16,22 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers.test
 
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
-import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, VariationSubmissionService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TestingController(testConnector: TestConnector,
+class TestingController(val messagesApi: MessagesApi,
+                        testConnector: TestConnector,
                         buffer: MongoBufferService,
-                        fileUpload: FileUploadConnector)
-  extends BaseController {
+                        fileUpload: FileUploadConnector,
+                        variationSubmissions: VariationSubmissionService)
+  extends BaseController with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
     testConnector.reset(url) map (r => Status(r.status))
@@ -40,6 +43,13 @@ class TestingController(testConnector: TestConnector,
 
   def getFile(envelopeId: String, fileName: String) = Action.async { implicit request =>
     fileUpload.getFile(envelopeId, fileName) map { file => Ok(file) }
+  }
+
+  def getVariationHtml(sdilNumber: String): Action[AnyContent] = Action.async { implicit request =>
+    variationSubmissions.get(sdilNumber) map {
+      case Some(v) => Ok(views.html.variations_pdf(v))
+      case None => NotFound
+    }
   }
 
 }
