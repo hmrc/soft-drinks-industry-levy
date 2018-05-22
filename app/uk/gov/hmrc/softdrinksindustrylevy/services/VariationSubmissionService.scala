@@ -36,6 +36,10 @@ class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionConte
     insert(VariationWrapper(variation, sdilRef)) map { _ => () }
   }
 
+  def get(sdilRef: String): Future[Option[VariationsRequest]] = {
+    find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
+  }
+
   override def indexes: Seq[Index] = Seq(
     Index(
       key = Seq("timestamp" -> IndexType.Ascending),
