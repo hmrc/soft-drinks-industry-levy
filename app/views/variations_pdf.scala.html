@@ -134,11 +134,14 @@
     }
 }
 
+
 @variationsRequest.deregistrationText.map { deregistrationText =>
-    @table_helper("deregister") {
-        @table_row_helper("deregister-date", LocalDate.now.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-        @table_row_helper("deregister-reason", Messages("variations.deregister-reason-p1"))
-        @table_row_helper("deregister-reason-free-text", deregistrationText)
+    @variationsRequest.deregistrationDate.map { deregDate =>
+        @table_helper("deregister") {
+            @table_row_helper("deregister-date", deregDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+            @table_row_helper("deregister-reason", Messages("variations.deregister-reason-p1"))
+            @table_row_helper("deregister-reason-free-text", deregistrationText)
+        }
     }
 }
 @variationsRequest.newSites.map { newSites =>

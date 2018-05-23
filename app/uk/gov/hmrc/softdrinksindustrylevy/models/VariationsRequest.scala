@@ -31,6 +31,7 @@ case class VariationsRequest(
                               primaryPersonContact: Option[VariationsPersonalDetails] = None,
                               sdilActivity: Option[SdilActivity] = None,
                               deregistrationText: Option[String] = None,
+                              deregistrationDate: Option[LocalDate] = None,
                               newSites: List[VariationsSite] = Nil,
                               amendSites: List[VariationsSite] = Nil,
                               closeSites: List[CloseSites] = Nil
