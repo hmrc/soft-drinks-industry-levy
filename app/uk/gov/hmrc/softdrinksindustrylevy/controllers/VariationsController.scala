@@ -33,7 +33,6 @@ class VariationsController(val messagesApi: MessagesApi,
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data).toString
-
       for {
         _ <- gforms.submitToDms(page, sdilNumber)
         _ <- submissions.save(data, sdilNumber)
