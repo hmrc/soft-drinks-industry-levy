@@ -16,17 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.io.PrintWriter
-
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsValue
 import play.api.mvc.Action
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 import uk.gov.hmrc.softdrinksindustrylevy.services.VariationSubmissionService
 
-import sys.process._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class VariationsController(val messagesApi: MessagesApi,
@@ -36,16 +33,10 @@ class VariationsController(val messagesApi: MessagesApi,
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
-
-val temp = java.io.File.createTempFile("variations", ".html")
-      println(s"Writing to $temp")
-      new PrintWriter(temp) { write(page + s"<pre>${Json.prettyPrint(Json.toJson(data))}</pre>"); close }
-      s"epiphany $temp".!
-      concurrent.Future.successful(NoContent)
-//      for {
-//        _ <- gforms.submitToDms(page, sdilNumber)
-//        _ <- submissions.save(data, sdilNumber)
-//      } yield NoContent
+      for {
+        _ <- gforms.submitToDms(page, sdilNumber)
+        _ <- submissions.save(data, sdilNumber)
+      } yield NoContent
     }
   }
 }
