@@ -5,6 +5,8 @@ variations.internal-information=Internal Information
 variations.guidance.p1=Any information displayed on this document must be amended on the relevant Soft Drinks Industry Levy Variation Form.
 variations.guidance.p2=If any field is shown as blank then it must be removed.
 
+variations.sdil-number.title=SDIL Reference Number
+variations.sdil-number=Ref Number
 
 variations.organisation-details.title=Organisation Details
 variations.trading-name=Trading Name
@@ -21,7 +23,7 @@ variations.email-address=Email Address
 
 variations.primary-person-contact.title=Primary Person Contact Details
 variations.primary-person-contact.name=Name
-variations.primary-person-contact.postion=Position
+variations.primary-person-contact.position=Position
 
 variations.sdil-activity.title=Soft Drinks Industry Levy Details
 variations.ProducedOwnBrand=Producer
