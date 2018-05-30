@@ -34,7 +34,7 @@ class VariationsSpec extends FakeApplicationSpec {
     "the trading name has changed" should {
       "contain the updated trading name" in {
         val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
-        val page = variations_pdf(VariationsRequest(tradingName = Some(tradingName)))
+        val page = variations_pdf(VariationsRequest(tradingName = Some(tradingName)), sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text())
 
@@ -55,13 +55,14 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(businessContact = Some(contactDetails)))
+        val page = variations_pdf(VariationsRequest(businessContact = Some(contactDetails)), sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
         val subheading = "Business Contact Details"
 
         val expectedRows = Seq(
+          s"Ref Number $sdilNumber",
           s"Address line 1 ${contactDetails.addressLine1.get}",
           s"Address line 2 ${contactDetails.addressLine2.get}",
           s"Postcode ${contactDetails.postCode.get}",
@@ -84,13 +85,14 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(correspondenceContact = Some(contactDetails)))
+        val page = variations_pdf(VariationsRequest(correspondenceContact = Some(contactDetails)), sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
         val subheading = "Correspondence Contact Details"
 
         val expectedRows = Seq(
+          s"Ref Number $sdilNumber",
           s"Address line 1 ${contactDetails.addressLine1.get}",
           s"Address line 2 ${contactDetails.addressLine2.get}",
           s"Postcode ${contactDetails.postCode.get}",
@@ -112,13 +114,14 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(primaryPersonContact = Some(personalDetails)))
+        val page = variations_pdf(VariationsRequest(primaryPersonContact = Some(personalDetails)), sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
         val subheading = "Primary Person Contact Details"
 
         val expectedRows = Seq(
+          s"Ref Number $sdilNumber",
           s"Name ${personalDetails.name.get}",
           s"Position ${personalDetails.position.get}",
           s"Telephone Number ${personalDetails.telephoneNumber.get}",
@@ -142,13 +145,14 @@ class VariationsSpec extends FakeApplicationSpec {
           taxObligationStartDate = Some(LocalDate.now)
         )
 
-        val page = variations_pdf(VariationsRequest(sdilActivity = Some(activity)))
+        val page = variations_pdf(VariationsRequest(sdilActivity = Some(activity)), sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
         val subheading = "Soft Drinks Industry Levy Details"
 
         val expectedRows = Seq(
+          s"Ref Number $sdilNumber",
           "Producer Yes",
           "Do you produce less than 1 million litres of leviable product per annum? Yes",
           "Are you requesting Small Producer Exemption? Yes",
@@ -166,6 +170,7 @@ class VariationsSpec extends FakeApplicationSpec {
     }
   }
 
+  val sdilNumber = "XCSDIL000000000"
   implicit val messages: Messages = messagesApi.preferred(request)
   implicit lazy val request: Request[_] = FakeRequest()
 }

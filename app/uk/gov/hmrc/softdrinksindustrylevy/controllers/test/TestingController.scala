@@ -47,7 +47,7 @@ class TestingController(val messagesApi: MessagesApi,
 
   def getVariationHtml(sdilNumber: String): Action[AnyContent] = Action.async { implicit request =>
     variationSubmissions.get(sdilNumber) map {
-      case Some(v) => Ok(views.html.variations_pdf(v))
+      case Some(v) => Ok(views.html.variations_pdf(v, sdilNumber))
       case None => NotFound
     }
   }
