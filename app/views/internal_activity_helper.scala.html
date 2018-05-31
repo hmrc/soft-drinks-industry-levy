@@ -19,7 +19,5 @@
 
 @(internalActivity: Map[ActivityType.Value, LitreBands], activityType: ActivityType.Value)(implicit messages: Messages)
 
-@internalActivity.get(activityType).map { p =>
-    @table_row_helper(activityType.toString, Messages("variations.true"))
-}
+@table_row_helper(activityType.toString, Messages(s"variations.${internalActivity.contains(activityType)}"))
 
