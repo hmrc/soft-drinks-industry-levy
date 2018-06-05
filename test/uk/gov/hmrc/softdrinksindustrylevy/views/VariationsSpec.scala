@@ -161,7 +161,7 @@ class VariationsSpec extends FakeApplicationSpec {
           """Reason For Amendment ¯\_(ツ)_/¯""",
           "Litres Produced in UK each year Higher Rate 200",
           "Lower Rate 100",
-          "Estimated amount of tax in the next 12 months £66.00"
+          "Estimated amount of tax in the next 12 months £0.00"
         )
 
         rows must contain (subheading)
