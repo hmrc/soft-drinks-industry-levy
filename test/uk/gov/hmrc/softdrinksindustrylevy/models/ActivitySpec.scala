@@ -33,22 +33,20 @@ class ActivitySpec extends PlaySpec with AppendedClues {
       val activity = internalActivity(
         produced = (1, 2),
         copackedAll = (3, 4),
-        imported = (5, 6),
-        copackedByOthers = (7, 8)
+        imported = (5, 6)
       )
 
-      activity.totalLiableLitres mustBe ((16, 20))
+      activity.totalLiableLitres mustBe ((9, 12))
     }
 
     "calculate the correct tax estimate" in {
       val activity = internalActivity(
         produced = (2, 3),
         copackedAll = (4, 5),
-        imported = (6, 7),
-        copackedByOthers = (8, 9)
+        imported = (6, 7)
       )
 
-      activity.taxEstimation mustBe BigDecimal("9.36")
+      activity.taxEstimation mustBe BigDecimal("5.76")
     }
 
     "calculate the tax estimate as £99,999,999,999.99 if the tax estimate is greater than £99,999,999,999.99" in {

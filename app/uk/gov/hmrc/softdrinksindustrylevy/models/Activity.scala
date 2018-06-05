@@ -51,7 +51,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   def totalLiableLitres: LitreBands = {
     Monoid.combineAll(Seq(
-      totalProduced,
+      activity.get(ProducedOwnBrand),
       activity.get(Imported),
       activity.get(CopackerAll)
     ).flatten)
