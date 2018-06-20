@@ -123,6 +123,7 @@ package object create {
 
       JsSuccess(Subscription(
         utr = (regJson \ "cin").as[String],
+        sdilRef = "",
         orgName = (regJson \ "tradingName").as[String],
         orgType = (regJson \ "organisationType").asOpt[String],
         address = (regJson \ "businessContact" \ "addressDetails").as[Address],

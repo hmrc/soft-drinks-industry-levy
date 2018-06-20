@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy.config
+package sdil.models
 
-import com.softwaremill.macwire._
-import uk.gov.hmrc.softdrinksindustrylevy.services._
+case class SmallProducer(alias: String, sdilRef: String, litreage: (Long, Long))
 
-trait ServicesWiring {
-  self: ConnectorWiring with PlayWiring =>
 
-  lazy val persistence: SdilPersistence = wire[SdilMongoPersistence]  
-  lazy val mongoBufferService: MongoBufferService = wire[MongoBufferService]
-  lazy val variationSubmissionService: VariationSubmissionService = wire[VariationSubmissionService]
-}

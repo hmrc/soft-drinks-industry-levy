@@ -52,7 +52,6 @@ object MicroService extends Build {
         "-Xmax-classfile-name", "100",
         "-encoding", "UTF-8"
       ),
-
       javacOptions ++= Seq(
         "-Xlint",
         "-source", targetJvm.value.stripPrefix("jvm-"),
@@ -73,7 +72,7 @@ object MicroService extends Build {
       Resolver.jcenterRepo
     ))
     .settings(PlayKeys.playDefaultPort := 8701)
-
+    .settings(initialCommands in console := "import cats.implicits._")
 }
 
 private object TestPhases {

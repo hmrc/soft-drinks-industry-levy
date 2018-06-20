@@ -121,7 +121,7 @@ package object get {
       Json.obj(
         "utr" -> o.utr,
         "subscriptionDetails" -> Json.obj(
-          "sdilRegistrationNumber" -> "unknown",
+          "sdilRegistrationNumber" -> o.sdilRef,
           "taxObligationStartDate" -> o.liabilityDate.toString,
           "taxObligationEndDate" -> o.liabilityDate.plusYears(1).toString,
           "tradingName" -> o.orgName,
@@ -171,6 +171,7 @@ package object get {
 
       JsSuccess(Subscription(
         utr = (json \ "utr").as[String],
+        sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").as[String],
         orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
         orgType = None,
         address = (json \ "businessAddress").as[Address],
