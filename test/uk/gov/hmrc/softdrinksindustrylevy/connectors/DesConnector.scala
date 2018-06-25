@@ -26,7 +26,7 @@ import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
-
+import sdil.models._
 
 class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
@@ -48,7 +48,7 @@ class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Ma
     forAll { r: Contact =>
       Json.toJson(r).as[Contact] should be (r)
     }
-  }  
+  }
 
   test("∀ Subscription: parse(toJson(x)) = x") {
     forAll { r: Subscription =>

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.LocalDate
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
@@ -30,6 +31,8 @@ import play.api.libs.json._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, RetrievedActivity, Subscription, UkAddress}
+import sdil.models._
+import scala.concurrent.{ExecutionContext => EC}
 
 import scala.concurrent.Future
 
@@ -112,6 +115,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
 
   lazy val subscription = Subscription(
     utr = "9876543210",
+    sdilRef = "",
     orgName = "Somebody",
     orgType = None,
     address = UkAddress(Nil, "SW1A 1AA"),
@@ -130,6 +134,23 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
   }
 
   lazy val desConnector = mock[DesConnector]
+  implicit val junkPersistence = new SdilPersistence {
 
+    val returns = new DAO[String, ReturnPeriod, SdilReturn] {
+      var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
+      def update(user: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
+        data = data + { (user, period) -> value }
+        Future.successful(())
+      }
+
+      def get(user: String, key: ReturnPeriod)(implicit ec: EC): Future[Option[SdilReturn]] =
+        Future.successful(data.get((user, key)))
+
+      def list(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+      Future.successful{
+        data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
+      }
+    }
+  }
   lazy val testController = wire[ReturnsController]
 }
