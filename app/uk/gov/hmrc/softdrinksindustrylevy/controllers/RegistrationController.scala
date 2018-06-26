@@ -95,14 +95,14 @@ class RegistrationController(val authConnector: AuthConnector,
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
-        case Some(s) =>
+        case Some(s) if !s.isDeregistered =>
           buffer.find("subscription.utr" -> utr) flatMap {
             case Nil => Future successful Ok(Json.toJson(s))
             case l :: _ => taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
               checkEnrolmentState(utr, s)
             } recover {
               case e: NotFoundException =>
-                Logger.error(e.message) // TODO log to deskpro pending decision
+                Logger.error(e.message)
                 Ok(Json.toJson(s))
             }
           }

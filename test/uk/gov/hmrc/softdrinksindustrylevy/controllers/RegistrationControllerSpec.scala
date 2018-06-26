@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time.LocalDate
+
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -187,6 +189,16 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe OK
+    }
+
+    "return Status: NOT_FOUND for a subscription that has been deregistered" in {
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(endDate = Some(LocalDate.now))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+        .thenReturn(Future successful Some(deregisteredSubscription))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe NOT_FOUND
     }
   }
 }
