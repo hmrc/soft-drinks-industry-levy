@@ -28,6 +28,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.{ExecutionContext, Future}
+import sdil.models._
 
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
@@ -67,7 +68,7 @@ class DesConnector(val http: HttpClient,
     http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
   }
 
-  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
   }
 

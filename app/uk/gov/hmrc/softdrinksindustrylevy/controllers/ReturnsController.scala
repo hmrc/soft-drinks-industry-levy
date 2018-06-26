@@ -51,19 +51,11 @@ class ReturnsController(
     }
   }
 
-  def submitReturn(sdilRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[ReturnsRequest] { returnsReq =>
-      desConnector.submitReturn(sdilRef, returnsReq) map {
-        _ => Ok(Json.toJson(returnsReq))
-      }
-    }
-  }
-
   def post(utr: String, year: Int, quarter: Int): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       withJsonBody[SdilReturn] { sdilReturn =>
 
-        val period = ReturnPeriod(year, quarter)
+        implicit val period = ReturnPeriod(year, quarter)
         val returnsReq = ReturnsRequest(sdilReturn)
         for {
           subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
