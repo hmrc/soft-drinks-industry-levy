@@ -28,6 +28,7 @@ package object controllers {
   val validCreateSubscriptionRequest: JsValue = Json.parse(
     """{
       |  "utr" : "7674173564",
+      |  "sdilRef" : "XASDIL000999990",
       |  "orgName" : "fgdiukxkTwyrorGj",
       |  "orgType" : "1",
       |  "address" : {
