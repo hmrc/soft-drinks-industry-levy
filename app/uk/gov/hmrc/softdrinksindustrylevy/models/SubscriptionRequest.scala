@@ -41,7 +41,9 @@ case class Subscription(utr: String,
                         contact: Contact,
                         endDate: Option[LocalDate]) {
 
-  def isDeregistered: Boolean = endDate.forall(_.isBefore(LocalDate.now))
+  def isDeregistered: Boolean = endDate.fold(false) {x =>
+    x.isBefore(LocalDate.now) || x.isEqual(LocalDate.now)
+  }
 }
 
 /* Probably overkill */
