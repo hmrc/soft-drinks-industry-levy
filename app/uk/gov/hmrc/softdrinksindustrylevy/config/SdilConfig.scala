@@ -16,13 +16,10 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import com.softwaremill.macwire._
-import uk.gov.hmrc.softdrinksindustrylevy.services._
+import java.time.LocalDate
 
-trait ServicesWiring {
-  self: ConnectorWiring with PlayWiring =>
-
-  lazy val persistence: SdilPersistence = wire[SdilMongoPersistence]  
-  lazy val mongoBufferService: MongoBufferService = wire[MongoBufferService]
-  lazy val variationSubmissionService: VariationSubmissionService = wire[VariationSubmissionService]
+case class SdilConfig(
+  timeWarp: Option[LocalDate]
+) {
+  def today = timeWarp.getOrElse(LocalDate.now)
 }

@@ -25,11 +25,14 @@ import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
+import sdil.models._
 
 class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
-  implicit val clock: Clock = Clock.systemDefaultZone()
+//  implicit val clock: Clock = Clock.systemDefaultZone()
   private val zone = ZoneId.systemDefault()
+
+  implicit def period(implicit cl: Clock) = ReturnPeriod(LocalDate.now(cl))
 
   test("∀ Returns: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator
@@ -39,6 +42,7 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
     val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
     stream.close
     val schema = JsonLoader.fromString(schemaText)
+    implicit val clock: Clock = Clock.systemDefaultZone()
     forAll { r: ReturnsRequest =>
       val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
       val report = validator.validate(schema, json)

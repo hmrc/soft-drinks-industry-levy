@@ -36,4 +36,17 @@ trait PlayWiring {
   implicit def clock: Clock = Clock.systemDefaultZone()
 
   lazy val mode: Mode = environment.mode
+
+  val config: SdilConfig = {
+    import pureconfig._
+    import pureconfig.configurable._
+    import java.time.format._
+    implicit val localDateInstance = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
+    pureconfig.loadConfig[SdilConfig] match {
+      case Left(error) => throw new IllegalStateException(error.toString)
+      case Right(conf) => conf
+    }
+  }
+
+
 }

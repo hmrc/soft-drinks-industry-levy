@@ -5,7 +5,6 @@ GET         /subscription/:idType/:idNumber                uk.gov.hmrc.softdrink
 GET         /check-enrolment-status/:utr                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
 
 GET         /small-producer/sdil/:sdilRef                  uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)
-POST        /returns/:sdilRef                              uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.submitReturn(sdilRef)
 
 GET         /rosm-registration/lookup/:utr                 uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
 
@@ -13,3 +12,7 @@ GET         /rosm-registration/lookup/:utr                 uk.gov.hmrc.softdrink
 POST        /tax-enrolment-callback/                       uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
 
 POST        /submit-variations/sdil/:sdilNumber            uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations(sdilNumber)
+
+GET         /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.get(utr: String, year: Int, quarter: Int)
+POST        /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.post(utr: String, year: Int, quarter: Int)
+GET         /returns/:utr/pending                          uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.pending(utr: String)

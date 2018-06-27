@@ -72,7 +72,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
       when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
         .thenReturn(Future.successful(HttpResponse(418)))
 
-      val response = testSdilController.submitRegistration("UTR", "00002222", "foobar")(FakeRequest()
+      val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(FakeRequest()
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK

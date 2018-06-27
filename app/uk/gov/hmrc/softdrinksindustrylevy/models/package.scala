@@ -17,6 +17,10 @@
 package uk.gov.hmrc.softdrinksindustrylevy
 
 import cats.kernel.Monoid
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import play.api.libs.functional.syntax.unlift
+import sdil.models.{ ReturnPeriod, SdilReturn, SmallProducer }
 
 package object models {
 
@@ -34,5 +38,16 @@ package object models {
     lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
     lazy val dueLevy: BigDecimal = lowLevy + highLevy
   }
+
+    // cos coupling is bad, mkay
+    implicit val longTupleFormatter: Format[(Long, Long)] = (
+      (JsPath \ "lower").format[Long] and
+        (JsPath \ "higher").format[Long]
+    )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
+
+    implicit val formatSP = Json.format[SmallProducer]
+    implicit val formatReturn = Json.format[SdilReturn]
+    implicit val formatPeriod = Json.format[ReturnPeriod]
+
 
 }

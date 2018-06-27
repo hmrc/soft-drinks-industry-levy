@@ -21,11 +21,12 @@ import java.time.format.DateTimeFormatter
 
 import cats.Monoid
 import play.api.libs.json._
+import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import cats.implicits._
 
 package object returns {
-  implicit def returnsRequestFormat(implicit clock: Clock): Format[ReturnsRequest] = new Format[ReturnsRequest] {
+  implicit def returnsRequestFormat(implicit period: ReturnPeriod): Format[ReturnsRequest] = new Format[ReturnsRequest] {
     override def reads(json: JsValue): JsResult[ReturnsRequest] = {
       def litreReads(json: JsValue): LitreBands = (
         (json \ "lowRateVolume").as[Long], (json \ "highRateVolume").as[Long]
@@ -123,7 +124,7 @@ package object returns {
       val exported = optLitreObj(o.exported, ActivityType.Exporting)
       val wastage = optLitreObj(o.wastage, ActivityType.Wastage)
 
-      val quarter = LocalDate.now(clock).format(DateTimeFormatter.ofPattern("yy'C'q"))
+      val quarter = period.desPeriodKey
 
       Json.obj(
         "periodKey" -> quarter,

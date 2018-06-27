@@ -24,7 +24,8 @@ object MicroService extends Build {
     "com.softwaremill.macwire" %% "util" % "2.3.0",
     "com.softwaremill.macwire" %% "proxy" % "2.3.0",
     "org.typelevel" %% "cats-core" % "0.9.0",
-    "com.github.fge" % "json-schema-validator" % "2.2.6"
+    "com.github.fge" % "json-schema-validator" % "2.2.6",
+    "com.github.pureconfig" %% "pureconfig" % "0.9.1"
   )
 
   lazy val test = Seq(
@@ -52,7 +53,6 @@ object MicroService extends Build {
         "-Xmax-classfile-name", "100",
         "-encoding", "UTF-8"
       ),
-
       javacOptions ++= Seq(
         "-Xlint",
         "-source", targetJvm.value.stripPrefix("jvm-"),
@@ -73,7 +73,7 @@ object MicroService extends Build {
       Resolver.jcenterRepo
     ))
     .settings(PlayKeys.playDefaultPort := 8701)
-
+    .settings(initialCommands in console := "import cats.implicits._")
 }
 
 private object TestPhases {

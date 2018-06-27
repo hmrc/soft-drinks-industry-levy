@@ -16,20 +16,27 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.Clock
+import java.time.{ Clock, LocalDate }
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent}
+import sdil.models.{ ReturnPeriod, SdilReturn }
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.ReturnsRequest
+import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
-class ReturnsController(val authConnector: AuthConnector,
-                        desConnector: DesConnector)
+class ReturnsController(
+  val authConnector: AuthConnector,
+  desConnector: DesConnector,
+  val persistence: SdilPersistence,
+  val sdilConfig: SdilConfig
+)
                        (implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
@@ -46,12 +53,46 @@ class ReturnsController(val authConnector: AuthConnector,
     }
   }
 
-  def submitReturn(sdilRef: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[ReturnsRequest] { returnsReq =>
-      desConnector.submitReturn(sdilRef, returnsReq) map {
-        _ => Ok(Json.toJson(returnsReq))
+  def post(utr: String, year: Int, quarter: Int): Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      withJsonBody[SdilReturn] { sdilReturn =>
+
+        implicit val period = ReturnPeriod(year, quarter)
+        val returnsReq = ReturnsRequest(sdilReturn)
+        for {
+          subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
+          ref          =  subscription.get.sdilRef
+          _            <- desConnector.submitReturn(ref, returnsReq)
+          _            <- persistence.returns(utr, period) = sdilReturn
+        } yield Ok(Json.toJson(returnsReq))
       }
     }
-  }
 
+  def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
+    Action.async { implicit request =>
+
+      persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
+        case Some(record) => Ok(Json.toJson(record))
+        case None =>         NotFound
+      }
+    }
+
+  def pending(utr: String): Action[AnyContent] =
+    Action.async { implicit request =>
+
+      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
+        subscription =>
+
+        import sdilConfig.today
+        val start = subscription.get.liabilityDate
+
+        val all = {ReturnPeriod(start).count to ReturnPeriod(today).count}
+          .map{ReturnPeriod.apply}
+          .filter{_.end.isBefore(today)}
+        persistence.returns.list(utr).map { posted => 
+          Ok(Json.toJson(all.toList diff posted.keys.toList))
+        }
+      }
+    }
+  
 }

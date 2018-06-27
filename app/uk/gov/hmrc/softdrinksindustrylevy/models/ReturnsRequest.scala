@@ -19,7 +19,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import cats.syntax.semigroup._
 import cats.instances.option._
 import cats.kernel.Monoid
+import sdil.models._
 
+@deprecated("use SdilReturn", "0.36")
 case class ReturnsRequest(packaged: Option[ReturnsPackaging],
                           imported: Option[ReturnsImporting],
                           exported: Option[LitreBands],
@@ -33,12 +35,31 @@ case class ReturnsRequest(packaged: Option[ReturnsPackaging],
   private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
 
 }
-
+@deprecated("use SdilReturn", "0.36")
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: LitreBands) {
   lazy val totalSmallProdVolumes: LitreBands = smallProducerVolumes.foldLeft(Monoid[LitreBands].empty)(_ |+| _.volumes)
 }
 
+@deprecated("use SdilReturn", "0.36")
 case class ReturnsImporting(smallProducerVolumes: LitreBands, largeProducerVolumes: LitreBands)
 
+@deprecated("use SdilReturn", "0.36")
 case class SmallProducerVolume(producerRef: String, volumes: LitreBands)
 
+object ReturnsRequest {
+  import cats.implicits._
+  def apply(sdilReturn: SdilReturn): ReturnsRequest = {
+
+    val pack = ReturnsPackaging(
+      sdilReturn.packSmall.map { sp => SmallProducerVolume(sp.sdilRef, sp.litreage) },
+      sdilReturn.packLarge
+    )
+
+    ReturnsRequest(
+      packaged = pack.some,
+      imported = ReturnsImporting(sdilReturn.importSmall, sdilReturn.importLarge).some,
+      exported = sdilReturn.export.some,
+      wastage = sdilReturn.wastage.some
+    )
+  }
+}

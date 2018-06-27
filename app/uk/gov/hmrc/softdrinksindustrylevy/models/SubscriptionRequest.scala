@@ -31,6 +31,7 @@ case class Contact(
                   )
 
 case class Subscription(utr: String,
+                        sdilRef: String,
                         orgName: String,
                         orgType: Option[String],
                         address: Address,
