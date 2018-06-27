@@ -25,6 +25,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +34,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 class ReturnsController(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
-  val persistence: SdilPersistence
+  val persistence: SdilPersistence,
+  val sdilConfig: SdilConfig
 )
                        (implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
@@ -77,10 +79,11 @@ class ReturnsController(
 
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-      val today = LocalDate.now
-      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
-        subscription => 
 
+      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
+        subscription =>
+
+        import sdilConfig.today
         val start = subscription.get.liabilityDate
 
         val all = {ReturnPeriod(start).count to ReturnPeriod(today).count}

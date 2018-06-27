@@ -38,7 +38,7 @@ case class ReturnPeriod(year: Int, quarter: Int) {
   def previous: ReturnPeriod = ReturnPeriod(count - 1)
   def count: Int = year * 4 + quarter - 2018 * 4 - 1
 
-  def desPeriodKey: String = s"${year}C${quarter + 1}"
+  def desPeriodKey: String = s"${year % 100}C${quarter + 1}"
 }
 
 object ReturnPeriod {
