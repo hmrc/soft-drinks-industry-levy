@@ -33,6 +33,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, RetrievedActivity, Subscription, UkAddress}
 import sdil.models._
 import scala.concurrent.{ExecutionContext => EC}
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 
 import scala.concurrent.Future
 
@@ -152,5 +153,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       }
     }
   }
+
+  implicit lazy val config = SdilConfig(None)
   lazy val testController = wire[ReturnsController]
 }
