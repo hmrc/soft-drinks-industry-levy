@@ -16,26 +16,31 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.{ Clock, LocalDate }
+import java.time.Clock
 
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent}
-import sdil.models.{ ReturnPeriod, SdilReturn }
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 class ReturnsController(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val persistence: SdilPersistence,
-  val sdilConfig: SdilConfig
+  val sdilConfig: SdilConfig,
+  auditing: AuditConnector
 )
                        (implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
@@ -53,18 +58,49 @@ class ReturnsController(
     }
   }
 
+  def buildReturnAuditDetail(sdilReturn: SdilReturn, providerId: String, period: ReturnPeriod, ref: String, utr: String, outcome: String): JsValue ={
+    Json.obj(
+      "sdilNumber" -> ref,
+      "utr" -> utr,
+      "outcome" -> outcome,
+      "authProviderType" -> "GovernmentGateway",
+      "authProviderId" -> providerId,
+      "return" -> Json.toJson(sdilReturn).as[JsObject]
+    )
+  }
+
   def post(utr: String, year: Int, quarter: Int): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
-      withJsonBody[SdilReturn] { sdilReturn =>
-
-        implicit val period = ReturnPeriod(year, quarter)
-        val returnsReq = ReturnsRequest(sdilReturn)
-        for {
-          subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
-          ref          =  subscription.get.sdilRef
-          _            <- desConnector.submitReturn(ref, returnsReq)
-          _            <- persistence.returns(utr, period) = sdilReturn
-        } yield Ok(Json.toJson(returnsReq))
+      authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
+        withJsonBody[SdilReturn] { sdilReturn =>
+          Logger.info("SDIL return submission sent to DES")
+          implicit val period: ReturnPeriod = ReturnPeriod(year, quarter)
+          val returnsReq = ReturnsRequest(sdilReturn)
+          (for {
+            subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
+            ref = subscription.get.sdilRef
+            _ <- desConnector.submitReturn(ref, returnsReq)
+            _ <- auditing.sendExtendedEvent(
+              new SdilReturnEvent(
+                request.uri,
+                buildReturnAuditDetail(sdilReturn, creds.providerId, period, ref, utr, "SUCCESS")
+              )
+            )
+            _ <- persistence.returns(utr, period) = sdilReturn
+          } yield {
+            Ok(Json.toJson(returnsReq))
+          }).recoverWith {
+            case e =>
+              auditing.sendExtendedEvent(
+                new SdilReturnEvent(
+                  request.uri,
+                  buildReturnAuditDetail(sdilReturn, creds.providerId, period, "unknown", utr, "ERROR")
+                )
+              ) map {
+                throw e
+              }
+          }
+        }
       }
     }
 

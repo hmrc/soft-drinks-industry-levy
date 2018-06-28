@@ -44,5 +44,12 @@ class TaxEnrolmentEvent(enrolmentStatus: String, path: String, detailJson: JsVal
     auditType = "SDILEnrolment",
     transactionName = s"Soft Drinks Industry Levy subscription ${enrolmentStatus.toLowerCase}",
     path = path,
-    detailJson = detailJson
-  )
+    detailJson = detailJson)
+
+class SdilReturnEvent(path: String, detailJson: JsValue)(implicit hc: HeaderCarrier)
+  extends SDILBaseEvent(
+      auditType = "SDILReturnSubmitted",
+      transactionName = "Soft Drinks Industry Levy return submitted",
+      path = path,
+      detailJson = detailJson)
+
