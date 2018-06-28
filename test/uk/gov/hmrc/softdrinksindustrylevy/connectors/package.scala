@@ -114,7 +114,7 @@ package object gen {
     productionSites <- Gen.listOf(genSite)
     warehouseSites <- Gen.listOf(genSite)
     contact <- genContact
-  } yield Subscription(utr, "", orgName, Some(orgType), address, activity, liabilityDate,
+  } yield Subscription(utr, None, orgName, Some(orgType), address, activity, liabilityDate,
     productionSites, warehouseSites, contact, None)
 
   val genSite: Gen[Site] = for {
@@ -133,7 +133,7 @@ package object gen {
       productionSites <- Gen.listOf(genUkAddress map addressToSite)
       warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
       contact <- genContact
-    } yield Subscription(utr, "", orgName, None, address, activity, liabilityDate,
+    } yield Subscription(utr, None, orgName, None, address, activity, liabilityDate,
       productionSites, warehouseSites, contact, Some(liabilityDate.plusYears(1)))
   }
 

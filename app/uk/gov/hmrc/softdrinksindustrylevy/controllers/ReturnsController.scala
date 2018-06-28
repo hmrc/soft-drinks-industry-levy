@@ -78,7 +78,7 @@ class ReturnsController(
           val returnsReq = ReturnsRequest(sdilReturn)
           (for {
             subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
-            ref = subscription.get.sdilRef
+            ref = subscription.get.sdilRef.get
             _ <- desConnector.submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
               new SdilReturnEvent(

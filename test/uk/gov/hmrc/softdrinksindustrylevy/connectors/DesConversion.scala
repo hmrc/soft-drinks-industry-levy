@@ -245,7 +245,7 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
 
   private lazy val baseSubscription = Subscription(
     utr = "1111111111",
-    sdilRef = "BLANK",
+    sdilRef = None,
     orgName = "I AM THE ORGANISATION TO RULE",
     orgType = Some("3"),
     address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
