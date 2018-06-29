@@ -116,7 +116,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
 
   lazy val subscription = Subscription(
     utr = "9876543210",
-    sdilRef = "",
+    sdilRef = None,
     orgName = "Somebody",
     orgType = None,
     address = UkAddress(Nil, "SW1A 1AA"),

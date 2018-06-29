@@ -171,7 +171,7 @@ package object get {
 
       JsSuccess(Subscription(
         utr = (json \ "utr").as[String],
-        sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").as[String],
+        sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").asOpt[String],
         orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
         orgType = None,
         address = (json \ "businessAddress").as[Address],
