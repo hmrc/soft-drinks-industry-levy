@@ -52,7 +52,7 @@ object ReturnsRequest {
 
     val pack = ReturnsPackaging(
       sdilReturn.packSmall.map { sp => SmallProducerVolume(sp.sdilRef, sp.litreage) },
-      sdilReturn.packLarge
+      (sdilReturn.packLarge._1 + sdilReturn.ownBrand._1, sdilReturn.packLarge._2 + sdilReturn.ownBrand._2)
     )
 
     ReturnsRequest(
@@ -63,3 +63,4 @@ object ReturnsRequest {
     )
   }
 }
+	
