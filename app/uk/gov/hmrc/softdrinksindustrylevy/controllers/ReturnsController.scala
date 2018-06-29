@@ -58,14 +58,23 @@ class ReturnsController(
     }
   }
 
-  def buildReturnAuditDetail(sdilReturn: SdilReturn, providerId: String, period: ReturnPeriod, ref: String, utr: String, outcome: String): JsValue ={
+  def buildReturnAuditDetail(
+    sdilReturn: ReturnsRequest,
+    providerId: String,
+    period: ReturnPeriod,
+    subscription: Option[Subscription],
+    utr: String,
+    outcome: String
+  ): JsValue ={
+    val sdilNo: String = subscription.flatMap{_.sdilRef}.fold("unknown"){identity}
     Json.obj(
-      "sdilNumber" -> ref,
+      "sdilNumber" -> sdilNo,
+      "orgName" -> subscription.fold("unknown"){_.orgName},
       "utr" -> utr,
       "outcome" -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId" -> providerId,
-      "return" -> Json.toJson(sdilReturn).as[JsObject]
+      "return" -> Json.toJson(sdilReturn)(returnsRequestFormat(period)).as[JsObject]
     )
   }
 
@@ -75,6 +84,7 @@ class ReturnsController(
         withJsonBody[SdilReturn] { sdilReturn =>
           Logger.info("SDIL return submission sent to DES")
           implicit val period: ReturnPeriod = ReturnPeriod(year, quarter)
+
           val returnsReq = ReturnsRequest(sdilReturn)
           (for {
             subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
@@ -83,7 +93,7 @@ class ReturnsController(
             _ <- auditing.sendExtendedEvent(
               new SdilReturnEvent(
                 request.uri,
-                buildReturnAuditDetail(sdilReturn, creds.providerId, period, ref, utr, "SUCCESS")
+                buildReturnAuditDetail(returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
               )
             )
             _ <- persistence.returns(utr, period) = sdilReturn
@@ -94,7 +104,7 @@ class ReturnsController(
               auditing.sendExtendedEvent(
                 new SdilReturnEvent(
                   request.uri,
-                  buildReturnAuditDetail(sdilReturn, creds.providerId, period, "unknown", utr, "ERROR")
+                  buildReturnAuditDetail(returnsReq, creds.providerId, period, None, utr, "ERROR")
                 )
               ) map {
                 throw e
