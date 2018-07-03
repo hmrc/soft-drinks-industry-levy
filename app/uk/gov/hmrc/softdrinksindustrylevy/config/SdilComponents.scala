@@ -27,6 +27,7 @@ import play.api.inject.{Injector, SimpleInjector}
 import play.api.libs.ws.ahc.AhcWSComponents
 
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 class SdilComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
@@ -54,4 +55,7 @@ class SdilComponents(context: Context)
   lazy val customInjector: Injector = new SimpleInjector(injector) + adminController + wsApi
 
   override lazy val application: Application = wire[DefaultApplication]
+
+  val dataCorrector: DataCorrector = wire[DataCorrector]
+
 }

@@ -17,9 +17,11 @@
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import java.time.LocalDate
+import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 case class SdilConfig(
-  timeWarp: Option[LocalDate]
+  timeWarp: Option[LocalDate],
+  dataCorrector: DataCorrector.Config
 ) {
   def today = timeWarp.getOrElse(LocalDate.now)
 }
