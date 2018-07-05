@@ -19,6 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
+import reactivemongo.api.commands.WriteResult
 
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
@@ -71,8 +72,23 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       utr: String,
       period: ReturnPeriod,
       value: SdilReturn
-    )(implicit ec: EC): Future[Unit] =
-      returnsMongo.insert(Wrapper(utr, period, value)).map{_ => ()}
+    )(implicit ec: EC): Future[Unit] = {
+      import returnsMongo._
+
+      val data = Wrapper(utr, period, value)
+
+      domainFormatImplicit.writes(data) match {
+        case d @ JsObject(_) =>
+          val selector = Json.obj(
+            "utr" -> utr,
+            "period.year" -> period.year,
+            "period.quarter" -> period.quarter)
+          collection.update(
+          selector, data, upsert=true)
+        case _ =>
+          Future.failed[WriteResult](new Exception("cannot write object"))
+      }
+    }.map{_ => ()}
 
     def get(
       utr: String,
@@ -81,9 +97,9 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       returnsMongo.find(
         "utr" -> utr,
         "period.year" -> period.year,
-        "period.quarter" -> period.quarter        
+        "period.quarter" -> period.quarter
       ).map{_.headOption.map{_.sdilReturn}}
-    
+
     def list(
       utr: String
     )(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =

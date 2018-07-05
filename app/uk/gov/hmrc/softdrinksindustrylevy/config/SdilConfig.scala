@@ -20,8 +20,8 @@ import java.time.LocalDate
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 case class SdilConfig(
-  timeWarp: Option[LocalDate],
-  dataCorrector: DataCorrector.Config
+  timeWarp: Option[LocalDate] = None,
+  dataCorrector: DataCorrector.Config = DataCorrector.Config()
 ) {
   def today = timeWarp.getOrElse(LocalDate.now)
 }
