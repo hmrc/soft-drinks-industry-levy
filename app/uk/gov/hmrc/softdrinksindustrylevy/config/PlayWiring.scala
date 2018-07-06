@@ -25,6 +25,7 @@ import play.api.i18n.MessagesApi
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.softdrinksindustrylevy.services.DataCorrector
 
 trait PlayWiring {
   def applicationLifecycle: ApplicationLifecycle
@@ -42,6 +43,10 @@ trait PlayWiring {
     import pureconfig.configurable._
     import java.time.format._
     implicit val localDateInstance = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
+
+    implicit val litreageConfigReader = ConfigReader[List[Long]].map {case (l::h::_) => (l,h)}
+    implicit val hint = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
+
     pureconfig.loadConfig[SdilConfig] match {
       case Left(error) => throw new IllegalStateException(error.toString)
       case Right(conf) => conf
