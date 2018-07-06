@@ -87,7 +87,6 @@ class DataCorrector(
   logger.info("DataCorrector startup")
   logger.info(s"pending returns corrections: ${config.returns.size}")
 
-
   class DataCorrectorSupervisor(_pending: List[ReturnsCorrection]) extends Actor {
     var pending = _pending
 
