@@ -193,7 +193,7 @@ package object create {
         "registration" -> Json.obj(
           "organisationType" -> JsString(s.orgType.getOrElse("1")),
           "applicationDate" -> Date.now.toString,
-          "taxStartDate" -> s.liabilityDate.toString,
+          "taxStartDate" -> Date.now.toString,
           "cin" -> s.utr,
           "tradingName" -> s.orgName,
           "businessContact" -> Json.obj(
@@ -230,7 +230,7 @@ package object create {
           }),
           "activityQuestions" -> activityMap,
           "estimatedTaxAmount" -> s.activity.taxEstimation,
-          "taxObligationStartDate" -> Date.now.toString
+          "taxObligationStartDate" -> s.liabilityDate.toString
         ),
         "sites" -> (siteList(s.warehouseSites, isWarehouse = true) ++
           siteList(s.productionSites, isWarehouse = false, offset = s.warehouseSites.size))
