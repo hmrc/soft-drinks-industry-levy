@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import java.time.Clock
+import java.time.{Clock, LocalDate}
 
 import akka.stream.Materializer
 import play.api.{Configuration, Environment}
@@ -26,6 +26,11 @@ import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.softdrinksindustrylevy.services.DataCorrector
+import pureconfig._
+import pureconfig.configurable._
+import java.time.format._
+
+import sdil.models.SdilReturn
 
 trait PlayWiring {
   def applicationLifecycle: ApplicationLifecycle
@@ -38,20 +43,14 @@ trait PlayWiring {
 
   lazy val mode: Mode = environment.mode
 
-  val config: SdilConfig = {
-    import pureconfig._
-    import pureconfig.configurable._
-    import java.time.format._
-    implicit val localDateInstance = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
-
-    implicit val litreageConfigReader = ConfigReader[List[Long]].map {case (l::h::_) => (l,h)}
-    implicit val hint = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
-
-    pureconfig.loadConfig[SdilConfig] match {
+  lazy val config: SdilConfig = {
+    implicit val localDateInstance: ConfigConvert[LocalDate] = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
+    implicit val litreageConfigReader: ConfigReader[(Long, Long)] = ConfigReader[List[Long]].map {case (l::h::_) => (l,h)}
+    implicit val hint: ProductHint[SdilReturn] = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
+    
+    pureconfig.loadConfig[SdilConfig](EncodedConfig(configuration.underlying)) match {
       case Left(error) => throw new IllegalStateException(error.toString)
       case Right(conf) => conf
     }
   }
-
-
 }
