@@ -129,31 +129,6 @@ object BalanceController {
     }
   }
 
-  // def convertToLineItems(in: FinancialTransactionResponse): List[FinancialLineItem] = {
-  //   in.financialTransactions.flatMap { ft =>
-
-  //     def interest(amountO: Option[BigDecimal], title: String): List[FinancialLineItem] =
-  //       amountO.map{ amount =>
-  //         FinancialLineItem(LocalDate.now, title + " Interest", -amount)
-  //       }.toList
-
-  //     FinancialLineItem(
-  //       date = ft.taxPeriodTo.get,
-  //       description = ft.chargeType,
-  //       amount = -ft.originalAmount
-  //     ) :: ft.items.flatMap { fti =>
-  //       fti.paymentReference match {
-  //         case Some(ref) => List(FinancialLineItem(
-  //           date = fti.clearingDate.getOrElse(fti.dueDate),
-  //           description = s"${fti.clearingReason.getOrElse("")} ${fti.paymentReference.getOrElse("")}",
-  //           amount = fti.paymentAmount.get
-  //         ))
-  //         case None      => List.empty[FinancialLineItem]
-  //       }
-  //     } ++ interest(ft.accruedInterest, ft.chargeType).toList
-  //   }
-  // }
-
   implicit class RichLineItems(lineItems: List[FinancialLineItem]) {
     def balance: BigDecimal = lineItems.map(_.amount).sum
   }
