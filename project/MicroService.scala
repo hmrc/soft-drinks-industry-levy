@@ -15,7 +15,7 @@ object MicroService extends Build {
 
   lazy val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "1.5.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "1.7.0",
     "uk.gov.hmrc" %% "simple-reactivemongo" % "6.1.0",
     "uk.gov.hmrc" %% "auth-client" % "2.6.0",
     "uk.gov.hmrc" %% "mongo-lock" % "5.1.0",
@@ -46,7 +46,7 @@ object MicroService extends Build {
   lazy val microservice = Project("soft-drinks-industry-levy", file("."))
     .enablePlugins(Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin): _*)
     .settings(Seq(
-      scalaVersion := "2.11.11",
+      scalaVersion := "2.11.12",
       scalacOptions ++= Seq(
         "-Xlint",
         "-target:" + targetJvm.value,

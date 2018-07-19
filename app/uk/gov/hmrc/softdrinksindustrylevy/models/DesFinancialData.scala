@@ -19,9 +19,9 @@ package sdil.models.des
 import java.time._
 
 case class FinancialTransaction (
-  chargeType: Option[String],
+  chargeType: String,
   mainType: Option[String],
-  periodKey: String,
+  periodKey: Option[String],
   taxPeriodFrom: Option[LocalDate],
   taxPeriodTo: Option[LocalDate],
   businessPartner: Option[String],
@@ -34,7 +34,7 @@ case class FinancialTransaction (
   chargeReference: Option[String],
   mainTransaction: Option[String],
   subTransaction: Option[String],
-  originalAmount: Option[BigDecimal],
+  originalAmount: BigDecimal,
   clearedAmount: Option[BigDecimal],
   accruedInterest: Option[BigDecimal],
   items: List[SubItem]

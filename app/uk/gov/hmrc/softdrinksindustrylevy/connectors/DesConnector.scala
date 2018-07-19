@@ -29,6 +29,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.{ExecutionContext, Future}
 import sdil.models._
+import java.net.URLEncoder.encode
+import java.time.LocalDate
 
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
@@ -70,6 +72,45 @@ class DesConnector(val http: HttpClient,
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
+  }
+
+  /** Calls API#1166: Get Financial Data.
+    *
+    * Attempts to retrieve a list of financial line items.
+    *
+    * @param year If provided will show all items for that year, if omitted will only show 'open' items
+    */
+  def retrieveFinancialData(
+    sdilRef: String,
+    year: Option[Int] = Some(LocalDate.now.getYear)
+  )(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[des.FinancialTransactionResponse] = {
+    import des.FinancialTransaction._
+
+    val args: Map[String,Any] = Map(
+      "onlyOpenItems" -> year.isEmpty,
+      "includeLocks" -> false,
+      "calculateAccruedInterest" -> true,
+      "customerPaymentInformation" -> true
+    ) ++ (
+      year match {
+        case Some(y) => Map(
+          "dateFrom" -> s"$y-01-01",
+          "dateTo" -> s"$y-12-31"
+        )
+        case None => Map.empty[String,Any]
+      }
+    )
+
+    def encodePair(in: (String,Any)): String = 
+      s"${encode(in._1, "UTF-8")}=${encode(in._2.toString, "UTF-8")}"
+
+    val uri = s"$desURL/enterprise/financial-data/ZSDL/${sdilRef}/ZSDL?" ++
+      args.map{encodePair}.mkString("&")
+
+    http.GET[des.FinancialTransactionResponse](uri)(implicitly, addHeaders, ec)
   }
 
 }

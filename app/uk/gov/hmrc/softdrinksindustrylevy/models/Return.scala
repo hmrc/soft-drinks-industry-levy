@@ -48,4 +48,11 @@ object ReturnPeriod {
   }
   def apply(date: LocalDate): ReturnPeriod = ReturnPeriod(date.getYear, quarter(date))
   def quarter(date: LocalDate): Int = { date.getMonthValue - 1 } / 3
+
+  def fromPeriodKey(in: String): ReturnPeriod = {
+    val (y::q::_) = in.split("C").toList
+    ReturnPeriod(2000 + y.toInt, q.toInt - 1)
+  }
+
+
 }
