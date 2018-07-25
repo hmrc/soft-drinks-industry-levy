@@ -54,7 +54,7 @@ class BalanceController(
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         lineItems    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        convert(lineItems)
+        dedupPayments(convert(lineItems))
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -74,8 +74,6 @@ object BalanceController {
   type Payment = (String, LocalDate, BigDecimal)
   def dedupPayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
     val (payments,other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
-    println(payments)
-    println(other)
     other ++ payments.distinct
   }
 
@@ -83,10 +81,11 @@ object BalanceController {
     dedupPayments(in.flatMap{_.financialTransactions.flatMap(convert)})
       .sortBy{_.date.toString}
 
-  def convert(in: FinancialTransactionResponse): List[FinancialLineItem] = 
+  def convert(in: FinancialTransactionResponse): List[FinancialLineItem] = {
     dedupPayments(in.financialTransactions.flatMap(convert))
       .sortBy{_.date.toString}
       .reverse
+  }
 
   def convert(in: FinancialTransaction): List[FinancialLineItem] = {
 
@@ -94,8 +93,14 @@ object BalanceController {
       base :: {
         in.items collect {
           case i: SubItem if i.paymentReference.isDefined =>
-            PaymentOnAccount(i.clearingDate.get, i.paymentReference.get, i.paymentAmount.get)
-        } 
+            PaymentOnAccount(
+              i.clearingDate.get,
+              i.paymentReference.get,
+              i.paymentAmount.get,
+              i.paymentLot.get,
+              i.paymentLotItem.get
+            )
+        }
       }
 
     def parseIntOpt(in: String): Option[Int] =
@@ -122,7 +127,11 @@ object BalanceController {
         case (4825,2215) => deep(CentralAsstInterest(dueDate, amount))
         case (4830,1540) => deep(OfficerAssessment(dueDate, amount)) ++ interest(OfficerAsstInterest, in.accruedInterest)
         case (4835,2215) => deep(OfficerAsstInterest(dueDate, amount))
-        case (60,100)    => PaymentOnAccount(dueDate, in.items.head.paymentReference.get, in.items.head.paymentAmount.get).pure[List]
+        case (60,100)    => PaymentOnAccount(dueDate,
+                                             in.items.head.paymentReference.get,
+                                             -in.originalAmount,
+                                             in.items.head.paymentLot.get,
+                                             in.items.head.paymentLotItem.get).pure[List]
         case _           => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]
       }
       case _             => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]
