@@ -44,6 +44,7 @@
     </logger>
 
     <logger name="uk.gov" level="INFO"/>
+    <logger name="DataCorrector" level="INFO" />
 
     <logger name="application" level="DEBUG"/>
 

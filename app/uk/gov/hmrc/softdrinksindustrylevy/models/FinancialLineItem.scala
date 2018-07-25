@@ -60,6 +60,7 @@ case class OfficerAsstInterest(date: Date, amount: BigDecimal) extends Financial
   override def description(implicit messages: Messages): String =
     Messages("financiallineitem.officerasstinterest")
 }
+
 case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal, lot: String, lotItem: String) extends FinancialLineItem {
   override def description(implicit messages: Messages): String =
     Messages("financiallineitem.paymentonaccount", reference)
@@ -72,6 +73,7 @@ case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal, l
 
   override def hashCode: Int = (lot, lotItem).hashCode
 }
+
 case class Unknown(date: Date, title: String, amount: BigDecimal) extends FinancialLineItem {
   override def description(implicit messages: Messages): String = title
 }

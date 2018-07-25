@@ -29,7 +29,7 @@ import java.time.LocalDate
 class FinancialLineItemSpec extends FlatSpec with Matchers with PropertyChecks {
 
   "A FinancialLineItem" should "be serialisable" in {
-    val item = new PaymentOnAccount(LocalDate.now, "blah", 1000)
+    val item = new PaymentOnAccount(LocalDate.now, "blah", 1000, "one", "two")
     Json.toJson(item).as[FinancialLineItem] should be (item)
   }
 
