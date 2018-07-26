@@ -54,7 +54,7 @@ class BalanceController(
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         lineItems    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        dedupPayments(convert(lineItems))
+        deduplicatePayments(convert(lineItems))
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -72,17 +72,17 @@ class BalanceController(
 object BalanceController {
 
   type Payment = (String, LocalDate, BigDecimal)
-  def dedupPayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
+  def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
     val (payments,other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
     other ++ payments.distinct
   }
 
   def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] = 
-    dedupPayments(in.flatMap{_.financialTransactions.flatMap(convert)})
+    deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convert)})
       .sortBy{_.date.toString}
 
   def convert(in: FinancialTransactionResponse): List[FinancialLineItem] = {
-    dedupPayments(in.financialTransactions.flatMap(convert))
+    deduplicatePayments(in.financialTransactions.flatMap(convert))
       .sortBy{_.date.toString}
       .reverse
   }
