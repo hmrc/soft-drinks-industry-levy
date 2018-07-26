@@ -59,7 +59,8 @@ class ReturnsController(
   }
 
   def buildReturnAuditDetail(
-    sdilReturn: ReturnsRequest,
+    sdilReturn: SdilReturn,
+    returnsRequest: ReturnsRequest,
     providerId: String,
     period: ReturnPeriod,
     subscription: Option[Subscription],
@@ -74,7 +75,7 @@ class ReturnsController(
       "outcome" -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId" -> providerId,
-      "return" -> Json.toJson(sdilReturn)(returnsRequestFormat(period)).as[JsObject]
+      "return" -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
     )
   }
 
@@ -93,7 +94,7 @@ class ReturnsController(
             _ <- auditing.sendExtendedEvent(
               new SdilReturnEvent(
                 request.uri,
-                buildReturnAuditDetail(returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
+                buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
               )
             )
             _ <- persistence.returns(utr, period) = sdilReturn
@@ -104,7 +105,7 @@ class ReturnsController(
               auditing.sendExtendedEvent(
                 new SdilReturnEvent(
                   request.uri,
-                  buildReturnAuditDetail(returnsReq, creds.providerId, period, None, utr, "ERROR")
+                  buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, None, utr, "ERROR")
                 )
               ) map {
                 throw e

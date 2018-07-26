@@ -21,11 +21,18 @@ import java.time.format.DateTimeFormatter
 
 import cats.Monoid
 import play.api.libs.json._
-import sdil.models.ReturnPeriod
+import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import cats.implicits._
 
 package object returns {
+
+  implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest]= new Writes[ReturnsRequest] {
+    override def writes(o: ReturnsRequest): JsValue = {
+      returnsRequestFormat.writes(o).as[JsObject] + ("extraInfo" -> Json.toJson(sdilReturn).as[JsObject])
+    }
+  }
+
   implicit def returnsRequestFormat(implicit period: ReturnPeriod): Format[ReturnsRequest] = new Format[ReturnsRequest] {
     override def reads(json: JsValue): JsResult[ReturnsRequest] = {
       def litreReads(json: JsValue): LitreBands = (
