@@ -27,7 +27,7 @@ import cats.implicits._
 
 package object returns {
 
-  implicit def formatForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest]= new Writes[ReturnsRequest] {
+  implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest]= new Writes[ReturnsRequest] {
     override def writes(o: ReturnsRequest): JsValue = {
       returnsRequestFormat.writes(o).as[JsObject] + ("extraInfo" -> Json.toJson(sdilReturn).as[JsObject])
     }

@@ -75,7 +75,7 @@ class ReturnsController(
       "outcome" -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId" -> providerId,
-      "return" -> Json.toJson(returnsRequest)(formatForAuditing(period, sdilReturn)).as[JsObject]
+      "return" -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
     )
   }
 
