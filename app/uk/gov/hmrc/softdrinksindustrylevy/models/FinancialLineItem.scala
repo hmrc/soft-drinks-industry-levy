@@ -60,10 +60,20 @@ case class OfficerAsstInterest(date: Date, amount: BigDecimal) extends Financial
   override def description(implicit messages: Messages): String =
     Messages("financiallineitem.officerasstinterest")
 }
-case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal) extends FinancialLineItem {
+
+case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal, lot: String, lotItem: String) extends FinancialLineItem {
   override def description(implicit messages: Messages): String =
     Messages("financiallineitem.paymentonaccount", reference)
+
+  override def equals(any: Any): Boolean = any match {
+    case that: PaymentOnAccount =>
+      that.lot == this.lot && that.lotItem == this.lotItem
+    case _ => false
+  }
+
+  override def hashCode: Int = (lot, lotItem).hashCode
 }
+
 case class Unknown(date: Date, title: String, amount: BigDecimal) extends FinancialLineItem {
   override def description(implicit messages: Messages): String = title
 }
