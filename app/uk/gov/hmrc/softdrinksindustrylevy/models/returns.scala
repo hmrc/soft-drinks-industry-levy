@@ -16,20 +16,21 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models.json.des
 
-import java.time.{Clock, LocalDate}
-import java.time.format.DateTimeFormatter
-
 import cats.Monoid
+import cats.implicits._
 import play.api.libs.json._
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import cats.implicits._
 
 package object returns {
 
   implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest]= new Writes[ReturnsRequest] {
     override def writes(o: ReturnsRequest): JsValue = {
-      returnsRequestFormat.writes(o).as[JsObject] + ("extraInfo" -> Json.toJson(sdilReturn).as[JsObject])
+      val ownBrand = returnsRequestFormat.writes(o).as[JsObject].transform(
+        (__ \ "packaging" \ "ownBrand").json.put(Json.toJson(sdilReturn).as[JsObject].value("ownBrand"))
+      ).get
+
+      returnsRequestFormat.writes(o).as[JsObject].deepMerge(ownBrand)
     }
   }
 
