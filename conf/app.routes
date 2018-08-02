@@ -12,6 +12,7 @@ GET         /rosm-registration/lookup/:utr                 uk.gov.hmrc.softdrink
 POST        /tax-enrolment-callback/                       uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
 
 POST        /submit-variations/sdil/:sdilNumber            uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations(sdilNumber)
+POST        /returns/variation/sdil/:sdilNumber            uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.returnsVariation(sdilNumber)
 
 GET         /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.get(utr: String, year: Int, quarter: Int)
 POST        /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.post(utr: String, year: Int, quarter: Int)

@@ -29,14 +29,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
-  extends ReactiveRepository[VariationWrapper, String]("variations", mc.db, VariationWrapper.format, implicitly) {
+class ReturnsVariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
+  extends ReactiveRepository[ReturnsVariationWrapper, String]("returns-variations", mc.db, ReturnsVariationWrapper.format, implicitly) {
 
-  def save(variation: VariationsRequest, sdilRef: String): Future[Unit] = {
-    insert(VariationWrapper(variation, sdilRef)) map { _ => () }
+
+  def save(v: ReturnsVariationRequest, sdilRef: String): Future[Unit] = {
+    insert(ReturnsVariationWrapper(v, sdilRef)) map { _ => () }
   }
 
-  def get(sdilRef: String): Future[Option[VariationsRequest]] = {
+  def get(sdilRef: String): Future[Option[ReturnsVariationRequest]] = {
     find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
   }
 
@@ -49,12 +50,13 @@ class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionConte
   )
 }
 
-case class VariationWrapper(submission: VariationsRequest,
-                            sdilRef: String,
-                            _id: BSONObjectID = BSONObjectID.generate(),
-                            timestamp: Instant = Instant.now)
+case class ReturnsVariationWrapper(
+  submission: ReturnsVariationRequest,
+  sdilRef: String,
+  _id: BSONObjectID = BSONObjectID.generate(),
+  timestamp: Instant = Instant.now)
 
-object VariationWrapper {
+object ReturnsVariationWrapper {
   implicit val instantFormat: Format[Instant] = new Format[Instant] {
     override def writes(o: Instant): JsValue = {
       Json.toJson(BSONDateTime(o.toEpochMilli))
@@ -65,5 +67,5 @@ object VariationWrapper {
     }
   }
 
-  val format: Format[VariationWrapper] = Json.format[VariationWrapper]
+  val format: Format[ReturnsVariationWrapper] = Json.format[ReturnsVariationWrapper]
 }
