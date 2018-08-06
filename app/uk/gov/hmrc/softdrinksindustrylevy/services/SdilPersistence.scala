@@ -22,13 +22,14 @@ import play.api.libs.functional.syntax.unlift
 import reactivemongo.api.commands.WriteResult
 
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
+import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.{ ReturnPeriod, SdilReturn, SmallProducer }
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext => EC, _}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import java.time._
 
 trait SdilPersistence {
 
@@ -47,14 +48,20 @@ trait SdilPersistence {
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
+  implicit class RichLong(i: Long) {
+    def asMilliseconds: LocalDateTime = Instant.ofEpochMilli(i)
+      .atZone(ZoneId.systemDefault)
+      .toLocalDateTime
+  }
+
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
-    protected case class Wrapper(utr: String, period: ReturnPeriod, sdilReturn: SdilReturn)
+    protected case class Wrapper(utr: String, period: ReturnPeriod, sdilReturn: SdilReturn, _id: Option[BSONObjectID] = None)
 
-    implicit val formatWrapper = Json.format[Wrapper]    
+    implicit val formatWrapper = Json.format[Wrapper]
 
     val returnsMongo = new
-      ReactiveRepository[Wrapper, String]("sdilreturns", mc.db, formatWrapper, implicitly) {
+      ReactiveRepository[Wrapper, BSONObjectID]("sdilreturns", mc.db, formatWrapper, implicitly) {
 
       override def indexes: Seq[Index] = Seq(
         Index(
@@ -98,14 +105,20 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
         "utr" -> utr,
         "period.year" -> period.year,
         "period.quarter" -> period.quarter
-      ).map{_.headOption.map{_.sdilReturn}}
+      ).map{_.headOption.map{x =>
+              println(s"Time: ${x._id.get.time.milliseconds}")
+              x.sdilReturn
+            }}
 
     def list(
       utr: String
     )(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
       returnsMongo.find(
         "utr" -> utr
-      ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}      
+      ).map{_.map{ x =>
+              println(s"Time: ${x._id.get.time.asMilliseconds}")
+              (x.period, x.sdilReturn)}.toMap
+      }
   }
 
 }
