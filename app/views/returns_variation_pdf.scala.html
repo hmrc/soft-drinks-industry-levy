@@ -15,6 +15,7 @@
  *@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.ReturnsVariationRequest
+@import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 @import uk.gov.hmrc.softdrinksindustrylevy.models.Site
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
@@ -42,15 +43,60 @@
     @table_row_helper("sdil-number", sdilNumber)
 }
 
-if(@variation.isNewImporter) {
-    <p>This soft drinks producer is now an importer.</p>
+if(@variation.importer._1 || @variation.packer._1) {
+    @table_helper("sdil-activity") {
+        @table_row_helper(Imported.toString, Messages(s"variations.${variation.importer._1}"))
+        @table_row_helper(CopackerAll.toString, Messages(s"variations.${variation.packer._1}"))
+        @table_row_helper("reason-for-amendment", Messages("returns.variation.reason"))
+    }
 }
-if(@variation.isNewPacker) {
-    <p>This soft drink producer is now a copacker</p>
+
+if(@variation.importer._1 || @variation.packer._1) {
+    @table_helper("activity-dependent-questions") {
+    <tr>
+        <td rowspan="2">
+        @Messages(s"variations.litres-$Imported")
+        </td>
+        <td colspan="2">
+        @Messages("variations.higher-rate")
+        </td>
+        <td>
+        @variation.importer._2._2
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="2">
+        @Messages("variations.lower-rate")
+        </td>
+        <td>
+        @variation.importer._2._1
+        </td>
+    </tr>
+
+    <tr>
+        <td rowspan="2">
+        @Messages(s"variations.litres-$CopackerAll")
+        </td>
+        <td colspan="2">
+        @Messages("variations.higher-rate")
+        </td>
+        <td>
+        @variation.packer._2._2
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="2">
+        @Messages("variations.lower-rate")
+        </td>
+        <td>
+        @variation.packer._2._1
+        </td>
+    </tr>
+    }
 }
-if(@variation.isNewLargeProd) {
-    <p>This soft drink producer is now a large producer</p>
-}
+
 @variation.packingSites.map { newSites =>
     @table_helper("new-sites") {
         @table_row_helper("trading-name", newSites.tradingName.getOrElse(""))
@@ -64,6 +110,14 @@ if(@variation.isNewLargeProd) {
         @table_row_helper("type-of-site", "Production Site")
     }
 }
+
+@table_helper("further-questions") {
+    <tr>
+        <td>@Messages("variations.estimated-tax-amount")</td>
+        <td>&pound;@variation.taxEstimation.formatted("%,1.2f")</td>
+    </tr>
+}
+
 
 @table_helper("declaration") {
     @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))

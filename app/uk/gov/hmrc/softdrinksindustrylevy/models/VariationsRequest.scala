@@ -26,16 +26,14 @@ object VariationsRequest {
 }
 
 case class ReturnsVariationRequest(
-  isNewLargeProd: Boolean,
-  isNewImporter: Boolean,
-  isNewPacker: Boolean,
-  warehouses: List[Site],
-  packingSites: List[Site],
+  importer: (Boolean, (Long,Long)) = (false, (0,0)),
+  packer: (Boolean, (Long,Long)) = (false, (0,0)),
+  warehouses: List[Site] = Nil,
+  packingSites: List[Site] = Nil,
   phoneNumber: String,
-  email: String)
+  email: String,
+  taxEstimation: BigDecimal)
 object ReturnsVariationRequest {
-  import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.addressFormat
-  import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.subscriptionFormat
   implicit val format: Format[ReturnsVariationRequest] = Json.format[ReturnsVariationRequest]
 }
 

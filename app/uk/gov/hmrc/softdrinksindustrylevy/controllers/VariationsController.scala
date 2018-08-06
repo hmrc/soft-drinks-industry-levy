@@ -39,10 +39,18 @@ class VariationsController(val messagesApi: MessagesApi,
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
-      for {
-        _ <- gforms.submitToDms(page, sdilNumber)
-        _ <- submissions.save(data, sdilNumber)
-      } yield NoContent
+      val temp = java.io.File.createTempFile("variations", ".html")
+
+      println(s"Writing to $temp")
+
+      new PrintWriter(temp) { write(page); close }
+
+      s"epiphany $temp".!
+      concurrent.Future.successful(NoContent)
+//      for {
+//        _ <- gforms.submitToDms(page, sdilNumber)
+//        _ <- submissions.save(data, sdilNumber)
+//      } yield NoContent
     }
   }
 
