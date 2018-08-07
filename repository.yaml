@@ -1,0 +1,5 @@
+leakDetectionExemptions:
+- ruleId: 'ip_addresses'
+  filePaths:
+    # We have a dependency with a version that looks similar to an IP address
+    - '/project/MicroService.scala'
