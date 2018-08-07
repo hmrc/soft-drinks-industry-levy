@@ -54,7 +54,7 @@ class BalanceController(
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         lineItems    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        deduplicatePayments(convert(lineItems))
+        deduplicatePayments(convert(lineItems)).sortBy(_.date.toString)
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -129,7 +129,7 @@ object BalanceController {
         case (4835,2215) => deep(OfficerAsstInterest(dueDate, amount))
         case (60,100)    => PaymentOnAccount(dueDate,
                                              in.items.head.paymentReference.get,
-                                             -in.originalAmount,
+                                             in.items.head.paymentAmount.get,
                                              in.items.head.paymentLot.get,
                                              in.items.head.paymentLotItem.get).pure[List]
         case _           => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]
