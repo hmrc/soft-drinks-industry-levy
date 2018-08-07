@@ -49,10 +49,6 @@ package object models {
 
     implicit val formatSP: OFormat[SmallProducer] = Json.format[SmallProducer]
     implicit val formatReturn: OFormat[SdilReturn] = Json.format[SdilReturn]
-//    implicit def optFormat[A]: Format[Option[A]] = Json.format[Option[A]]
-//    implicit val formatObjId = Json.format[BSONObjectID]
-//    implicit val formatOptObjId: OFormat[Option[BSONObjectID]] = Json.format[Option[BSONObjectID]]
-//    implicit val formatT: OFormat[(SdilReturn, Option[BSONObjectID])] = Json.format[(SdilReturn, Option[BSONObjectID])]
     implicit val formatPeriod: OFormat[ReturnPeriod] = Json.format[ReturnPeriod]
 
   implicit def optFormatter[A](implicit innerFormatter: Format[A]): Format[Option[A]] =
