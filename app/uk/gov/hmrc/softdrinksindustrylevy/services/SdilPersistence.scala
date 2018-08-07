@@ -37,8 +37,8 @@ trait SdilPersistence {
   protected trait DAO[U,K,V] {
     def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
     def get(user: U, key: K)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]]
-//    def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-//      get(user, key).map{x => x.get._1}
+    def apply(user: U, key: K)(implicit ec: EC): Future[V] =
+      get(user, key).map{_.get}
 
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
