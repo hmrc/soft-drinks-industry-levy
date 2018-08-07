@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy
 
 import cats.kernel.Monoid
+import cats.implicits._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
@@ -50,8 +51,18 @@ package object models {
     implicit val formatReturn: OFormat[SdilReturn] = Json.format[SdilReturn]
 //    implicit def optFormat[A]: Format[Option[A]] = Json.format[Option[A]]
 //    implicit val formatObjId = Json.format[BSONObjectID]
-    implicit val formatOptObjId: OFormat[Option[BSONObjectID]] = Json.format[Option[BSONObjectID]]
-    implicit val formatT: OFormat[(SdilReturn, Option[BSONObjectID])] = Json.format[(SdilReturn, Option[BSONObjectID])]
+//    implicit val formatOptObjId: OFormat[Option[BSONObjectID]] = Json.format[Option[BSONObjectID]]
+//    implicit val formatT: OFormat[(SdilReturn, Option[BSONObjectID])] = Json.format[(SdilReturn, Option[BSONObjectID])]
     implicit val formatPeriod: OFormat[ReturnPeriod] = Json.format[ReturnPeriod]
+
+  implicit def optFormatter[A](implicit innerFormatter: Format[A]): Format[Option[A]] =
+    new Format[Option[A]] {
+      def reads(json: JsValue): JsResult[Option[A]] = json match {
+        case JsNull => JsSuccess(none[A])
+        case a      => innerFormatter.reads(a).map{_.some}
+      }
+      def writes(o: Option[A]): JsValue =
+        o.map{innerFormatter.writes}.getOrElse(JsNull)
+    }
 
 }

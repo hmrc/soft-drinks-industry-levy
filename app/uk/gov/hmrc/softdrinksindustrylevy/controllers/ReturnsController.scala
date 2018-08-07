@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.{Clock, LocalDateTime}
+import java.time.{Clock, Instant, LocalDateTime, ZoneId}
 
 import play.api.Logger
 import play.api.libs.json._
@@ -119,10 +119,16 @@ class ReturnsController(
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async { implicit request =>
       persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
-        case Some(record) => Ok(Json.toJson(record))
+        case Some((record, objectID)) => Ok(Json.toJson(record.copy(submittedOn = objectID.map{_.time.asMilliseconds})))
         case None =>         NotFound
       }
     }
+
+  implicit class RichLong(i: Long) {
+    def asMilliseconds: LocalDateTime = Instant.ofEpochMilli(i)
+      .atZone(ZoneId.systemDefault)
+      .toLocalDateTime
+  }
 
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>

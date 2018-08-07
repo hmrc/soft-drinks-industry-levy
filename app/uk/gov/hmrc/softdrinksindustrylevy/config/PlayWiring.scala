@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, LocalDateTime}
 
 import akka.stream.Materializer
 import play.api.{Configuration, Environment}
@@ -45,6 +45,7 @@ trait PlayWiring {
 
   lazy val config: SdilConfig = {
     implicit val localDateInstance: ConfigConvert[LocalDate] = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
+    implicit val localDateTimeInstance: ConfigConvert[LocalDateTime] = localDateTimeConfigConvert(DateTimeFormatter.ISO_DATE)
     implicit val litreageConfigReader: ConfigReader[(Long, Long)] = ConfigReader[List[Long]].map {case (l::h::_) => (l,h)}
     implicit val hint: ProductHint[SdilReturn] = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
     

@@ -36,10 +36,9 @@ trait SdilPersistence {
 
   protected trait DAO[U,K,V] {
     def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
-    def get(user: U, key: K)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]]
+    def get(user: U, key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
     def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-      get(user, key).map{_.get}
-
+      get(user, key).map{_.get._1}
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
 
@@ -47,12 +46,6 @@ trait SdilPersistence {
 }
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
-
-  implicit class RichLong(i: Long) {
-    def asMilliseconds: LocalDateTime = Instant.ofEpochMilli(i)
-      .atZone(ZoneId.systemDefault)
-      .toLocalDateTime
-  }
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
@@ -106,10 +99,9 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
         "period.year" -> period.year,
         "period.quarter" -> period.quarter
       ).map{_.headOption.map{x =>
-              println(s"Time: ${x._id.get.time.milliseconds}")
         (x.sdilReturn, x._id)
       }
-}
+    }
 
     def list(
       utr: String
