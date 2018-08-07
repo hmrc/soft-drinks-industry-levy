@@ -117,7 +117,6 @@ class ReturnsController(
 
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async { implicit request =>
-
       persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
         case Some(record) => Ok(Json.toJson(record))
         case None =>         NotFound
