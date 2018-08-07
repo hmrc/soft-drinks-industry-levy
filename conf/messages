@@ -40,7 +40,9 @@ variations.small-producer-exemption=Are you requesting Small Producer Exemption?
 variations.use-contract-packer=Do you use a Contract Packer?
 variations.voluntarily-registered=Customer is accepted as voluntarily reqistered?
 variations.reason-for-amendment=Reason For Amendment
-
+returns.variation.reason.importer-and-packer=Customer has begun importing and copacking for others
+returns.variation.reason.importer=Customer has begun importing
+returns.variation.reason.packer=Customer has begun copacking for others
 variations.activity-dependent-questions.title=SDIL Activity dependent questions
 variations.litres-ProducedOwnBrand=Litres Produced in UK each year
 variations.litres-Imported=Litres Imported into UK each year

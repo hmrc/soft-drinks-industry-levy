@@ -43,71 +43,99 @@
     @table_row_helper("sdil-number", sdilNumber)
 }
 
-if(@variation.importer._1 || @variation.packer._1) {
+@if(variation.importer._1 || variation.packer._1) {
     @table_helper("sdil-activity") {
         @table_row_helper(Imported.toString, Messages(s"variations.${variation.importer._1}"))
         @table_row_helper(CopackerAll.toString, Messages(s"variations.${variation.packer._1}"))
-        @table_row_helper("reason-for-amendment", Messages("returns.variation.reason"))
+        @if(variation.importer._1 && variation.packer._1) {
+            @table_row_helper("reason-for-amendment", Messages("returns.variation.reason.importer-and-packer"))
+        } else {
+            @if(variation.importer._1) {
+                @table_row_helper("reason-for-amendment", Messages("returns.variation.reason.importer"))
+            }
+            @if(variation.packer._1) {
+                @table_row_helper("reason-for-amendment", Messages("returns.variation.reason.packer"))
+            }
+        }
     }
 }
 
-if(@variation.importer._1 || @variation.packer._1) {
+@if(variation.importer._1 || variation.packer._1) {
     @table_helper("activity-dependent-questions") {
-    <tr>
-        <td rowspan="2">
-        @Messages(s"variations.litres-$Imported")
-        </td>
-        <td colspan="2">
-        @Messages("variations.higher-rate")
-        </td>
-        <td>
-        @variation.importer._2._2
-        </td>
-    </tr>
+        @if(variation.importer._1) {
+            <tr>
+                <td rowspan="2">
+                @Messages(s"variations.litres-$Imported")
+                </td>
+                <td colspan="2">
+                @Messages("variations.higher-rate")
+                </td>
+                <td>
+                @variation.importer._2._2
+                </td>
+            </tr>
 
-    <tr>
-        <td colspan="2">
-        @Messages("variations.lower-rate")
-        </td>
-        <td>
-        @variation.importer._2._1
-        </td>
-    </tr>
+            <tr>
+                <td colspan="2">
+                @Messages("variations.lower-rate")
+                </td>
+                <td>
+                @variation.importer._2._1
+                </td>
+            </tr>
+        }
+        @if(variation.packer._1) {
+            <tr>
+                <td rowspan="2">
+                @Messages(s"variations.litres-$CopackerAll")
+                </td>
+                <td colspan="2">
+                @Messages("variations.higher-rate")
+                </td>
+                <td>
+                @variation.packer._2._2
+                </td>
+            </tr>
 
-    <tr>
-        <td rowspan="2">
-        @Messages(s"variations.litres-$CopackerAll")
-        </td>
-        <td colspan="2">
-        @Messages("variations.higher-rate")
-        </td>
-        <td>
-        @variation.packer._2._2
-        </td>
-    </tr>
-
-    <tr>
-        <td colspan="2">
-        @Messages("variations.lower-rate")
-        </td>
-        <td>
-        @variation.packer._2._1
-        </td>
-    </tr>
+            <tr>
+                <td colspan="2">
+                @Messages("variations.lower-rate")
+                </td>
+                <td>
+                @variation.packer._2._1
+                </td>
+            </tr>
+        }
     }
 }
 
-@variation.packingSites.map { newSites =>
+@if(variation.packingSites.nonEmpty || variation.warehouses.nonEmpty) {
     @table_helper("new-sites") {
-        @table_row_helper("trading-name", newSites.tradingName.getOrElse(""))
-        @table_row_helper("new-site-reference", newSites.ref.getOrElse(""))
-        @table_row_helper("address-line-1", newSites.address.lines(0))
-        @table_row_helper("address-line-2", newSites.address.lines(1))
-        @table_row_helper("address-line-3", newSites.address.lines(0))
-        @table_row_helper("address-line-4", newSites.address.lines(0))
-        @table_row_helper("telephone-number", variation.phoneNumber)
-        @table_row_helper("email-address", variation.email)
-        @table_row_helper("type-of-site", "Production Site")
+        @variation.packingSites.map { newSites =>
+            @table_row_helper("trading-name", newSites.tradingName.getOrElse(""))
+            @table_row_helper("new-site-reference", newSites.ref.getOrElse(""))
+            @table_row_helper("address-line-1", newSites.address.lines(0))
+            @table_row_helper("address-line-2", newSites.address.lines(1))
+            @table_row_helper("address-line-3", newSites.address.lines(0))
+            @table_row_helper("address-line-4", newSites.address.lines(0))
+            @table_row_helper("telephone-number", variation.phoneNumber)
+            @table_row_helper("email-address", variation.email)
+            @table_row_helper("type-of-site", "Production Site")
+            <tr><td colspan="2" /></tr>
+        }
+
+        @variation.warehouses.map { newSites =>
+            @table_row_helper("trading-name", newSites.tradingName.getOrElse(""))
+            @table_row_helper("new-site-reference", newSites.ref.getOrElse(""))
+            @table_row_helper("address-line-1", newSites.address.lines(0))
+            @table_row_helper("address-line-2", newSites.address.lines(1))
+            @table_row_helper("address-line-3", newSites.address.lines(0))
+            @table_row_helper("address-line-4", newSites.address.lines(0))
+            @table_row_helper("telephone-number", variation.phoneNumber)
+            @table_row_helper("email-address", variation.email)
+            @table_row_helper("type-of-site", "Warehouse")
+            <tr><td colspan="2" /></tr>
+        }
     }
 }
 

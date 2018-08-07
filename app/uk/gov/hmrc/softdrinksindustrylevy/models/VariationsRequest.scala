@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
 
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.{siteFormat,activityMapFormat}
 import play.api.libs.json._
 
 object VariationsRequest {
@@ -34,6 +34,8 @@ case class ReturnsVariationRequest(
   email: String,
   taxEstimation: BigDecimal)
 object ReturnsVariationRequest {
+//  implicit val llFormat: Format[(Long,Long)] = Json.format[(Long,Long)]
+  implicit val bllFormat: Format[(Boolean, (Long, Long))] = Json.format[(Boolean, (Long, Long))]
   implicit val format: Format[ReturnsVariationRequest] = Json.format[ReturnsVariationRequest]
 }
 
