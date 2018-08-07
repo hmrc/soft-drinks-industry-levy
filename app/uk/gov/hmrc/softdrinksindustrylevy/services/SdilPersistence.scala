@@ -30,21 +30,21 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext => EC, _}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import java.time._
+import cats.implicits._
 
 trait SdilPersistence {
 
   protected trait DAO[U,K,V] {
     def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
-    def get(user: U, key: K)(implicit ec: EC): Future[Option[V]]
-    def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-      get(user, key).map{_.get}
+    def get(user: U, key: K)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]]
+//    def apply(user: U, key: K)(implicit ec: EC): Future[V] =
+//      get(user, key).map{x => x.get._1}
+
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
 }
-
-
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
@@ -100,25 +100,23 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
     def get(
       utr: String,
       period: ReturnPeriod
-    )(implicit ec: EC): Future[Option[SdilReturn]] =
+    )(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
       returnsMongo.find(
         "utr" -> utr,
         "period.year" -> period.year,
         "period.quarter" -> period.quarter
       ).map{_.headOption.map{x =>
               println(s"Time: ${x._id.get.time.milliseconds}")
-              x.sdilReturn
-            }}
+        (x.sdilReturn, x._id)
+      }
+}
 
     def list(
       utr: String
     )(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
       returnsMongo.find(
         "utr" -> utr
-      ).map{_.map{ x =>
-              println(s"Time: ${x._id.get.time.asMilliseconds}")
-              (x.period, x.sdilReturn)}.toMap
-      }
+      ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
   }
 
 }

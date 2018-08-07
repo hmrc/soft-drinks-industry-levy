@@ -20,7 +20,8 @@ import cats.kernel.Monoid
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
-import sdil.models.{ FinancialLineItem, ReturnPeriod, SdilReturn, SmallProducer }
+import reactivemongo.bson.BSONObjectID
+import sdil.models.{FinancialLineItem, ReturnPeriod, SdilReturn, SmallProducer}
 
 package object models {
 
@@ -47,6 +48,9 @@ package object models {
 
     implicit val formatSP = Json.format[SmallProducer]
     implicit val formatReturn = Json.format[SdilReturn]
+    implicit val formatObjId = Json.format[BSONObjectID]
+    implicit val formatOptObjId = Json.format[Option[BSONObjectID]]
+    implicit val formatT = Json.format[(SdilReturn, Option[BSONObjectID])]
     implicit val formatPeriod = Json.format[ReturnPeriod]
 
 }
