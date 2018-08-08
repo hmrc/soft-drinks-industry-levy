@@ -22,39 +22,39 @@ import play.api.libs.functional.syntax.unlift
 import reactivemongo.api.commands.WriteResult
 
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
+import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.{ ReturnPeriod, SdilReturn, SmallProducer }
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext => EC, _}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import java.time._
+import cats.implicits._
 
 trait SdilPersistence {
 
   protected trait DAO[U,K,V] {
     def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
-    def get(user: U, key: K)(implicit ec: EC): Future[Option[V]]
+    def get(user: U, key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
     def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-      get(user, key).map{_.get}
+      get(user, key).map{_.get._1}
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
 }
 
-
-
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
-    protected case class Wrapper(utr: String, period: ReturnPeriod, sdilReturn: SdilReturn)
+    protected case class Wrapper(utr: String, period: ReturnPeriod, sdilReturn: SdilReturn, _id: Option[BSONObjectID] = None)
 
-    implicit val formatWrapper = Json.format[Wrapper]    
+    implicit val formatWrapper = Json.format[Wrapper]
 
     val returnsMongo = new
-      ReactiveRepository[Wrapper, String]("sdilreturns", mc.db, formatWrapper, implicitly) {
+      ReactiveRepository[Wrapper, BSONObjectID]("sdilreturns", mc.db, formatWrapper, implicitly) {
 
       override def indexes: Seq[Index] = Seq(
         Index(
@@ -93,19 +93,22 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
     def get(
       utr: String,
       period: ReturnPeriod
-    )(implicit ec: EC): Future[Option[SdilReturn]] =
+    )(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
       returnsMongo.find(
         "utr" -> utr,
         "period.year" -> period.year,
         "period.quarter" -> period.quarter
-      ).map{_.headOption.map{_.sdilReturn}}
+      ).map{_.headOption.map{x =>
+        (x.sdilReturn, x._id)
+      }
+    }
 
     def list(
       utr: String
     )(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
       returnsMongo.find(
         "utr" -> utr
-      ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}      
+      ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
   }
 
 }

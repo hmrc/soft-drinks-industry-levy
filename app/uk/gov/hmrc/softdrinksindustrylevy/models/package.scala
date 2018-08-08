@@ -17,10 +17,12 @@
 package uk.gov.hmrc.softdrinksindustrylevy
 
 import cats.kernel.Monoid
+import cats.implicits._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
-import sdil.models.{ FinancialLineItem, ReturnPeriod, SdilReturn, SmallProducer }
+import reactivemongo.bson.BSONObjectID
+import sdil.models.{FinancialLineItem, ReturnPeriod, SdilReturn, SmallProducer}
 
 package object models {
 
@@ -45,8 +47,18 @@ package object models {
         (JsPath \ "higher").format[Long]
     )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
 
-    implicit val formatSP = Json.format[SmallProducer]
-    implicit val formatReturn = Json.format[SdilReturn]
-    implicit val formatPeriod = Json.format[ReturnPeriod]
+    implicit val formatSP: OFormat[SmallProducer] = Json.format[SmallProducer]
+    implicit val formatReturn: OFormat[SdilReturn] = Json.format[SdilReturn]
+    implicit val formatPeriod: OFormat[ReturnPeriod] = Json.format[ReturnPeriod]
+
+  implicit def optFormatter[A](implicit innerFormatter: Format[A]): Format[Option[A]] =
+    new Format[Option[A]] {
+      def reads(json: JsValue): JsResult[Option[A]] = json match {
+        case JsNull => JsSuccess(none[A])
+        case a      => innerFormatter.reads(a).map{_.some}
+      }
+      def writes(o: Option[A]): JsValue =
+        o.map{innerFormatter.writes}.getOrElse(JsNull)
+    }
 
 }

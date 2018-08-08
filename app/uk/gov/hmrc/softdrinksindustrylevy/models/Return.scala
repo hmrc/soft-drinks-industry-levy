@@ -17,7 +17,11 @@
 package sdil.models
 
 import cats.Order
+import java.time.LocalDateTime
 import java.time.LocalDate
+
+import play.api.libs.json.{Format, Json, OFormat}
+import reactivemongo.bson.BSONObjectID
 case class SdilReturn(
   ownBrand     : (Long,Long) = (0,0),
   packLarge    : (Long,Long) = (0,0),
@@ -25,7 +29,8 @@ case class SdilReturn(
   importSmall  : (Long,Long) = (0,0),
   importLarge  : (Long,Long) = (0,0),
   export       : (Long,Long) = (0,0),
-  wastage      : (Long,Long) = (0,0)
+  wastage      : (Long,Long) = (0,0),
+  submittedOn  : Option[LocalDateTime]
 )
 
 case class ReturnPeriod(year: Int, quarter: Int) {
