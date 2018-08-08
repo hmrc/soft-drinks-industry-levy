@@ -17,8 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.LocalDate
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
@@ -30,8 +30,10 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, RetrievedActivity, Subscription, UkAddress}
 import sdil.models._
+
 import scala.concurrent.{ExecutionContext => EC}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 
@@ -134,18 +136,22 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
     m
   }
 
-  lazy val desConnector = mock[DesConnector]
-  implicit val junkPersistence = new SdilPersistence {
+  lazy val desConnector: DesConnector = mock[DesConnector]
+  implicit val junkPersistence: SdilPersistence = new SdilPersistence {
 
-    val returns = new DAO[String, ReturnPeriod, SdilReturn] {
-      var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
+    val returns: DAO[String, ReturnPeriod, SdilReturn] = new DAO[String, ReturnPeriod, SdilReturn] {
+      private var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
+      private var getData: Map[(String, ReturnPeriod), (SdilReturn, Option[BSONObjectID])] = Map.empty
       def update(user: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
         data = data + { (user, period) -> value }
         Future.successful(())
       }
 
-      def get(user: String, key: ReturnPeriod)(implicit ec: EC): Future[Option[SdilReturn]] =
-        Future.successful(data.get((user, key)))
+      def get(
+         user: String,
+         key: ReturnPeriod
+       )(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
+        Future.successful(getData.get((user, key)))
 
       def list(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
       Future.successful{
