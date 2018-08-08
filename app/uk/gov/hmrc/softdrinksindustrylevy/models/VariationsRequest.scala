@@ -26,6 +26,7 @@ object VariationsRequest {
 }
 
 case class ReturnsVariationRequest(
+  orgName: String,
   importer: (Boolean, (Long,Long)) = (false, (0,0)),
   packer: (Boolean, (Long,Long)) = (false, (0,0)),
   warehouses: List[Site] = Nil,
@@ -34,7 +35,6 @@ case class ReturnsVariationRequest(
   email: String,
   taxEstimation: BigDecimal)
 object ReturnsVariationRequest {
-//  implicit val llFormat: Format[(Long,Long)] = Json.format[(Long,Long)]
   implicit val bllFormat: Format[(Boolean, (Long, Long))] = Json.format[(Boolean, (Long, Long))]
   implicit val format: Format[ReturnsVariationRequest] = Json.format[ReturnsVariationRequest]
 }
