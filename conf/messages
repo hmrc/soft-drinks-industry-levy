@@ -7,6 +7,9 @@ variations.guidance.p2=If any field is shown as blank then it must be removed.
 
 variations.sdil-number.title=SDIL Reference Number
 variations.sdil-number=Ref Number
+variations.sdil-business-details.title=Business Details
+variations.sdil-orgName=Trading name
+variations.address-postcode=Postcode
 
 variations.organisation-details.title=Organisation Details
 variations.trading-name=Trading Name

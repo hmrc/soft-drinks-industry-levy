@@ -41,8 +41,21 @@
 
 @table_helper("sdil-number") {
     @table_row_helper("sdil-number", sdilNumber)
-    @table_row_helper("sdil-number", variation.orgName)
 }
+
+@table_helper("sdil-business-details") {
+    @table_row_helper("sdil-orgName", variation.orgName)
+    @table_row_helper("address-line-1", variation.ppobAddress.lines(0))
+    @table_row_helper("address-line-2", variation.ppobAddress.lines(1))
+    @if(variation.ppobAddress.lines.size >= 3) {
+        @table_row_helper("address-line-3", variation.ppobAddress.lines(2))
+    }
+    @if(variation.ppobAddress.lines.size >= 4) {
+        @table_row_helper("address-line-4", variation.ppobAddress.lines(3))
+    }
+    @table_row_helper("address-postcode", variation.ppobAddress.postCode)
+}
+
 
 @if(variation.importer._1 || variation.packer._1) {
     @table_helper("sdil-activity") {
@@ -117,8 +130,12 @@
             @table_row_helper("new-site-reference", newSites.ref.getOrElse(""))
             @table_row_helper("address-line-1", newSites.address.lines(0))
             @table_row_helper("address-line-2", newSites.address.lines(1))
-            @table_row_helper("address-line-3", newSites.address.lines(0))
-            @table_row_helper("address-line-4", newSites.address.lines(0))
+            @if(newSites.address.lines.size >= 3) {
+                @table_row_helper("address-line-3", newSites.address.lines(2))
+            }
+            @if(newSites.address.lines.size >= 4) {
+                @table_row_helper("address-line-4", newSites.address.lines(3))
+            }
             @table_row_helper("telephone-number", variation.phoneNumber)
             @table_row_helper("email-address", variation.email)
             @table_row_helper("type-of-site", "Production Site")
