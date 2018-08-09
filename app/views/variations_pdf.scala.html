@@ -15,6 +15,7 @@
  *@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models._
+@import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 @import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 @import java.time.format.DateTimeFormatter
 @import java.text.NumberFormat
@@ -42,6 +43,7 @@
 
 @table_helper("sdil-number") {
     @table_row_helper("sdil-number", sdilNumber)
+        @table_row_helper("trading-name", variationsRequest.displayOrgName)
 }
 
 @variationsRequest.tradingName.map { name =>
