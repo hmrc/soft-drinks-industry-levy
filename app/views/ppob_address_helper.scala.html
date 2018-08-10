@@ -1,0 +1,71 @@
+@*
+ * Copyright 2018 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@*// * Copyright 2018 HM Revenue & Customs*@
+@*// **@
+@*// * Licensed under the Apache License, Version 2.0 (the "License");*@
+@*// * you may not use this file except in compliance with the License.*@
+@*// * You may obtain a copy of the License at*@
+@*// **@
+@*// *     http://www.apache.org/licenses/LICENSE-2.0*@
+@*// **@
+@*// * Unless required by applicable law or agreed to in writing, software*@
+@*// * distributed under the License is distributed on an "AS IS" BASIS,*@
+@*// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.*@
+@*// * See the License for the specific language governing permissions and*@
+@*// * limitations under the License.*@
+@*// *@
+@*//*@
+@*//@import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest*@
+@*//@(contact: VariationsRequest, key: String, tableRequired: Boolean)(implicit messages: Messages)*@
+@*//*@
+@*//@contactDetails = {*@
+@*//@contact.addressLine1.map { address1 =>*@
+@*//    @table_row_helper("address-line-1", address1)*@
+@*//}*@
+@*//*@
+@*//@contact.addressLine2.map { address2 =>*@
+@*//    @table_row_helper("address-line-2", address2)*@
+@*//}*@
+@*//*@
+@*//@contact.addressLine3.map { address3 =>*@
+@*//    @table_row_helper("address-line-3", address3)*@
+@*//}*@
+@*//*@
+@*//@contact.addressLine4.map { address4 =>*@
+@*//    @table_row_helper("address-line-4", address4)*@
+@*//}*@
+@*//*@
+@*//@contact.postCode.map { pc =>*@
+@*//    @table_row_helper("post-code", pc)*@
+@*//}*@
+@*//*@
+@*//@contact.telephoneNumber.map { phoneNumber =>*@
+@*//    @table_row_helper("telephone-number", phoneNumber)*@
+@*//}*@
+@*//*@
+@*//@contact.emailAddress.map { email =>*@
+@*//    @table_row_helper("email-address", email)*@
+@*//}*@
+@*//}*@
+@*//*@
+@*//@if(tableRequired) {*@
+@*//    @table_helper(key) {*@
+@*//        @contactDetails*@
+@*//    }*@
+@*//} else {*@
+@*//    @contactDetails*@
+@*//}*@

@@ -21,8 +21,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import play.api.libs.json._
 
 object VariationsRequest {
-  implicit val format: Format[VariationsRequest] = Json.format[VariationsRequest]
   implicit val formatAddress: Format[UkAddress] = Json.format[UkAddress]
+  implicit val format: Format[VariationsRequest] = Json.format[VariationsRequest]
 }
 
 case class VariationsRequest(

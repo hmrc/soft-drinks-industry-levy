@@ -43,7 +43,9 @@
 
 @table_helper("sdil-number") {
     @table_row_helper("sdil-number", sdilNumber)
-        @table_row_helper("trading-name", variationsRequest.displayOrgName)
+    @table_row_helper("trading-name", variationsRequest.displayOrgName)
+    @table_row_helper("ppob-address", variationsRequest.ppobAddress.toString)
+    @for(line <- variationsRequest.ppobAddress.lines){@line}
 }
 
 @variationsRequest.tradingName.map { name =>
