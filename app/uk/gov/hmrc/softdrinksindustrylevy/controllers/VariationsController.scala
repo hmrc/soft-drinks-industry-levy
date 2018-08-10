@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.io.PrintWriter
-
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
@@ -25,7 +23,6 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
 import uk.gov.hmrc.softdrinksindustrylevy.services.VariationSubmissionService
-import sys.process._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
