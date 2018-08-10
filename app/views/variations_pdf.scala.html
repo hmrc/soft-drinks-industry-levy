@@ -35,18 +35,32 @@
 </div>
 
 <h1>
-    @Messages("variations.internal-information")
+@Messages("variations.internal-information")
 </h1>
+
+    <table>
+        <tbody>
+            @table_row_helper("sdil-number", sdilNumber)
+            @table_row_helper("trading-name", variationsRequest.displayOrgName)
+            @table_row_helper("address-line-1", variationsRequest.ppobAddress.lines.head)
+            @table_row_helper("address-line-2", variationsRequest.ppobAddress.lines(1))
+            @if(variationsRequest.ppobAddress.lines.size >= 3) {
+                @table_row_helper("address-line-3", variationsRequest.ppobAddress.lines(2))
+            }
+            @if(variationsRequest.ppobAddress.lines.size >= 4) {
+                @table_row_helper("address-line-4", variationsRequest.ppobAddress.lines(3))
+            }
+            @table_row_helper("post-code", variationsRequest.ppobAddress.postCode)
+        </tbody>
+    </table>
+
+<h1>
+@Messages("variations.sdil.title")
+</h1>
+
 <p>
     @Messages("variations.guidance.p1")
 </p>
-
-@table_helper("sdil-number") {
-    @table_row_helper("sdil-number", sdilNumber)
-    @table_row_helper("trading-name", variationsRequest.displayOrgName)
-    @table_row_helper("ppob-address", variationsRequest.ppobAddress.toString)
-    @for(line <- variationsRequest.ppobAddress.lines){@line}
-}
 
 @variationsRequest.tradingName.map { name =>
     @table_helper("organisation-details") {
