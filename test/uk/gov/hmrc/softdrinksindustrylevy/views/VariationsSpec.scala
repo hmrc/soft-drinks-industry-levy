@@ -33,8 +33,9 @@ class VariationsSpec extends FakeApplicationSpec {
   "The variations HTML" when {
     "the trading name has changed" should {
       "contain the updated trading name" in {
-        val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
-        val page = variations_pdf(VariationsRequest(tradingName = Some(tradingName)), sdilNumber)
+        val page = variations_pdf(VariationsRequest(
+          tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address), sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text())
 
@@ -55,7 +56,9 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(businessContact = Some(contactDetails)), sdilNumber)
+        val page = variations_pdf(VariationsRequest(
+          displayOrgName = tradingName, ppobAddress = address, businessContact = Some(contactDetails)), sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -85,7 +88,9 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(correspondenceContact = Some(contactDetails)), sdilNumber)
+        val page = variations_pdf(VariationsRequest(
+          displayOrgName = tradingName, ppobAddress = address, correspondenceContact = Some(contactDetails)), sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -114,7 +119,9 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(primaryPersonContact = Some(personalDetails)), sdilNumber)
+        val page = variations_pdf(VariationsRequest(
+          displayOrgName = tradingName, ppobAddress = address, primaryPersonContact = Some(personalDetails)), sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -145,7 +152,9 @@ class VariationsSpec extends FakeApplicationSpec {
           taxObligationStartDate = Some(LocalDate.now)
         )
 
-        val page = variations_pdf(VariationsRequest(sdilActivity = Some(activity)), sdilNumber)
+        val page = variations_pdf(VariationsRequest(
+          displayOrgName = tradingName, ppobAddress = address, sdilActivity = Some(activity)), sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -169,7 +178,8 @@ class VariationsSpec extends FakeApplicationSpec {
       }
     }
   }
-
+  val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
+  val address = UkAddress(List("My House", "My Lane"), "AA111A")
   val sdilNumber = "XCSDIL000000000"
   implicit val messages: Messages = messagesApi.preferred(request)
   implicit lazy val request: Request[_] = FakeRequest()
