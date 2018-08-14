@@ -193,7 +193,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
-      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(endDate = Some(LocalDate.now))
+      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 
