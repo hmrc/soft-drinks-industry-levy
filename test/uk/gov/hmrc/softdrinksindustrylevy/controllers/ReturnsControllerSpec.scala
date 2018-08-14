@@ -59,7 +59,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
     }
 
     "return Not Found and a DEREGISTERED error code if the subscription has been deactivated" in {
-      lazy val deregistered = subscription.copy(endDate = Some(LocalDate.now.minusDays(1)))
+      lazy val deregistered = subscription.copy(deregDate = Some(LocalDate.now.minusDays(1)))
 
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
