@@ -180,7 +180,8 @@ package object get {
         productionSites = getSites("2"),
         warehouseSites = getSites("1"),
         contact = json.as[Contact],
-        endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate]
+        endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate],
+        deregDate = (json \ "subscriptionDetails" \ "deregistrationDate").asOpt[LocalDate]
       ))
     }
 

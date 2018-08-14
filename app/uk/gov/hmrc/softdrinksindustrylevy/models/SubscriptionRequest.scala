@@ -40,9 +40,10 @@ case class Subscription(utr: String,
                         productionSites: List[Site],
                         warehouseSites: List[Site],
                         contact: Contact,
-                        endDate: Option[LocalDate]) {
+                        endDate: Option[LocalDate],
+                        deregDate: Option[LocalDate] = None) {
 
-  def isDeregistered: Boolean = endDate.fold(false) {x =>
+  def isDeregistered: Boolean = deregDate.fold(false) {x =>
     x.isBefore(LocalDate.now) || x.isEqual(LocalDate.now)
   }
 }
