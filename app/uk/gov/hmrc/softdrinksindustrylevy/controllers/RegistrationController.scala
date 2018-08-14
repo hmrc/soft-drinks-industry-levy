@@ -94,17 +94,25 @@ class RegistrationController(val authConnector: AuthConnector,
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
+      Logger.info("checking des for a registration with utr: " + utr)
       desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
         case Some(s) if !s.isDeregistered =>
+          Logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
+          Logger.info("isDeregistered for subscription is " + s.isDeregistered)
           buffer.find("subscription.utr" -> utr) flatMap {
-            case Nil => Future successful Ok(Json.toJson(s))
-            case l :: _ => taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
-              checkEnrolmentState(utr, s)
-            } recover {
-              case e: NotFoundException =>
-                Logger.error(e.message)
-                Ok(Json.toJson(s))
-            }
+            case Nil =>
+              Logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
+              Future successful Ok(Json.toJson(s))
+            case l :: _ =>
+              Logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
+              taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
+                checkEnrolmentState(utr, s)
+              } recover {
+                case e: NotFoundException =>
+                  Logger.info("NotFoundException from TE, returning OK and the subscription json")
+                  Logger.error(e.message)
+                  Ok(Json.toJson(s))
+              }
           }
         case _ => buffer.find("subscription.utr" -> utr) map {
           case Nil => NotFound
@@ -117,15 +125,22 @@ class RegistrationController(val authConnector: AuthConnector,
 
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {
     case a if a.state == "SUCCEEDED" =>
+      Logger.info("TE returned SUCCEEDED for subscription")
       buffer.remove("subscription.utr" -> utr) map {
-        _ => Ok(Json.toJson(s))
+        _ =>
+          Logger.info("deleting record from the buffer and returning OK & subscription json")
+          Ok(Json.toJson(s))
       }
     case a if a.state == "ERROR" =>
       Logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
+      Logger.info("TE returned ERROR, returning OK and the subscription json ")
       Future successful Ok(Json.toJson(s))
     case a if a.state == "PENDING" =>
+      Logger.info("TE returned PENDING, returning Accepted and the subscription json")
       Future successful Accepted(Json.toJson(s))
-    case _ => Future successful Ok(Json.toJson(s))
+    case _ =>
+      Logger.info("catchall case, not sure what TE returned, returning OK and the subscription json")
+      Future successful Ok(Json.toJson(s))
   }
 
   private def buildSubscriptionAudit(subscription: Subscription, providerId: String,
