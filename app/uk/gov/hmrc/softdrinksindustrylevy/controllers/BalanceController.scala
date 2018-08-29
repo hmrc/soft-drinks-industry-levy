@@ -41,7 +41,7 @@ class BalanceController(
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, None)
         .map{r =>
-          val lineItems = convert(r)
+          val lineItems = r.fold(List.empty[FinancialLineItem])(convert)
           Ok(JsNumber(lineItems.balance))
         }
     }
@@ -52,9 +52,10 @@ class BalanceController(
       val r: Future[List[FinancialLineItem]] = for {
         subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map{_.get}
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
-        lineItems    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
+        responses    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        deduplicatePayments(convert(lineItems))
+        
+        deduplicatePayments(convert(responses.flatten)).sortBy(_.date.toString)
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -63,7 +64,7 @@ class BalanceController(
   def balanceHistory(sdilRef: String, year: Int): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, Some(year)).map{ r =>
-        val data: List[FinancialLineItem] = convert(r)
+        val data: List[FinancialLineItem] = r.fold(List.empty[FinancialLineItem])(convert)
         Ok(JsArray(data.map{Json.toJson(_)}))
       }
     }
@@ -129,7 +130,7 @@ object BalanceController {
         case (4835,2215) => deep(OfficerAsstInterest(dueDate, amount))
         case (60,100)    => PaymentOnAccount(dueDate,
                                              in.items.head.paymentReference.get,
-                                             -in.originalAmount,
+                                             in.items.head.paymentAmount.get,
                                              in.items.head.paymentLot.get,
                                              in.items.head.paymentLotItem.get).pure[List]
         case _           => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]

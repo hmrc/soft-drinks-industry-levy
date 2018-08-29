@@ -2,7 +2,8 @@ variations.sdil.header=Soft Drinks Industry Levy Variation Form
 variations.hmrc=HM Revenue & Customs
 variations.internal-hmrc-copy=Internal HMRC Copy
 variations.internal-information=Internal Information
-variations.guidance.p1=Any information displayed on this document must be amended on the relevant Soft Drinks Industry Levy Variation Form.
+variations.sdil.title=SDIL Variations
+variations.guidance.p1=All information displayed below must be amended on the relevant Soft Drinks Industry Levy Variation Form.
 variations.guidance.p2=If any field is shown as blank then it must be removed.
 
 variations.sdil-number.title=SDIL Reference Number
@@ -12,7 +13,9 @@ variations.sdil-orgName=Trading name
 variations.address-postcode=Postcode
 
 variations.organisation-details.title=Organisation Details
+variations.sdil-business-details.title=Business Details
 variations.trading-name=Trading Name
+variations.ppob-address=Address
 
 variations.business-contact.title=Business Contact Details
 variations.correspondence-contact.title=Correspondence Contact Details

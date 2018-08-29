@@ -86,7 +86,7 @@ class DesConnector(val http: HttpClient,
   )(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[des.FinancialTransactionResponse] = {
+  ): Future[Option[des.FinancialTransactionResponse]] = {
     import des.FinancialTransaction._
 
     val args: Map[String,Any] = Map(
@@ -110,7 +110,7 @@ class DesConnector(val http: HttpClient,
     val uri = s"$desURL/enterprise/financial-data/ZSDL/${sdilRef}/ZSDL?" ++
       args.map{encodePair}.mkString("&")
 
-    http.GET[des.FinancialTransactionResponse](uri)(implicitly, addHeaders, ec)
+    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, ec)
   }
 
 }

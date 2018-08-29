@@ -41,10 +41,10 @@ class VariationsController(
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
-      for {
-        _ <- gforms.submitToDms(page, sdilNumber)
-        _ <- variationSubmissions.save(data, sdilNumber)
-      } yield NoContent
+       for {
+         _ <- gforms.submitToDms(page, sdilNumber)
+         _ <- variationSubmissions.save(data, sdilNumber)
+       } yield NoContent
     }
   }
 

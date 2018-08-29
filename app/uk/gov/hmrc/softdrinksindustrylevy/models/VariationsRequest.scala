@@ -22,6 +22,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.{activityMapForma
 import play.api.libs.json._
 
 object VariationsRequest {
+  implicit val formatAddress: Format[UkAddress] = Json.format[UkAddress]
   implicit val format: Format[VariationsRequest] = Json.format[VariationsRequest]
 }
 
@@ -44,6 +45,8 @@ object ReturnsVariationRequest {
 
 case class VariationsRequest(
                               tradingName: Option[String] = None,
+                              displayOrgName: String,
+                              ppobAddress: UkAddress,
                               businessContact: Option[VariationsContact] = None,
                               correspondenceContact: Option[VariationsContact] = None,
                               primaryPersonContact: Option[VariationsPersonalDetails] = None,
