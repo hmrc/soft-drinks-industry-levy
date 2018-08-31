@@ -22,6 +22,7 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.health.AdminController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers._
+import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsVariationSubmissionService
 
 trait ControllerWiring {
   self: ConnectorWiring with PlayWiring with ServicesWiring =>

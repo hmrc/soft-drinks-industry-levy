@@ -17,13 +17,31 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.{activityMapFormat, siteFormat}
 import play.api.libs.json._
 
 object VariationsRequest {
   implicit val formatAddress: Format[UkAddress] = Json.format[UkAddress]
   implicit val format: Format[VariationsRequest] = Json.format[VariationsRequest]
 }
+
+case class ReturnsVariationRequest(
+  orgName: String,
+  ppobAddress: UkAddress,
+  importer: (Boolean, (Long,Long)) = (false, (0,0)),
+  packer: (Boolean, (Long,Long)) = (false, (0,0)),
+  warehouses: List[Site] = Nil,
+  packingSites: List[Site] = Nil,
+  phoneNumber: String,
+  email: String,
+  taxEstimation: BigDecimal)
+object ReturnsVariationRequest {
+  implicit val ukAddressFormat: Format[UkAddress] = Json.format[UkAddress]
+  implicit val bllFormat: Format[(Boolean, (Long, Long))] = Json.format[(Boolean, (Long, Long))]
+  implicit val format: Format[ReturnsVariationRequest] = Json.format[ReturnsVariationRequest]
+}
+
 
 case class VariationsRequest(
                               tradingName: Option[String] = None,
