@@ -51,7 +51,7 @@ class VariationsController(
     withJsonBody[ReturnsVariationRequest] { data =>
       val page = views.html.returns_variation_pdf(data, sdilNumber).toString
       for {
-        _ <- gforms.submitToDms(page, sdilNumber)
+//        _ <- gforms.submitToDms(page, sdilNumber)
         _ <- returnSubmission.save(data, sdilNumber)
       } yield NoContent
 

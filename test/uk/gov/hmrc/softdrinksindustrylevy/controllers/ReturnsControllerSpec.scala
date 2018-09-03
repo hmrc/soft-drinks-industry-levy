@@ -157,6 +157,10 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       Future.successful{
         data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
       }
+      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+      Future.successful{
+        data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
+      }
     }
   }
 

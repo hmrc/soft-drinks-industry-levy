@@ -40,6 +40,7 @@ trait SdilPersistence {
     def apply(user: U, key: K)(implicit ec: EC): Future[V] =
       get(user, key).map{_.get._1}
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
+    def listVariable(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
@@ -109,6 +110,25 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       returnsMongo.find(
         "utr" -> utr
       ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
+
+    def listVariable(
+      utr: String
+
+    )(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
+      val since = LocalDate.now.minusYears(4)
+      returnsMongo.find(
+        "utr" -> utr,
+        "period.year" -> BSONDocument(
+          "$gte" -> since.getYear
+        ),
+        "period.quarter" -> BSONDocument(
+          "$gte" -> (since.getMonthValue - 1) / 3
+        )
+      ).map {
+        _.map { x => (x.period, x.sdilReturn) }.toMap
+      }
+    }
+
   }
 
 }
