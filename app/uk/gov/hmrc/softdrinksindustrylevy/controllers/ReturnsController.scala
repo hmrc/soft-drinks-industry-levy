@@ -37,13 +37,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnsController(
-                         val authConnector: AuthConnector,
-                         desConnector: DesConnector,
-                         val persistence: SdilPersistence,
-                         val sdilConfig: SdilConfig,
-                         auditing: AuditConnector
-                       )
-                       (implicit ec: ExecutionContext, clock: Clock)
+  val authConnector: AuthConnector,
+  desConnector: DesConnector,
+  val persistence: SdilPersistence,
+  val sdilConfig: SdilConfig,
+  auditing: AuditConnector
+)(implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
   def validateSmallProducer(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
@@ -59,15 +58,15 @@ class ReturnsController(
     }
   }
 
-  def buildReturnAuditDetail( // TODO get old formatting settings set up and restore code layout
-                              sdilReturn: SdilReturn,
-                              returnsRequest: ReturnsRequest,
-                              providerId: String,
-                              period: ReturnPeriod,
-                              subscription: Option[Subscription],
-                              utr: String,
-                              outcome: String
-                            ): JsValue = {
+  def buildReturnAuditDetail(
+    sdilReturn: SdilReturn,
+    returnsRequest: ReturnsRequest,
+    providerId: String,
+    period: ReturnPeriod,
+    subscription: Option[Subscription],
+    utr: String,
+    outcome: String
+  ): JsValue = {
     val sdilNo: String = subscription.flatMap {
       _.sdilRef
     }.fold("unknown") {
