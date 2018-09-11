@@ -22,6 +22,20 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json, OFormat}
 import reactivemongo.bson.BSONObjectID
+import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
+
+case class ReturnVariationData(
+                                original: SdilReturn,
+                                revised: SdilReturn,
+                                period: ReturnPeriod,
+                                orgName: String,
+                                address: UkAddress) {
+
+  def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
+  def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
+  def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
+}
+
 case class SdilReturn(
   ownBrand     : (Long,Long) = (0,0),
   packLarge    : (Long,Long) = (0,0),
@@ -31,7 +45,14 @@ case class SdilReturn(
   export       : (Long,Long) = (0,0),
   wastage      : (Long,Long) = (0,0),
   submittedOn  : Option[LocalDateTime]
-)
+) {
+  private def toLongs: List[(Long,Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
+  private val keys = List("ownBrand","packLarge","importSmall","importLarge","export","wastage")
+  def compare(other: SdilReturn): Map[String, (Long, Long)] = {
+    val y = this.toLongs
+    other.toLongs.zipWithIndex.filter {x => x._1 != y(x._2)}.map(x => keys(x._2) -> x._1).toMap
+  }
+}
 
 case class ReturnPeriod(year: Int, quarter: Int) {
   require(quarter <= 3 && quarter >= 0)

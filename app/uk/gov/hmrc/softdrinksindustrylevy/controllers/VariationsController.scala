@@ -18,12 +18,17 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.io.PrintWriter
 
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc.Action
+import sdil.models.{ReturnPeriod, ReturnVariationData}
+import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.AuthProviders
+import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.addressFormat
 
@@ -51,10 +56,36 @@ class VariationsController(
     withJsonBody[ReturnsVariationRequest] { data =>
       val page = views.html.returns_variation_pdf(data, sdilNumber).toString
       for {
-//        _ <- gforms.submitToDms(page, sdilNumber)
+        _ <- gforms.submitToDms(page, sdilNumber)
         _ <- returnSubmission.save(data, sdilNumber)
       } yield NoContent
 
     }
   }
+
+  def varyReturn(sdilRef: String): Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      withJsonBody[ReturnVariationData] { data =>
+        Logger.info("SDIL return variation sent to DMS queue")
+
+        val page = views.html.return_variation_pdf(data, sdilRef).toString
+        // TODO gist this..
+        import sys.process._
+        import java.io.PrintWriter
+
+        val temp = java.io.File.createTempFile("variations", ".html")
+        new PrintWriter(temp) { write(page); close }
+        s"epiphany $temp".!
+        concurrent.Future.successful(NoContent)
+
+        // TODO - implement lines below
+
+        //          for {
+        //            _ <- gforms.submitToDms(page, sdilRef)
+        //            _ <- returnSubmission.save(data, sdilRef)
+        //          } yield NoContent
+
+      }
+    }
+
 }

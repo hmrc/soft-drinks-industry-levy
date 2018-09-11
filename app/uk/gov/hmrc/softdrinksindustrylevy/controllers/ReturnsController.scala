@@ -22,7 +22,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent}
 import reactivemongo.bson.BSONObjectID
-import sdil.models.{ReturnPeriod, SdilReturn}
+import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
@@ -99,7 +99,7 @@ class ReturnsController(
             _ <- desConnector.submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
               new SdilReturnEvent(
-                request.uri,
+                 request.uri,
                 buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
               )
             )
@@ -163,25 +163,10 @@ class ReturnsController(
 
   def variable(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-
-      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
-        subscription => // TODO unwrap redundant
-
-          import sdilConfig.today
-          val start = subscription.get.liabilityDate
-
-          val all = { // TODO remove redundant
-            ReturnPeriod(start).count to ReturnPeriod(today).count
-          }
-            .map {
-              ReturnPeriod.apply
-            }
-            .filter {
-              _.end.isBefore(today)
-            }
-          persistence.returns.listVariable(utr).map { posted =>
-            Ok(Json.toJson(posted.keys.toList))
-          }
+      persistence.returns.listVariable(utr).map { posted =>
+        Ok(Json.toJson(posted.keys.toList))
       }
     }
+
+
 }
