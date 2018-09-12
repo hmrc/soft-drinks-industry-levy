@@ -20,6 +20,7 @@
 
 @import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 @import uk.gov.hmrc.softdrinksindustrylevy.models.Address
+@import sdil.models.SdilReturn
 @(variation: ReturnVariationData, sdilNumber: String)(implicit request: Request[_], messages: Messages)
 
 <div>
@@ -36,7 +37,7 @@
 @Messages("variations.internal-information")
 </h1>
 <p>
-@Messages("variations.guidance.p1")
+@Messages("variations.return.guidance.p1")
 </p>
 
 @table_helper("sdil-number") {
@@ -56,6 +57,33 @@
     @table_row_helper("address-postcode", variation.address.postCode)
 }
 
+
+    @for(change <- variation.changedLitreages) {
+        @table_helper(change._1) {
+            @table_row_helper("return-litres-low", s"${change._2._1}")
+            @table_row_helper("return-litres-high", s"${change._2._2}")
+            @if(change._1 == "wastage" || change._1 == "exported") {
+               @table_row_helper("return-cost-low", s"-&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
+               @table_row_helper("return-cost-high", s"-&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
+               @table_row_helper("return-cost-total", s"-&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
+            } else {
+               @table_row_helper("return-cost-low", s"&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
+               @table_row_helper("return-cost-high", s"&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
+               @table_row_helper("return-cost-total", s"&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
+            }
+        }
+    }
+@table_helper("return-new-value") {
+    @for(producer <- variation.addedSmallProducers) {
+        @table_row_helper("return-small-prod-ref", producer.sdilRef)
+        @table_row_helper("return-small-prod-packaged-low", producer.litreage._1.toString)
+        @table_row_helper("return-small-prod-packaged-high", producer.litreage._2.toString)
+    }
+}
+
+@table_helper("return-new-value") {
+    @table_row_helper("due", variation.total.formatted("%,1.2f"))
+}
 
 @table_helper("declaration") {
     @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))

@@ -23,6 +23,7 @@ import java.time.LocalDate
 import play.api.libs.json.{Format, Json, OFormat}
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
+import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 case class ReturnVariationData(
                                 original: SdilReturn,
@@ -34,16 +35,17 @@ case class ReturnVariationData(
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
+  def total: BigDecimal = revised.total
 }
 
 case class SdilReturn(
   ownBrand     : (Long,Long) = (0,0),
   packLarge    : (Long,Long) = (0,0),
-  packSmall    : List[SmallProducer] = Nil,
+  packSmall    : List[SmallProducer] = Nil, // zero charge
   importSmall  : (Long,Long) = (0,0),
   importLarge  : (Long,Long) = (0,0),
-  export       : (Long,Long) = (0,0),
-  wastage      : (Long,Long) = (0,0),
+  export       : (Long,Long) = (0,0), // negative charge
+  wastage      : (Long,Long) = (0,0), // negative charge
   submittedOn  : Option[LocalDateTime]
 ) {
   private def toLongs: List[(Long,Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
@@ -52,6 +54,15 @@ case class SdilReturn(
     val y = this.toLongs
     other.toLongs.zipWithIndex.filter {x => x._1 != y(x._2)}.map(x => keys(x._2) -> x._1).toMap
   }
+  private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
+  def total: BigDecimal = {
+    sumLitres(List(ownBrand, packLarge, importSmall, importLarge)) - sumLitres(List(export, wastage))
+  }
+}
+object SdilReturn {
+  // TODO extract to config
+  val costLower = BigDecimal("0.18")
+  val costHigher = BigDecimal("0.24")
 }
 
 case class ReturnPeriod(year: Int, quarter: Int) {
