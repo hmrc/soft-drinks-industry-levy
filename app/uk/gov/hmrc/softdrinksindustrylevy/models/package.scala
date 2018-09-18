@@ -29,6 +29,7 @@ package object models {
   type Litres = Long
   type LitreBands = (Litres, Litres)
 
+  // TODO remove this and use cats instead
   implicit val litreBandsMonoid: Monoid[(LitreBands)] = new Monoid[(LitreBands)] {
     override def empty: (Litres, Litres) = (0, 0)
 

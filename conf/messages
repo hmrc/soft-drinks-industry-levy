@@ -85,3 +85,15 @@ variations.close-sites.reason-of-closure=Please enter the reason for site closur
 variations.declaration.title=Declaration
 variations.declaration.status=Status
 variations.declaration.authorised-official=Authorised Official
+
+variations.return-litres-low=Volume Low Band
+variations.return-litres-high=Volume High Band
+variations.return-cost-low=Cost Low Band
+variations.return-cost-high=Cost High Band
+variations.return-cost-total=Total Cost
+variations.importLarge.title=Imported from Large Producers
+variations.importSmall.title=Imported from Small Producers
+variations.wastage.title=Wastage
+variations.packLarge.title=Packaged for Large Producers
+variations.export.title=Exported
+

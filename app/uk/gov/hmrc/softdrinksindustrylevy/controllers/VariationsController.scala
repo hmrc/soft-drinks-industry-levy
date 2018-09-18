@@ -75,7 +75,8 @@ class VariationsController(
 
         val temp = java.io.File.createTempFile("variations", ".html")
         new PrintWriter(temp) { write(page); close }
-        s"epiphany $temp".!
+//        s"epiphany $temp".!
+        s"epiphany $temp".run()
         concurrent.Future.successful(NoContent)
 
         // TODO - implement lines below

@@ -17,13 +17,13 @@
 package sdil.models
 
 import cats.Order
+import cats.implicits._
 import java.time.LocalDateTime
 import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json, OFormat}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _,_}
 
 case class ReturnVariationData(
                                 original: SdilReturn,
@@ -42,7 +42,7 @@ case class SdilReturn(
   ownBrand     : (Long,Long) = (0,0),
   packLarge    : (Long,Long) = (0,0),
   packSmall    : List[SmallProducer] = Nil, // zero charge
-  importSmall  : (Long,Long) = (0,0),
+  importSmall  : (Long,Long) = (0,0), // zero charge
   importLarge  : (Long,Long) = (0,0),
   export       : (Long,Long) = (0,0), // negative charge
   wastage      : (Long,Long) = (0,0), // negative charge
@@ -52,11 +52,15 @@ case class SdilReturn(
   private val keys = List("ownBrand","packLarge","importSmall","importLarge","export","wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
     val y = this.toLongs
-    other.toLongs.zipWithIndex.filter {x => x._1 != y(x._2)}.map(x => keys(x._2) -> x._1).toMap
+    val c = other.toLongs.zipWithIndex.filter {x => x._1 != y(x._2)}.map(x => keys(x._2) -> x._1).toMap
+    val p = c.groupBy(x => x._1 == "ownBrand" || x._1 == "packLarge")
+    var r = p.getOrElse(false, Map.empty[String,(Long,Long)]) ++ Map("packaged" -> p(true).values.toList.combineAll)
+    var s = p.getOrElse(false, Map.empty[String,(Long,Long)]) ++ p.getOrElse(true, Map.empty[String,(Long,Long)])
+    r
   }
   private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
   def total: BigDecimal = {
-    sumLitres(List(ownBrand, packLarge, importSmall, importLarge)) - sumLitres(List(export, wastage))
+    sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
   }
 }
 object SdilReturn {

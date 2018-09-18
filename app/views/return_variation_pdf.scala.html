@@ -23,6 +23,14 @@
 @import sdil.models.SdilReturn
 @(variation: ReturnVariationData, sdilNumber: String)(implicit request: Request[_], messages: Messages)
 
+@formatReturnPeriod(p: (Int,Int)) = {
+    case (a, b) if a == 0 => s"January to March $b"
+    case (a, b) if a == 1 => s"April to June $b"
+    case (a, b) if a == 2 => s"July to September $b"
+    case (a, b) if a == 3 => s"October to December $b"
+}
+
+
 <div>
     <div id="service-info">
         <div id="service-info-logo">
@@ -58,22 +66,36 @@
 }
 
 
-    @for(change <- variation.changedLitreages) {
-        @table_helper(change._1) {
-            @table_row_helper("return-litres-low", s"${change._2._1}")
-            @table_row_helper("return-litres-high", s"${change._2._2}")
-            @if(change._1 == "wastage" || change._1 == "exported") {
-               @table_row_helper("return-cost-low", s"-&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
-               @table_row_helper("return-cost-high", s"-&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
-               @table_row_helper("return-cost-total", s"-&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
+
+@table_helper("return-period") {
+    <tr><td colspan="2">@formatReturnPeriod(variation.period.quarter,variation.period.year)</td></tr>
+}
+
+
+@for(change <- variation.changedLitreages) {
+    @table_helper(change._1) {
+        @table_row_helper("return-litres-low", s"${change._2._1}")
+        @table_row_helper("return-litres-high", s"${change._2._2}")
+
+        @if(change._1 == "wastage" || change._1 == "exported") {
+            @table_row_helper("return-cost-low", s"-&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
+            @table_row_helper("return-cost-high", s"-&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
+            @table_row_helper("return-cost-total", s"-&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
+        } else {
+            @if(change._1 == "importSmall") {
+                @table_row_helper("return-cost-low", s"&pound;${0.formatted("%,1.2f")}")
+                @table_row_helper("return-cost-high", s"&pound;${0.formatted("%,1.2f")}")
+                @table_row_helper("return-cost-total", s"&pound;${0.formatted("%,1.2f")}")
             } else {
-               @table_row_helper("return-cost-low", s"&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
-               @table_row_helper("return-cost-high", s"&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
-               @table_row_helper("return-cost-total", s"&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
+                @table_row_helper("return-cost-low", s"&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
+                @table_row_helper("return-cost-high", s"&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
+                @table_row_helper("return-cost-total", s"&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
             }
         }
     }
-@table_helper("return-new-value") {
+}
+
+@table_helper("return-small-producers") {
     @for(producer <- variation.addedSmallProducers) {
         @table_row_helper("return-small-prod-ref", producer.sdilRef)
         @table_row_helper("return-small-prod-packaged-low", producer.litreage._1.toString)
