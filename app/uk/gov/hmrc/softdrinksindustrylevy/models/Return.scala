@@ -35,7 +35,6 @@ case class ReturnVariationData(
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
-  def total: BigDecimal = revised.total
 }
 
 case class SdilReturn(
@@ -52,11 +51,7 @@ case class SdilReturn(
   private val keys = List("ownBrand","packLarge","importSmall","importLarge","export","wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
     val y = this.toLongs
-    val c = other.toLongs.zipWithIndex.filter {x => x._1 != y(x._2)}.map(x => keys(x._2) -> x._1).toMap
-    val p = c.groupBy(x => x._1 == "ownBrand" || x._1 == "packLarge")
-    var r = p.getOrElse(false, Map.empty[String,(Long,Long)]) ++ Map("packaged" -> p(true).values.toList.combineAll)
-    var s = p.getOrElse(false, Map.empty[String,(Long,Long)]) ++ p.getOrElse(true, Map.empty[String,(Long,Long)])
-    r
+    other.toLongs.zipWithIndex.filter { x => x._1 != y(x._2) }.map(x => keys(x._2) -> x._1).toMap
   }
   private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
   def total: BigDecimal = {
@@ -80,6 +75,17 @@ case class ReturnPeriod(year: Int, quarter: Int) {
   def count: Int = year * 4 + quarter - 2018 * 4 - 1
 
   def desPeriodKey: String = s"${year % 100}C${quarter + 1}"
+
+  def pretty: String = {
+    def q: String = quarter match {
+      case 0 => s"January to March"
+      case 1 => s"April to June"
+      case 2 => s"July to September"
+      case 3 => s"October to December"
+    }
+    s"$q $year (${year % 100}C${quarter + 1})"
+  }
+
 }
 
 object ReturnPeriod {
@@ -94,6 +100,5 @@ object ReturnPeriod {
     val (y::q::_) = in.split("C").toList
     ReturnPeriod(2000 + y.toInt, q.toInt - 1)
   }
-
 
 }

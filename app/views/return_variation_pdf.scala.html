@@ -23,13 +23,6 @@
 @import sdil.models.SdilReturn
 @(variation: ReturnVariationData, sdilNumber: String)(implicit request: Request[_], messages: Messages)
 
-@formatReturnPeriod(p: (Int,Int)) = {
-    case (a, b) if a == 0 => s"January to March $b"
-    case (a, b) if a == 1 => s"April to June $b"
-    case (a, b) if a == 2 => s"July to September $b"
-    case (a, b) if a == 3 => s"October to December $b"
-}
-
 
 <div>
     <div id="service-info">
@@ -65,13 +58,11 @@
     @table_row_helper("address-postcode", variation.address.postCode)
 }
 
-
-
 @table_helper("return-period") {
-    <tr><td colspan="2">@formatReturnPeriod(variation.period.quarter,variation.period.year)</td></tr>
+    <tr><td colspan="2">@variation.period.pretty</td></tr>
 }
 
-
+@**
 @for(change <- variation.changedLitreages) {
     @table_helper(change._1) {
         @table_row_helper("return-litres-low", s"${change._2._1}")
@@ -102,9 +93,16 @@
         @table_row_helper("return-small-prod-packaged-high", producer.litreage._2.toString)
     }
 }
+**@
 
-@table_helper("return-new-value") {
-    @table_row_helper("due", variation.total.formatted("%,1.2f"))
+@table_helper("return-value") {
+    @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
+    @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
+    @if(variation.revised.total - variation.original.total < 0) {
+        @table_row_helper("change", s"-&pound;${(variation.revised.total - variation.original.total).abs.formatted("%,1.2f")}")
+    } else {
+        @table_row_helper("change", s"&pound;${(variation.revised.total - variation.original.total).formatted("%,1.2f")}")
+    }
 }
 
 @table_helper("declaration") {

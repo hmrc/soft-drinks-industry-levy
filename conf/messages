@@ -97,3 +97,8 @@ variations.wastage.title=Wastage
 variations.packLarge.title=Packaged for Large Producers
 variations.export.title=Exported
 
+variations.return-period.title=Return Period
+variations.return-value.title=Return Adjustment
+variations.original=Original return value
+variations.revised=Revised return value
+variations.change=Adjustment
