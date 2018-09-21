@@ -26,11 +26,13 @@ import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _,_}
 
 case class ReturnVariationData(
-                                original: SdilReturn,
-                                revised: SdilReturn,
-                                period: ReturnPeriod,
-                                orgName: String,
-                                address: UkAddress) {
+  original: SdilReturn,
+  revised: SdilReturn,
+  period: ReturnPeriod,
+  orgName: String,
+  address: UkAddress,
+  reason: String
+) {
 
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)

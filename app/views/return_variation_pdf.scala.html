@@ -62,6 +62,10 @@
     <tr><td colspan="2">@variation.period.pretty</td></tr>
 }
 
+@table_helper("return-reason") {
+    <tr><td colspan="2">@variation.reason</td></tr>
+}
+
 @**
 @for(change <- variation.changedLitreages) {
     @table_helper(change._1) {
