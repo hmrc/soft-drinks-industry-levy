@@ -38,6 +38,9 @@ case class ReturnVariationData(
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
 }
+object ReturnVariationData {
+  implicit val format: Format[ReturnVariationData] = Json.format[ReturnVariationData]
+}
 
 case class SdilReturn(
   ownBrand     : (Long,Long) = (0,0),

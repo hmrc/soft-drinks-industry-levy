@@ -29,7 +29,7 @@ import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
-import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsVariationSubmissionService, VariationSubmissionService}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.addressFormat
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,7 +39,8 @@ class VariationsController(
   val messagesApi: MessagesApi,
   gforms: GformConnector,
   variationSubmissions: VariationSubmissionService,
-  returnSubmission: ReturnsVariationSubmissionService
+  returnSubmission: ReturnsVariationSubmissionService,
+  returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService
 ) extends BaseController with I18nSupport {
 
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
@@ -69,22 +70,12 @@ class VariationsController(
         Logger.info("SDIL return variation sent to DMS queue")
 
         val page = views.html.return_variation_pdf(data, sdilRef).toString
-        // TODO gist this..
-        import sys.process._
-        import java.io.PrintWriter
 
-        val temp = java.io.File.createTempFile("variations", ".html")
-        new PrintWriter(temp) { write(page); close }
-//        s"epiphany $temp".!
-        s"epiphany $temp".run()
-        concurrent.Future.successful(NoContent)
 
-        // TODO - implement lines below
-
-        //          for {
-        //            _ <- gforms.submitToDms(page, sdilRef)
-        //            _ <- returnSubmission.save(data, sdilRef)
-        //          } yield NoContent
+        for {
+          _ <- gforms.submitToDms(page, sdilRef)
+          _ <- returnsAdjustmentSubmissionService.save(data, sdilRef)
+        } yield NoContent
 
       }
     }

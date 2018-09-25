@@ -20,9 +20,8 @@ import com.kenshoo.play.metrics.{Metrics, MetricsController, MetricsImpl}
 import com.softwaremill.macwire._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.health.AdminController
-import uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers._
-import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsVariationSubmissionService
+import uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController
 
 trait ControllerWiring {
   self: ConnectorWiring with PlayWiring with ServicesWiring =>
