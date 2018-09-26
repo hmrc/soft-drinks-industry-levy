@@ -22,7 +22,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent}
 import reactivemongo.bson.BSONObjectID
-import sdil.models.{ReturnPeriod, SdilReturn}
+import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
@@ -42,8 +42,7 @@ class ReturnsController(
   val persistence: SdilPersistence,
   val sdilConfig: SdilConfig,
   auditing: AuditConnector
-)
-                       (implicit ec: ExecutionContext, clock: Clock)
+)(implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
   def validateSmallProducer(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
@@ -67,11 +66,17 @@ class ReturnsController(
     subscription: Option[Subscription],
     utr: String,
     outcome: String
-  ): JsValue ={
-    val sdilNo: String = subscription.flatMap{_.sdilRef}.fold("unknown"){identity}
+  ): JsValue = {
+    val sdilNo: String = subscription.flatMap {
+      _.sdilRef
+    }.fold("unknown") {
+      identity
+    }
     Json.obj(
       "sdilNumber" -> sdilNo,
-      "orgName" -> subscription.fold("unknown"){_.orgName},
+      "orgName" -> subscription.fold("unknown") {
+        _.orgName
+      },
       "utr" -> utr,
       "outcome" -> outcome,
       "authProviderType" -> "GovernmentGateway",
@@ -94,7 +99,7 @@ class ReturnsController(
             _ <- desConnector.submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
               new SdilReturnEvent(
-                request.uri,
+                 request.uri,
                 buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
               )
             )
@@ -119,8 +124,10 @@ class ReturnsController(
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async { implicit request =>
       persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
-        case Some((record, objectID)) => Ok(Json.toJson(record.copy(submittedOn = objectID.map{_.time.asMilliseconds})))
-        case None =>         NotFound
+        case Some((record, objectID)) => Ok(Json.toJson(record.copy(submittedOn = objectID.map {
+          _.time.asMilliseconds
+        })))
+        case None => NotFound
       }
     }
 
@@ -136,16 +143,30 @@ class ReturnsController(
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
         subscription =>
 
-        import sdilConfig.today
-        val start = subscription.get.liabilityDate
+          import sdilConfig.today
+          val start = subscription.get.liabilityDate
 
-        val all = {ReturnPeriod(start).count to ReturnPeriod(today).count}
-          .map{ReturnPeriod.apply}
-          .filter{_.end.isBefore(today)}
-        persistence.returns.list(utr).map { posted => 
-          Ok(Json.toJson(all.toList diff posted.keys.toList))
-        }
+          val all = {
+            ReturnPeriod(start).count to ReturnPeriod(today).count
+          }
+            .map {
+              ReturnPeriod.apply
+            }
+            .filter {
+              _.end.isBefore(today)
+            }
+          persistence.returns.list(utr).map { posted =>
+            Ok(Json.toJson(all.toList diff posted.keys.toList))
+          }
       }
     }
-  
+
+  def variable(utr: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      persistence.returns.listVariable(utr).map { posted =>
+        Ok(Json.toJson(posted.keys.toList))
+      }
+    }
+
+
 }

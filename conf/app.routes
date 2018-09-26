@@ -17,6 +17,8 @@ POST        /returns/variation/sdil/:sdilNumber            uk.gov.hmrc.softdrink
 GET         /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.get(utr: String, year: Int, quarter: Int)
 POST        /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.post(utr: String, year: Int, quarter: Int)
 GET         /returns/:utr/pending                          uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.pending(utr: String)
+GET         /returns/:utr/variable                         uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.variable(utr: String)
+POST        /returns/vary/:sdilRef                         uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.varyReturn(sdilRef: String)
 
 GET         /balance/:sdil                                 uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String)
 

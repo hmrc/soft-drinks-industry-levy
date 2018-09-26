@@ -4,6 +4,7 @@ variations.internal-hmrc-copy=Internal HMRC Copy
 variations.internal-information=Internal Information
 variations.sdil.title=SDIL Variations
 variations.guidance.p1=All information displayed below must be amended on the relevant Soft Drinks Industry Levy Variation Form.
+variations.return.guidance.p1=All information displayed below must be amended on the relevant Soft Drinks Industry Levy account.
 variations.guidance.p2=If any field is shown as blank then it must be removed.
 
 variations.sdil-number.title=SDIL Reference Number
@@ -84,3 +85,21 @@ variations.close-sites.reason-of-closure=Please enter the reason for site closur
 variations.declaration.title=Declaration
 variations.declaration.status=Status
 variations.declaration.authorised-official=Authorised Official
+
+variations.return-litres-low=Volume Low Band
+variations.return-litres-high=Volume High Band
+variations.return-cost-low=Cost Low Band
+variations.return-cost-high=Cost High Band
+variations.return-cost-total=Total Cost
+variations.importLarge.title=Imported from Large Producers
+variations.importSmall.title=Imported from Small Producers
+variations.wastage.title=Wastage
+variations.packLarge.title=Packaged for Large Producers
+variations.export.title=Exported
+
+variations.return-period.title=Return Period
+variations.return-value.title=Return Adjustment
+variations.original=Original return value
+variations.revised=Revised return value
+variations.change=Adjustment
+variations.return-reason.title=Reason for return

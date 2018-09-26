@@ -20,16 +20,17 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
 import reactivemongo.api.commands.WriteResult
-
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString, BSONObjectID}
+import reactivemongo.bson.{BSONArray, BSONDateTime, BSONDocument, BSONObjectID, BSONString}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import sdil.models.{ ReturnPeriod, SdilReturn, SmallProducer }
+import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext => EC, _}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import java.time._
+
 import cats.implicits._
 
 trait SdilPersistence {
@@ -40,6 +41,7 @@ trait SdilPersistence {
     def apply(user: U, key: K)(implicit ec: EC): Future[V] =
       get(user, key).map{_.get._1}
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
+    def listVariable(user: U)(implicit ec: EC): Future[Map[K,V]]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
@@ -109,6 +111,27 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       returnsMongo.find(
         "utr" -> utr
       ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
+
+    def listVariable(
+      utr: String
+
+    )(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
+      val since = LocalDate.now.minusYears(4)
+
+      returnsMongo.find(
+        "utr" -> utr,
+        "$or" -> BSONArray(
+          BSONDocument("period.year" -> BSONDocument("$gt" -> since.getYear)),
+          BSONDocument("$and" -> BSONArray(
+            BSONDocument("period.year" -> BSONDocument("$eq" -> since.getYear)),
+            BSONDocument("period.quarter" -> BSONDocument("$gte" -> (since.getMonthValue - 1) / 3))
+          ))
+        )
+      ).map {
+        _.map { x => (x.period, x.sdilReturn) }.toMap
+      }
+    }
+
   }
 
 }

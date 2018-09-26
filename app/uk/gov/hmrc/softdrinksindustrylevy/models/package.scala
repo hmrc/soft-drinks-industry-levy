@@ -22,13 +22,14 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
 import reactivemongo.bson.BSONObjectID
-import sdil.models.{FinancialLineItem, ReturnPeriod, SdilReturn, SmallProducer}
+import sdil.models._
 
 package object models {
 
   type Litres = Long
   type LitreBands = (Litres, Litres)
 
+  // TODO remove this and use cats instead
   implicit val litreBandsMonoid: Monoid[(LitreBands)] = new Monoid[(LitreBands)] {
     override def empty: (Litres, Litres) = (0, 0)
 
@@ -41,15 +42,17 @@ package object models {
     lazy val dueLevy: BigDecimal = lowLevy + highLevy
   }
 
-    // cos coupling is bad, mkay
-    implicit val longTupleFormatter: Format[(Long, Long)] = (
-      (JsPath \ "lower").format[Long] and
-        (JsPath \ "higher").format[Long]
-    )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
+  // cos coupling is bad, mkay
+  implicit val longTupleFormatter: Format[(Long, Long)] = (
+    (JsPath \ "lower").format[Long] and
+      (JsPath \ "higher").format[Long]
+  )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
 
-    implicit val formatSP: OFormat[SmallProducer] = Json.format[SmallProducer]
-    implicit val formatReturn: OFormat[SdilReturn] = Json.format[SdilReturn]
-    implicit val formatPeriod: OFormat[ReturnPeriod] = Json.format[ReturnPeriod]
+  implicit val ukAddressFormat: OFormat[UkAddress] = Json.format[UkAddress]
+  implicit val formatSP: OFormat[SmallProducer] = Json.format[SmallProducer]
+  implicit val formatReturn: OFormat[SdilReturn] = Json.format[SdilReturn]
+  implicit val formatPeriod: OFormat[ReturnPeriod] = Json.format[ReturnPeriod]
+  implicit val formatReturnVariationData: OFormat[ReturnVariationData] = Json.format[ReturnVariationData]
 
   implicit def optFormatter[A](implicit innerFormatter: Format[A]): Format[Option[A]] =
     new Format[Option[A]] {
