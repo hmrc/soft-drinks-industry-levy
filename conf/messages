@@ -103,3 +103,8 @@ variations.original=Original return value
 variations.revised=Revised return value
 variations.change=Adjustment
 variations.return-reason.title=Reason for return
+
+variations.return-repayment-method.title=Repayment
+variations.return-repayment-method.subtitle=Repayment method
+variations.return-repayment-method.credit=Credited to Soft Drinks Industry Levy account
+variations.return-repayment-method.bankPayment=Paid into bank account

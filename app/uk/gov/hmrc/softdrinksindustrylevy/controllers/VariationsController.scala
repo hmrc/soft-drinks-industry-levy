@@ -60,7 +60,6 @@ class VariationsController(
         _ <- gforms.submitToDms(page, sdilNumber)
         _ <- returnSubmission.save(data, sdilNumber)
       } yield NoContent
-
     }
   }
 
@@ -68,10 +67,7 @@ class VariationsController(
     Action.async(parse.json) { implicit request =>
       withJsonBody[ReturnVariationData] { data =>
         Logger.info("SDIL return variation sent to DMS queue")
-
         val page = views.html.return_variation_pdf(data, sdilRef).toString
-
-
         for {
           _ <- gforms.submitToDms(page, sdilRef)
           _ <- returnsAdjustmentSubmissionService.save(data, sdilRef)

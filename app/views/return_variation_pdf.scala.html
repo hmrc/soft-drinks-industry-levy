@@ -66,39 +66,6 @@
     <tr><td colspan="2">@variation.reason</td></tr>
 }
 
-@**
-@for(change <- variation.changedLitreages) {
-    @table_helper(change._1) {
-        @table_row_helper("return-litres-low", s"${change._2._1}")
-        @table_row_helper("return-litres-high", s"${change._2._2}")
-
-        @if(change._1 == "wastage" || change._1 == "exported") {
-            @table_row_helper("return-cost-low", s"-&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
-            @table_row_helper("return-cost-high", s"-&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
-            @table_row_helper("return-cost-total", s"-&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
-        } else {
-            @if(change._1 == "importSmall") {
-                @table_row_helper("return-cost-low", s"&pound;${0.formatted("%,1.2f")}")
-                @table_row_helper("return-cost-high", s"&pound;${0.formatted("%,1.2f")}")
-                @table_row_helper("return-cost-total", s"&pound;${0.formatted("%,1.2f")}")
-            } else {
-                @table_row_helper("return-cost-low", s"&pound;${(change._2._1 * SdilReturn.costLower).formatted("%,1.2f")}")
-                @table_row_helper("return-cost-high", s"&pound;${(change._2._2 * SdilReturn.costHigher).formatted("%,1.2f")}")
-                @table_row_helper("return-cost-total", s"&pound;${((change._2._1 * SdilReturn.costLower) + (change._2._2 * SdilReturn.costHigher)).formatted("%,1.2f")}")
-            }
-        }
-    }
-}
-
-@table_helper("return-small-producers") {
-    @for(producer <- variation.addedSmallProducers) {
-        @table_row_helper("return-small-prod-ref", producer.sdilRef)
-        @table_row_helper("return-small-prod-packaged-low", producer.litreage._1.toString)
-        @table_row_helper("return-small-prod-packaged-high", producer.litreage._2.toString)
-    }
-}
-**@
-
 @table_helper("return-value") {
     @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
     @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
@@ -106,6 +73,12 @@
         @table_row_helper("change", s"-&pound;${(variation.revised.total - variation.original.total).abs.formatted("%,1.2f")}")
     } else {
         @table_row_helper("change", s"&pound;${(variation.revised.total - variation.original.total).formatted("%,1.2f")}")
+    }
+}
+
+@variation.repaymentMethod.map { method =>
+    @table_helper("return-repayment-method") {
+        @table_row_helper("return-repayment-method.subtitle", Messages(s"variations.return-repayment-method.$method"))
     }
 }
 
