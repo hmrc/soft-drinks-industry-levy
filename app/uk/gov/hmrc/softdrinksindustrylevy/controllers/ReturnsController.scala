@@ -139,10 +139,8 @@ class ReturnsController(
 
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
         subscription =>
-
           import sdilConfig.today
           val start = subscription.get.liabilityDate
 
@@ -167,6 +165,4 @@ class ReturnsController(
         Ok(Json.toJson(posted.keys.toList))
       }
     }
-
-
 }
