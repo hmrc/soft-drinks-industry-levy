@@ -102,7 +102,7 @@ variations.return-value.title=Return Adjustment
 variations.original=Original return value
 variations.revised=Revised return value
 variations.change=Adjustment
-variations.return-reason.title=Reason for return
+variations.return-reason.title=Reason for adjustment
 
 variations.return-repayment-method.title=Repayment
 variations.return-repayment-method.subtitle=Repayment method
