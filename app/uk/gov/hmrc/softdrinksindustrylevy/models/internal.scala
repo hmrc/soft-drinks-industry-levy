@@ -80,6 +80,7 @@ package object internal {
   val subWrites: Writes[Subscription] = new Writes[Subscription] {
     override def writes(o: Subscription): JsValue = Json.obj(
       "utr" -> o.utr,
+      "sdilRef" -> o.sdilRef,
       "orgName" -> o.orgName,
       "orgType" -> o.orgType,
       "address" -> o.address,
