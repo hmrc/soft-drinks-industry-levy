@@ -45,9 +45,63 @@ trait SdilPersistence {
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
+
+  protected trait SubsDAO[K, V] {
+    def update(key: K, value: V)(implicit ec: EC): Future[Unit]
+//    def get(key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
+    def get(key: K)(implicit ec: EC): Future[Option[(V)]]
+  }
+
+  def subscriptions: SubsDAO[String, List[Subscription]]
 }
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
+
+  val subscriptions = new SubsDAO[String, List[Subscription]] {
+
+    protected case class Wrapper(utr: String, subscriptions: List[Subscription], _id: Option[BSONObjectID] = None)
+
+    import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.get.subscriptionFormat
+    implicit val formatWrapper = Json.format[Wrapper]
+
+    override def update(key: String, value: List[Subscription])(implicit ec: EC): Future[Unit] = {
+      import subscriptionsMongo._
+      val data = Wrapper(key, value)
+      domainFormatImplicit.writes(data) match {
+        case d @ JsObject(_) =>
+          val selector = Json.obj(
+            "utr" -> key)
+          collection.update(
+            selector, data, upsert=true)
+        case _ =>
+          Future.failed[WriteResult](new Exception("cannot write object"))
+      }
+    }.map{_ => ()}
+
+//    override def get(key: String)(implicit ec: EC): Future[Option[(List[Subscription], Option[BSONObjectID])]] = {
+    override def get(key: String)(implicit ec: EC): Future[Option[List[Subscription]]] = {
+      subscriptionsMongo.find(
+        "utr" -> key
+      ).map {
+        _.headOption.map { x =>
+//          (x.subscriptions, x._id)
+          x.subscriptions
+        }
+      }
+    }
+
+    val subscriptionsMongo = new
+      ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
+      override def indexes: Seq[Index] = Seq(
+        Index(
+          key = Seq(
+            "utr" -> IndexType.Ascending
+          ),
+          unique = true
+        )
+      )
+    }
+  }
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 

@@ -40,7 +40,8 @@ class RegistrationController(val authConnector: AuthConnector,
                              desConnector: DesConnector,
                              buffer: MongoBufferService,
                              emailConnector: EmailConnector,
-                             auditing: AuditConnector)
+                             auditing: AuditConnector,
+                             persistence: SdilPersistence)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
@@ -86,7 +87,14 @@ class RegistrationController(val authConnector: AuthConnector,
 
     authorised(AuthProviders(GovernmentGateway)) {
       desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-        case Some(s) => Ok(Json.toJson(s))
+        case Some(s) => {
+          persistence.subscriptions.get(s.utr).map(_.fold(List.empty[Subscription])(identity)).map { subs =>
+            if(!subs.contains(s)) {
+              persistence.subscriptions.update(s.utr, subs :+ s)
+            }
+          }
+          Ok(Json.toJson(s))
+        }
         case None => NotFound
       }
     }
