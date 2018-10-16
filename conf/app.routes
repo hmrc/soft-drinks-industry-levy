@@ -20,7 +20,6 @@ GET         /returns/:utr/pending                          uk.gov.hmrc.softdrink
 GET         /returns/:utr/variable                         uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.variable(utr: String)
 POST        /returns/vary/:sdilRef                         uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.varyReturn(sdilRef: String)
 
-GET         /balance/:sdil                                 uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String)
-
 GET         /balance/:sdil/history/:year                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistory(sdil: String, year: Int)
 GET         /balance/:sdil/history                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistoryAll(sdil: String)
+GET         /balance/:sdil/:withoutAssessment              uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String, withoutAssessment: Boolean)
