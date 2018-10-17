@@ -59,7 +59,12 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
   val subscriptions = new SubsDAO[String, List[Subscription]] {
 
-    protected case class Wrapper(utr: String, subscriptions: List[Subscription], _id: Option[BSONObjectID] = None)
+    protected case class Wrapper(
+      utr: String,
+      subscriptions: List[Subscription],
+      retrievalTime: LocalDateTime = LocalDateTime.now(),
+      _id: Option[BSONObjectID] = None
+    )
 
     import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.get.subscriptionFormat
     implicit val formatWrapper = Json.format[Wrapper]
