@@ -66,7 +66,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration) {
+  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration, auditConnector) {
     override val desURL: String = mockServerUrl
   }
 
