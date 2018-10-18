@@ -131,9 +131,7 @@ class DesConnector(val http: HttpClient,
       "url" -> path,
       "response" -> body
     )
-    val foo = new BalanceQueryEvent(path, detailJson)
-    println(s"################################################## foo")
-    foo
+    new BalanceQueryEvent(path, detailJson)
   }
 
 
