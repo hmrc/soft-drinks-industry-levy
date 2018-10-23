@@ -47,52 +47,35 @@ trait SdilPersistence {
   def returns: DAO[String, ReturnPeriod, SdilReturn]
 
   protected trait SubsDAO[K, V] {
-    def update(key: K, value: V)(implicit ec: EC): Future[Unit]
-//    def get(key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
-    def get(key: K)(implicit ec: EC): Future[Option[(V)]]
+    def insert(key: K, value: V)(implicit ec: EC): Future[Unit]
+    def list(key: K)(implicit ec: EC): Future[List[V]]
   }
 
-  def subscriptions: SubsDAO[String, List[Subscription]]
+  def subscriptions: SubsDAO[String, Subscription]
 }
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
-  val subscriptions = new SubsDAO[String, List[Subscription]] {
+  val subscriptions = new SubsDAO[String, Subscription] {
 
     protected case class Wrapper(
       utr: String,
-      subscriptions: List[Subscription],
+      subscription: Subscription,
       retrievalTime: LocalDateTime = LocalDateTime.now(),
       _id: Option[BSONObjectID] = None
     )
 
-    import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.get.subscriptionFormat
+    import json.internal._
     implicit val formatWrapper = Json.format[Wrapper]
 
-    override def update(key: String, value: List[Subscription])(implicit ec: EC): Future[Unit] = {
-      import subscriptionsMongo._
-      val data = Wrapper(key, value)
-      domainFormatImplicit.writes(data) match {
-        case d @ JsObject(_) =>
-          val selector = Json.obj(
-            "utr" -> key)
-          collection.update(
-            selector, data, upsert=true)
-        case _ =>
-          Future.failed[WriteResult](new Exception("cannot write object"))
-      }
-    }.map{_ => ()}
+    override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
+      subscriptionsMongo.insert(Wrapper(key, value)).map(_ => ())
+    }
 
-//    override def get(key: String)(implicit ec: EC): Future[Option[(List[Subscription], Option[BSONObjectID])]] = {
-    override def get(key: String)(implicit ec: EC): Future[Option[List[Subscription]]] = {
+    override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] = {
       subscriptionsMongo.find(
-        "utr" -> key
-      ).map {
-        _.headOption.map { x =>
-//          (x.subscriptions, x._id)
-          x.subscriptions
-        }
-      }
+        "utr" -> utr
+      ).map(_.map(_.subscription))
     }
 
     val subscriptionsMongo = new
@@ -102,7 +85,7 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
           key = Seq(
             "utr" -> IndexType.Ascending
           ),
-          unique = true
+          unique = false
         )
       )
     }

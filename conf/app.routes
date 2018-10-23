@@ -2,6 +2,7 @@
 
 POST        /subscription/:idType/:idNumber/:safeId        uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.submitRegistration(idType, idNumber, safeId)
 GET         /subscription/:idType/:idNumber                uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrieveSubscriptionDetails(idType, idNumber)
+GET         /subscriptions/:idType/:idNumber/year/:year/quarter/:quarter     uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrievePointInTimeSubscriptions(idType: String, idNumber: String, year: Int, quarter: Int)
 GET         /check-enrolment-status/:utr                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
 
 GET         /small-producer/sdil/:sdilRef                  uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)

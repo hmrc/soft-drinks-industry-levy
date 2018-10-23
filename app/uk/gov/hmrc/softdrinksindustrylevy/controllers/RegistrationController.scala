@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time.LocalDate
+
+import cats.data.OptionT
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
+import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
@@ -82,19 +86,35 @@ class RegistrationController(val authConnector: AuthConnector,
     }
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
-    import json.internal._
+  def retrievePointInTimeSubscriptions(
+    idType: String,
+    idNumber: String,
+    year: Int,
+    quarter: Int
+  ): Action[AnyContent] = Action.async { implicit request =>
+    authorised(AuthProviders(GovernmentGateway)) {
+      val period = ReturnPeriod(year, quarter)
 
+      for {
+        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        inScope = subs.filter(x => x.deregDate.fold(true)(y => y.isAfter(period.start) && y.isBefore(period.end)))
+        isSmallProducer = inScope.forall(x => x.activity.isSmallProducer)
+      } yield Ok(Json.toJson(isSmallProducer))
+
+    }
+  }
+
+  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-        case Some(s) => {
-          persistence.subscriptions.get(s.utr).map(_.fold(List.empty[Subscription])(identity)).map { subs =>
+        case Some(s) =>
+          persistence.subscriptions.list(s.utr).map { subs =>
             if(!subs.contains(s)) {
-              persistence.subscriptions.update(s.utr, subs :+ s)
+              persistence.subscriptions.insert(s.utr, s)
             }
           }
           Ok(Json.toJson(s))
-        }
         case None => NotFound
       }
     }
