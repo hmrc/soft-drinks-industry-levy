@@ -37,7 +37,7 @@ class BalanceController(
 
   import BalanceController._
 
-  def balance(sdilRef: String, withAssessment: Boolean = false): Action[AnyContent] =
+  def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, None)
         .map{r =>
