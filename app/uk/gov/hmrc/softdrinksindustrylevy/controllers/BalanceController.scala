@@ -134,10 +134,10 @@ object BalanceController {
         case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
         case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.get,
-          in.items.head.paymentAmount.get,
-          in.items.head.paymentLot.get,
-          in.items.head.paymentLotItem.get).pure[List]
+          in.items.head.paymentReference.getOrElse("Unknown"),
+          in.items.head.paymentAmount.getOrElse(0),
+          in.items.head.paymentLot.getOrElse("Unknown"),
+          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
@@ -164,10 +164,10 @@ object BalanceController {
         case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
         case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.get,
-          in.items.head.paymentAmount.get,
-          in.items.head.paymentLot.get,
-          in.items.head.paymentLotItem.get).pure[List]
+          in.items.head.paymentReference.getOrElse("Unknown"),
+          in.items.head.paymentAmount.getOrElse(0),
+          in.items.head.paymentLot.getOrElse("Unknown"),
+          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
