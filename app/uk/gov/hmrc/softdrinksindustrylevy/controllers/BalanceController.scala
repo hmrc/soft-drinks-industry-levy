@@ -37,24 +37,29 @@ class BalanceController(
 
   import BalanceController._
 
-  def balance(sdilRef: String, withoutAssessment: Boolean = false): Action[AnyContent] =
+  def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, None)
         .map{r =>
-          val lineItems = r.fold(List.empty[FinancialLineItem])(if(withoutAssessment) convertWithoutAssessment else convert)
+          val lineItems = r.fold(List.empty[FinancialLineItem])(if(withAssessment) convert else convertWithoutAssessment)
           Ok(JsNumber(lineItems.balance))
         }
     }
 
-  def balanceHistoryAll(sdilRef: String): Action[AnyContent] =
+  def balanceHistoryAll(sdilRef: String, withAssessment: Boolean): Action[AnyContent] =
     Action.async { implicit request =>
       val r: Future[List[FinancialLineItem]] = for {
         subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map{_.get}
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         responses    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        
-        deduplicatePayments(convert(responses.flatten)).sortBy(_.date.toString)
+          deduplicatePayments(
+            if(withAssessment)
+              convert(responses.flatten)
+            else
+              convertWithoutAssessment(responses.flatten)
+          ).sortBy(_.date.toString)
+
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -105,7 +110,7 @@ object BalanceController {
 
   def dueDate(in: FinancialTransaction): LocalDate = in.items.head.dueDate
 
-  def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] = 
+  def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
     deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convert)})
       .sortBy{_.date.toString}
 
@@ -129,15 +134,19 @@ object BalanceController {
         case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
         case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.get,
-          in.items.head.paymentAmount.get,
-          in.items.head.paymentLot.get,
-          in.items.head.paymentLotItem.get).pure[List]
+          in.items.head.paymentReference.getOrElse("Unknown"),
+          in.items.head.paymentAmount.getOrElse(0),
+          in.items.head.paymentLot.getOrElse("Unknown"),
+          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
     }
   }
+
+  def convertWithoutAssessment(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
+    deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convertWithoutAssessment)})
+      .sortBy{_.date.toString}
 
   def convertWithoutAssessment(in: FinancialTransactionResponse): List[FinancialLineItem] = {
     deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment))
@@ -155,10 +164,10 @@ object BalanceController {
         case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
         case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.get,
-          in.items.head.paymentAmount.get,
-          in.items.head.paymentLot.get,
-          in.items.head.paymentLotItem.get).pure[List]
+          in.items.head.paymentReference.getOrElse("Unknown"),
+          in.items.head.paymentAmount.getOrElse(0),
+          in.items.head.paymentLot.getOrElse("Unknown"),
+          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
