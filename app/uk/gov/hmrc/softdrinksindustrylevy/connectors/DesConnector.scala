@@ -25,16 +25,19 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
+import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, SdilPersistence}
 
 import scala.concurrent.{ExecutionContext, Future}
 import sdil.models._
 import java.net.URLEncoder.encode
 import java.time.LocalDate
 
+import play.api.libs.json.Json
+
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
-                   val runModeConfiguration: Configuration)
+                   val runModeConfiguration: Configuration,
+                   persistence: SdilPersistence)
                   (implicit clock: Clock)
   extends ServicesConfig with OptionHttpReads with DesHelpers {
 
@@ -67,7 +70,18 @@ class DesConnector(val http: HttpClient,
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import json.des.get._
-    http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+    val subscription = http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+
+    subscription.map {
+      case Some(s) =>
+        persistence.subscriptions.list(s.utr).map { subs =>
+          if (!subs.contains(s)) {
+            persistence.subscriptions.insert(s.utr, s)
+          }
+        }
+    }
+
+    subscription
   }
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {

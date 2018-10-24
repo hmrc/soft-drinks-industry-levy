@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.LocalDate
 
-import cats.data.OptionT
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
@@ -86,7 +85,7 @@ class RegistrationController(val authConnector: AuthConnector,
     }
   }
 
-  def retrievePointInTimeSubscriptions(
+  def checkSmallProducerStatus(
     idType: String,
     idNumber: String,
     year: Int,
@@ -94,27 +93,24 @@ class RegistrationController(val authConnector: AuthConnector,
   ): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
-
       for {
         sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
-        inScope = subs.filter(x => x.deregDate.fold(true)(y => y.isAfter(period.start) && y.isBefore(period.end)))
+        inScope = subs.filter(x => x.deregDate.fold(true)(y => y.between(period.start, period.end)))
         isSmallProducer = inScope.forall(x => x.activity.isSmallProducer)
       } yield Ok(Json.toJson(isSmallProducer))
-
     }
+  }
+
+  implicit class BetweenDate(date: LocalDate) {
+    def between(from: LocalDate, to: LocalDate): Boolean =
+      (date.isAfter(from) || date.isEqual(from)) && (date.isBefore(to) || date.isEqual(to))
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
-        case Some(s) =>
-          persistence.subscriptions.list(s.utr).map { subs =>
-            if(!subs.contains(s)) {
-              persistence.subscriptions.insert(s.utr, s)
-            }
-          }
-          Ok(Json.toJson(s))
+        case Some(s) => Ok(Json.toJson(s))
         case None => NotFound
       }
     }

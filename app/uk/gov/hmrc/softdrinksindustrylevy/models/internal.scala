@@ -54,10 +54,27 @@ package object internal {
 
   implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-            InternalActivity(ActivityType.values.map{ at =>
-               (json \ at.toString).asOpt[LitreBands].map{at -> _}
-            }.flatten.toMap, (json \ "isLarge").as[Boolean])
+      // TODO switch on the json rather than the exception
+      try {
+        InternalActivity(ActivityType.values.flatMap { at =>
+          (json \ at.toString).asOpt[LitreBands].map {
+            at -> _
           }
+        }.toMap, (json \ "isLarge").as[Boolean])
+      } catch {
+        case _: JsResultException =>
+          val smallProducer = (json \ "smallProducer").asOpt[Boolean]
+          val largeProducer = (json \ "largeProducer").asOpt[Boolean]
+          val contractPacker = (json \ "contractPacker").asOpt[Boolean]
+          val importer = (json \ "importer").asOpt[Boolean]
+          RetrievedActivity(
+            isProducer = smallProducer.contains(true) || largeProducer.contains(true),
+            isLarge = largeProducer.contains(true),
+            isContractPacker = contractPacker.contains(true),
+            isImporter = importer.contains(true)
+          )
+      }
+    }
 
 
     def writes(activity: Activity): JsValue = JsObject(

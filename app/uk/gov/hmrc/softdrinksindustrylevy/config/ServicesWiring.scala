@@ -22,7 +22,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services._
 trait ServicesWiring {
   self: ConnectorWiring with PlayWiring =>
 
-  lazy val persistence: SdilPersistence = wire[SdilMongoPersistence]  
   lazy val mongoBufferService: MongoBufferService = wire[MongoBufferService]
   lazy val variationSubmissionService: VariationSubmissionService = wire[VariationSubmissionService]
   lazy val returnsVariationSubmissionService: ReturnsVariationSubmissionService = wire[ReturnsVariationSubmissionService]
