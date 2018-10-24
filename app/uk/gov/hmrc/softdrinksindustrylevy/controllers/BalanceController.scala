@@ -18,17 +18,22 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import play.api.libs.json._
 import play.api.mvc._
+
 import scala.concurrent._
-import uk.gov.hmrc.auth.core.{AuthorisedFunctions, AuthConnector}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import sdil.models._
 import sdil.models.des._
 import java.time._
+import scala.util.Random
+
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.implicits._
 import cats.syntax.either._
 import cats.data.OptionT
+import play.api.Logger
+
 
 class BalanceController(
   val authConnector: AuthConnector,
@@ -120,6 +125,17 @@ object BalanceController {
       .reverse
   }
 
+  private def randomNumbers(stringLength: Int, id: String): String = {
+    val n = Seq.fill(stringLength)(Random.nextInt(9)).mkString("")
+    Logger.warn(s"$id not retrieved from get financial data api, replaced with $n")
+    n
+  }
+
+  private def logBigDec(default: BigDecimal, id: String): BigDecimal = {
+    Logger.warn(s"$id not retrieved from get financial data api, replaced with $default")
+    default
+  }
+
   def convert(in: FinancialTransaction): List[FinancialLineItem] = {
 
     (
@@ -134,10 +150,10 @@ object BalanceController {
         case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
         case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.getOrElse("Unknown"),
-          in.items.head.paymentAmount.getOrElse(0),
-          in.items.head.paymentLot.getOrElse("Unknown"),
-          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
+          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
+          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
@@ -164,10 +180,10 @@ object BalanceController {
         case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
         case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
         case (60,100)    => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.getOrElse("Unknown"),
-          in.items.head.paymentAmount.getOrElse(0),
-          in.items.head.paymentLot.getOrElse("Unknown"),
-          in.items.head.paymentLotItem.getOrElse("Unknown")).pure[List]
+          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
+          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
         case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
       case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
