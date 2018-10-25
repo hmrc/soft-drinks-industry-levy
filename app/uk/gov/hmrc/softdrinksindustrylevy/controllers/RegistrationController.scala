@@ -94,17 +94,14 @@ class RegistrationController(val authConnector: AuthConnector,
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
-        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
-        inScope = subs.filter(x => x.deregDate.fold(true)(y => y.between(period.start, period.end)))
-        isSmallProducer = inScope.forall(x => x.activity.isSmallProducer)
-      } yield Ok(Json.toJson(isSmallProducer))
+        sub         <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        subs        <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        byRef       = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
+        isSmallProd = byRef.forall(b =>
+          b.deregDate.fold(b.activity.isSmallProducer)(y => y.isAfter(period.end) && b.activity.isSmallProducer)
+        )
+      } yield Ok(Json.toJson(isSmallProd))
     }
-  }
-
-  implicit class BetweenDate(date: LocalDate) {
-    def between(from: LocalDate, to: LocalDate): Boolean =
-      (date.isAfter(from) || date.isEqual(from)) && (date.isBefore(to) || date.isEqual(to))
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
