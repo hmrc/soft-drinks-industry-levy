@@ -52,10 +52,6 @@ libraryDependencies ++= Seq(
   "uk.gov.hmrc"               %% "simple-reactivemongo"  % "6.1.0"
 )
 
-// Need to find out if the build-pipeline needs retrieveManaged.
-// If not we should disable it
-retrieveManaged := true
-
 resolvers ++= Seq(
   Resolver.bintrayRepo("hmrc", "releases"),
   Resolver.jcenterRepo
@@ -110,4 +106,4 @@ initialCommands in console := "import cats.implicits._"
 
 majorVersion := 0
 
-
+uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
