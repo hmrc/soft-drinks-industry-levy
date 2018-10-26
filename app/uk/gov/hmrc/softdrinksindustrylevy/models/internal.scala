@@ -54,7 +54,6 @@ package object internal {
 
   implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-      // TODO switch on the json rather than the exception
       try {
         InternalActivity(ActivityType.values.flatMap { at =>
           (json \ at.toString).asOpt[LitreBands].map {
@@ -75,7 +74,6 @@ package object internal {
           )
       }
     }
-
 
     def writes(activity: Activity): JsValue = JsObject(
       activity match {
