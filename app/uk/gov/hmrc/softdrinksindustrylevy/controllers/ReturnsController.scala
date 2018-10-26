@@ -161,11 +161,6 @@ class ReturnsController(
 
   def variable(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-//      val since = LocalDate.now.minusYears(4)
-//      persistence.returns.list(utr).map(x => x.filterKeys(p => p.year > since.getYear || (p.year == since.getYear && p.quarter >= (since.getMonthValue - 1) / 3))).map {posted =>
-//        Ok(Json.toJson(posted.keys.toList))
-//      }
-
       persistence.returns.listVariable(utr).map { posted =>
         Ok(Json.toJson(posted.keys.toList))
       }
