@@ -53,3 +53,9 @@ class SdilReturnEvent(path: String, detailJson: JsValue)(implicit hc: HeaderCarr
       path = path,
       detailJson = detailJson)
 
+class BalanceQueryEvent(path: String, detail: JsValue)(implicit headerCarrier: HeaderCarrier)
+  extends SDILBaseEvent(
+    auditType = "SDILBalanceQuery",
+    transactionName = "Soft Drinks Industry Levy balance requested",
+    path = path,
+    detailJson = detail)

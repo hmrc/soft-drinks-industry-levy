@@ -19,7 +19,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 import com.typesafe.config._
 import com.typesafe.config.impl.Parseable
 import scala.collection.JavaConverters._
-import scala.collection.JavaConverters._
 import java.util.Base64
 
 object EncodedConfig {

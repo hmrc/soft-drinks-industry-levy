@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.Clock
 
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.Mode.Mode
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -32,12 +32,15 @@ import sdil.models._
 import java.net.URLEncoder.encode
 import java.time.LocalDate
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
+import sdil.models.des.FinancialTransactionResponse
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
                    val runModeConfiguration: Configuration,
-                   persistence: SdilPersistence)
+                   persistence: SdilPersistence,
+                   auditing: AuditConnector)
                   (implicit clock: Clock)
   extends ServicesConfig with OptionHttpReads with DesHelpers {
 
@@ -124,7 +127,24 @@ class DesConnector(val http: HttpClient,
     val uri = s"$desURL/enterprise/financial-data/ZSDL/${sdilRef}/ZSDL?" ++
       args.map{encodePair}.mkString("&")
 
-    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, ec)
+
+    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, ec).flatMap{x =>
+      x.map { y =>
+        auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
+      }
+      Future(x)
+    }
   }
+
+  private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(implicit hc: HeaderCarrier) = {
+    implicit val callbackFormat: OWrites[FinancialTransactionResponse] = Json.writes[FinancialTransactionResponse]
+    val detailJson = Json.obj(
+      "subscriptionId" -> subscriptionId,
+      "url" -> path,
+      "response" -> body
+    )
+    new BalanceQueryEvent(path, detailJson)
+  }
+
 
 }

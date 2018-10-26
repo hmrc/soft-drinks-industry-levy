@@ -18,17 +18,22 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import play.api.libs.json._
 import play.api.mvc._
+
 import scala.concurrent._
-import uk.gov.hmrc.auth.core.{AuthorisedFunctions, AuthConnector}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import sdil.models._
 import sdil.models.des._
 import java.time._
+import scala.util.Random
+
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.implicits._
 import cats.syntax.either._
 import cats.data.OptionT
+import play.api.Logger
+
 
 class BalanceController(
   val authConnector: AuthConnector,
@@ -37,25 +42,29 @@ class BalanceController(
 
   import BalanceController._
 
-  def balance(sdilRef: String): Action[AnyContent] =
+  def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, None)
         .map{r =>
-          val lineItems = r.fold(List.empty[FinancialLineItem])(convert)
+          val lineItems = r.fold(List.empty[FinancialLineItem])(if(withAssessment) convert else convertWithoutAssessment)
           Ok(JsNumber(lineItems.balance))
         }
     }
 
-  def balanceHistoryAll(sdilRef: String): Action[AnyContent] =
+  def balanceHistoryAll(sdilRef: String, withAssessment: Boolean): Action[AnyContent] =
     Action.async { implicit request =>
-
       val r: Future[List[FinancialLineItem]] = for {
         subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map{_.get}
         years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         responses    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
       } yield {
-        
-        deduplicatePayments(convert(responses.flatten)).sortBy(_.date.toString)
+          deduplicatePayments(
+            if(withAssessment)
+              convert(responses.flatten)
+            else
+              convertWithoutAssessment(responses.flatten)
+          ).sortBy(_.date.toString)
+
       }
 
       r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
@@ -78,7 +87,35 @@ object BalanceController {
     other ++ payments.distinct
   }
 
-  def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] = 
+  def parseIntOpt(in: String): Option[Int] =
+    scala.util.Try(in.toInt).toOption
+
+  def interest(
+    f: (LocalDate, BigDecimal) => FinancialLineItem,
+    amount: Option[BigDecimal]
+  ): List[FinancialLineItem] = amount.filter{_ != 0}.map { x =>
+    f(LocalDate.now, -x)
+  }.toList
+
+  def deep(base: FinancialLineItem, in: FinancialTransaction): List[FinancialLineItem] =
+    base :: {
+      in.items collect {
+        case i: SubItem if i.paymentReference.isDefined =>
+          PaymentOnAccount(
+            i.clearingDate.get,
+            i.paymentReference.get,
+            i.paymentAmount.get,
+            i.paymentLot.get,
+            i.paymentLotItem.get
+          )
+      }
+    }
+
+  def amount(in: FinancialTransaction): BigDecimal = -in.items.map{_.amount}.sum
+
+  def dueDate(in: FinancialTransaction): LocalDate = in.items.head.dueDate
+
+  def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
     deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convert)})
       .sortBy{_.date.toString}
 
@@ -88,54 +125,68 @@ object BalanceController {
       .reverse
   }
 
+  private def randomNumbers(stringLength: Int, id: String): String = {
+    val n = Seq.fill(stringLength)(Random.nextInt(9)).mkString("")
+    Logger.warn(s"$id not retrieved from get financial data api, replaced with $n")
+    n
+  }
+
+  private def logBigDec(default: BigDecimal, id: String): BigDecimal = {
+    Logger.warn(s"$id not retrieved from get financial data api, replaced with $default")
+    default
+  }
+
   def convert(in: FinancialTransaction): List[FinancialLineItem] = {
-
-    def deep(base: FinancialLineItem): List[FinancialLineItem] =
-      base :: {
-        in.items collect {
-          case i: SubItem if i.paymentReference.isDefined =>
-            PaymentOnAccount(
-              i.clearingDate.get,
-              i.paymentReference.get,
-              i.paymentAmount.get,
-              i.paymentLot.get,
-              i.paymentLotItem.get
-            )
-        }
-      }
-
-    def parseIntOpt(in: String): Option[Int] =
-      scala.util.Try(in.toInt).toOption
-
-    def interest(
-      f: (LocalDate, BigDecimal) => FinancialLineItem,
-      amount: Option[BigDecimal]
-    ): List[FinancialLineItem] = amount.filter{_ != 0}.map { x =>
-      f(LocalDate.now, -x)
-    }.toList
-
-    val amount = -in.items.map{_.amount}.sum
-    def dueDate = in.items.head.dueDate
 
     (
       in.mainTransaction >>= parseIntOpt,
       in.subTransaction >>= parseIntOpt
     ) match {
       case (Some(main), Some(sub)) => (main,sub) match {
-        case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount)) ++ interest(ReturnChargeInterest, in.accruedInterest)
-        case (4815,2215) => deep(ReturnChargeInterest(dueDate, amount))
-        case (4820,1540) => deep(CentralAssessment(dueDate, amount)) ++ interest(CentralAsstInterest, in.accruedInterest)
-        case (4825,2215) => deep(CentralAsstInterest(dueDate, amount))
-        case (4830,1540) => deep(OfficerAssessment(dueDate, amount)) ++ interest(OfficerAsstInterest, in.accruedInterest)
-        case (4835,2215) => deep(OfficerAsstInterest(dueDate, amount))
-        case (60,100)    => PaymentOnAccount(dueDate,
-                                             in.items.head.paymentReference.get,
-                                             in.items.head.paymentAmount.get,
-                                             in.items.head.paymentLot.get,
-                                             in.items.head.paymentLotItem.get).pure[List]
-        case _           => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]
+        case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
+        case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
+        case (4820,1540) => deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest, in.accruedInterest)
+        case (4825,2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
+        case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
+        case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
+        case (60,100)    => PaymentOnAccount(dueDate(in),
+          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
+          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
+        case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       }
-      case _             => Unknown(dueDate, in.mainType.getOrElse("Unknown"), amount).pure[List]
+      case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+    }
+  }
+
+  def convertWithoutAssessment(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
+    deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convertWithoutAssessment)})
+      .sortBy{_.date.toString}
+
+  def convertWithoutAssessment(in: FinancialTransactionResponse): List[FinancialLineItem] = {
+    deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment))
+      .sortBy{_.date.toString}
+      .reverse
+  }
+
+  def convertWithoutAssessment(in: FinancialTransaction): List[FinancialLineItem] = {
+
+    (
+      in.mainTransaction >>= parseIntOpt,
+      in.subTransaction >>= parseIntOpt
+    ) match {
+      case (Some(main), Some(sub)) => (main,sub) match {
+        case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
+        case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
+        case (60,100)    => PaymentOnAccount(dueDate(in),
+          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
+          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
+        case _           => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+      }
+      case _             => Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
     }
   }
 

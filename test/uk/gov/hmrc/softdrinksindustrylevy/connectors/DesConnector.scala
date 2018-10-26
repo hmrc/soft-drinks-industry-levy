@@ -28,6 +28,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
 import sdil.models._
 
+import uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsControllerSpec
+
 class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
   import json.internal._
@@ -66,7 +68,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration) {
+  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration, testPersistence, auditConnector) {
     override val desURL: String = mockServerUrl
   }
 
