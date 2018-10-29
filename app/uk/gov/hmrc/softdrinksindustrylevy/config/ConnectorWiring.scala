@@ -25,6 +25,7 @@ import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
+import uk.gov.hmrc.softdrinksindustrylevy.services.{SdilMongoPersistence, SdilPersistence}
 
 trait ConnectorWiring {
   self: PlayWiring =>
@@ -32,6 +33,7 @@ trait ConnectorWiring {
   def httpClient: HttpClient
   def wsClient: WSClient
 
+  lazy val persistence: SdilPersistence = wire[SdilMongoPersistence]
   lazy val auditConnector: AuditConnector = wire[DefaultAuditConnector]
   lazy val authConnector: AuthConnector = wire[DefaultAuthConnector]
   lazy val desConnector: DesConnector = wire[DesConnector]

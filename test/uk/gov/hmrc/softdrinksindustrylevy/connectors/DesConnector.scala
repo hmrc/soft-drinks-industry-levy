@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.Clock
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
@@ -26,7 +24,6 @@ import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
-import sdil.models._
 
 class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
@@ -66,7 +63,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration, auditConnector) {
+  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration, testPersistence, auditConnector) {
     override val desURL: String = mockServerUrl
   }
 

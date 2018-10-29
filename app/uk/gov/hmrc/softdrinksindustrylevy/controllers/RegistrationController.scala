@@ -16,10 +16,13 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time.LocalDate
+
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import reactivemongo.api.commands.LastError
+import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
@@ -40,7 +43,8 @@ class RegistrationController(val authConnector: AuthConnector,
                              desConnector: DesConnector,
                              buffer: MongoBufferService,
                              emailConnector: EmailConnector,
-                             auditing: AuditConnector)
+                             auditing: AuditConnector,
+                             persistence: SdilPersistence)
   extends BaseController with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
@@ -81,9 +85,26 @@ class RegistrationController(val authConnector: AuthConnector,
     }
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
-    import json.internal._
+  def checkSmallProducerStatus(
+    idType: String,
+    idNumber: String,
+    year: Int,
+    quarter: Int
+  ): Action[AnyContent] = Action.async { implicit request =>
+    authorised(AuthProviders(GovernmentGateway)) {
+      val period = ReturnPeriod(year, quarter)
+      for {
+        sub         <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        subs        <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        byRef       = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
+        isSmallProd = byRef.forall(b =>
+          b.deregDate.fold(b.activity.isSmallProducer)(y => y.isAfter(period.end) && b.activity.isSmallProducer)
+        )
+      } yield Ok(Json.toJson(isSmallProd))
+    }
+  }
 
+  def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
         case Some(s) => Ok(Json.toJson(s))

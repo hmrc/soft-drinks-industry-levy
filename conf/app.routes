@@ -1,25 +1,26 @@
 # microservice specific routes
 
-POST        /subscription/:idType/:idNumber/:safeId        uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.submitRegistration(idType, idNumber, safeId)
-GET         /subscription/:idType/:idNumber                uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrieveSubscriptionDetails(idType, idNumber)
-GET         /check-enrolment-status/:utr                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
+POST        /subscription/:idType/:idNumber/:safeId                          uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.submitRegistration(idType, idNumber, safeId)
+GET         /subscription/:idType/:idNumber                                  uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrieveSubscriptionDetails(idType, idNumber)
+GET         /subscriptions/:idType/:idNumber/year/:year/quarter/:quarter     uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkSmallProducerStatus(idType: String, idNumber: String, year: Int, quarter: Int)
+GET         /check-enrolment-status/:utr                                     uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
 
-GET         /small-producer/sdil/:sdilRef                  uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)
+GET         /small-producer/sdil/:sdilRef                                    uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)
 
-GET         /rosm-registration/lookup/:utr                 uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
+GET         /rosm-registration/lookup/:utr                                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
 
 # the readme says this should be a GET, but we're receiving a POST...
-POST        /tax-enrolment-callback/                       uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
+POST        /tax-enrolment-callback/                                         uk.gov.hmrc.softdrinksindustrylevy.controllers.TaxEnrolmentCallbackController.callback(subscriptionId)
 
-POST        /submit-variations/sdil/:sdilNumber            uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations(sdilNumber)
-POST        /returns/variation/sdil/:sdilNumber            uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.returnsVariation(sdilNumber)
+POST        /submit-variations/sdil/:sdilNumber                              uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.generateVariations(sdilNumber)
+POST        /returns/variation/sdil/:sdilNumber                              uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.returnsVariation(sdilNumber)
 
-GET         /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.get(utr: String, year: Int, quarter: Int)
-POST        /returns/:utr/year/:year/quarter/:quarter      uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.post(utr: String, year: Int, quarter: Int)
-GET         /returns/:utr/pending                          uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.pending(utr: String)
-GET         /returns/:utr/variable                         uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.variable(utr: String)
-POST        /returns/vary/:sdilRef                         uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.varyReturn(sdilRef: String)
+GET         /returns/:utr/year/:year/quarter/:quarter                        uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.get(utr: String, year: Int, quarter: Int)
+POST        /returns/:utr/year/:year/quarter/:quarter                        uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.post(utr: String, year: Int, quarter: Int)
+GET         /returns/:utr/pending                                            uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.pending(utr: String)
+GET         /returns/:utr/variable                                           uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.variable(utr: String)
+POST        /returns/vary/:sdilRef                                           uk.gov.hmrc.softdrinksindustrylevy.controllers.VariationsController.varyReturn(sdilRef: String)
 
-GET         /balance/:sdil/history/:year                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistory(sdil: String, year: Int)
-GET         /balance/:sdil/history/all/:withAssessment                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistoryAll(sdil: String, withAssessment: Boolean)
-GET         /balance/:sdil/:withAssessment              uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String, withAssessment: Boolean)
+GET         /balance/:sdil/history/:year                                     uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistory(sdil: String, year: Int)
+GET         /balance/:sdil/history/all/:withAssessment                       uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistoryAll(sdil: String, withAssessment: Boolean)
+GET         /balance/:sdil/:withAssessment                                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String, withAssessment: Boolean)

@@ -45,9 +45,51 @@ trait SdilPersistence {
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
+
+  protected trait SubsDAO[K, V] {
+    def insert(key: K, value: V)(implicit ec: EC): Future[Unit]
+    def list(key: K)(implicit ec: EC): Future[List[V]]
+  }
+
+  def subscriptions: SubsDAO[String, Subscription]
 }
 
 class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
+
+  val subscriptions = new SubsDAO[String, Subscription] {
+
+    protected case class Wrapper(
+      utr: String,
+      subscription: Subscription,
+      retrievalTime: LocalDateTime = LocalDateTime.now(),
+      _id: Option[BSONObjectID] = None
+    )
+
+    import json.internal._
+    implicit val formatWrapper = Json.format[Wrapper]
+
+    override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
+      subscriptionsMongo.insert(Wrapper(key, value)).map(_ => ())
+    }
+
+    override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] = {
+      subscriptionsMongo.find(
+        "utr" -> utr
+      ).map(_.map(_.subscription))
+    }
+
+    val subscriptionsMongo = new
+      ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
+      override def indexes: Seq[Index] = Seq(
+        Index(
+          key = Seq(
+            "utr" -> IndexType.Ascending
+          ),
+          unique = false
+        )
+      )
+    }
+  }
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 

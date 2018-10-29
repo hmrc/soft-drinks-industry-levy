@@ -137,33 +137,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
   }
 
   lazy val desConnector: DesConnector = mock[DesConnector]
-  implicit val junkPersistence: SdilPersistence = new SdilPersistence {
-
-    val returns: DAO[String, ReturnPeriod, SdilReturn] = new DAO[String, ReturnPeriod, SdilReturn] {
-      private var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
-      private var getData: Map[(String, ReturnPeriod), (SdilReturn, Option[BSONObjectID])] = Map.empty
-      def update(user: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
-        data = data + { (user, period) -> value }
-        Future.successful(())
-      }
-
-      def get(
-         user: String,
-         key: ReturnPeriod
-       )(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
-        Future.successful(getData.get((user, key)))
-
-      def list(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
-      Future.successful{
-        data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
-      }
-      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
-      Future.successful{
-        data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
-      }
-    }
-  }
-
+  implicit val junkPersistence: SdilPersistence = testPersistence
   implicit lazy val config = SdilConfig(None)
   lazy val testController = wire[ReturnsController]
 }
