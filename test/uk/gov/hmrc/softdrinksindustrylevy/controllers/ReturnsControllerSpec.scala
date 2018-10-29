@@ -37,7 +37,6 @@ import sdil.models._
 import scala.concurrent.{ExecutionContext => EC}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 
-import scala.collection.mutable
 import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
