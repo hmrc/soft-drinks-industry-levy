@@ -71,16 +71,16 @@ class DesConnector(val http: HttpClient,
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import json.des.get._
-    val subscription = http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
-    subscription.map {
-      case Some(s) =>
-        persistence.subscriptions.list(s.utr).map { subs =>
-          if (!subs.contains(s)) {
-            persistence.subscriptions.insert(s.utr, s)
-          }
-        }
-    }
-    subscription
+
+    for {
+      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+      subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+      _ <- sub.fold(Future(())) { x =>
+        if (!subs.contains(x)) {
+          persistence.subscriptions.insert(x.utr, x)
+        } else Future(())
+      }
+    } yield sub
   }
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
