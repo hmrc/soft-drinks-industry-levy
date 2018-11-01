@@ -17,8 +17,11 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.net.URLEncoder.encode
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, LocalDateTime}
 
+import cats.{Functor, Monad}
+import cats.implicits._
+import org.joda.time.Interval
 import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Json, OWrites}
@@ -82,6 +85,23 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
+
+  def memoized[F[_] : Monad,A,B](
+    f: A => F[B],
+    cacheRead: A => F[Option[(B,LocalDateTime)]],
+    cacheWrite: (A, Option[B]) => F[Unit],
+    ttl: LocalDateTime = LocalDateTime.now().plusHours(24)
+  ): A => F[B] = { args =>
+
+    cacheRead(args).flatMap {
+      case Some((v,d)) if d.isAfter(ttl) => v.pure[F]
+      case None =>
+        f(args).flatMap { z =>
+          cacheWrite(args, Some(z)).map(_=> z)
+        }
+    }
+  }
+
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
