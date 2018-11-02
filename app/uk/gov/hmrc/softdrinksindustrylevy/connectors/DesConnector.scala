@@ -89,6 +89,8 @@ class DesConnector(val http: HttpClient,
     } yield sub
   }
 
+  // https://nbronson.github.io/scala-stm/quick_start.html
+  // I think the read and write need to be inside the same atomic block
   private def getSub(idType: String, idNumber: String)
     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
     import scala.concurrent.stm.TMap
@@ -97,14 +99,23 @@ class DesConnector(val http: HttpClient,
     import json.des.get._
 
     val cache = TMap[String, (Option[Subscription], LocalDateTime)]()
-    def read(key: String) = Future(atomic {implicit t => cache.get(key)})
-    def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] =
+    def fetch(key: String) =
+      http.GET[Option[Subscription]](
+        s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
+      )(implicitly, addHeaders, ec)
+    def read(key: String) = {
+      println(s"####################### read with key $key")
+      Future(atomic {implicit t => cache.get(key)})
+    }
+    def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] = {
+      println(s"###################### write with key $key and val $value")
       Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
+    }
 
     val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
 
     memoized[Future, String, Option[Subscription]](
-      http.GET[Option[Subscription]],
+      fetch,
       read,
       write
     ).apply(url)
@@ -121,13 +132,21 @@ class DesConnector(val http: HttpClient,
     ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
   ): A => F[B] = { args =>
 
+//    val a = cacheRead(args)
+//    a
+
     cacheRead(args).flatMap {
-      case Some((v,d)) if d.isAfter(ttl) => v.pure[F]
-      case None =>
+      case Some((v,d)) if d.isBefore(ttl) => {
+        println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX it's in the cache")
+        v.pure[F]
+      }
+      case None => {
+        println("YYYYYYYYYYYYYYYYYYYYYYYYYYYY not in the cache")
         f(args).flatMap { z =>
-//          cacheWrite(args, Some(z)).map(_=> z)
-          cacheWrite(args, (z, LocalDateTime.now())).map(_=> z)
+          //          cacheWrite(args, Some(z)).map(_=> z)
+          cacheWrite(args, (z, LocalDateTime.now())).map(_ => z)
         }
+      }
     }
   }
 
