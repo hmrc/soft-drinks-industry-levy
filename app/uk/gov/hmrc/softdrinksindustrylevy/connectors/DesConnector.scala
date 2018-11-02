@@ -35,6 +35,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, SdilPersistence}
 
+import scala.language.higherKinds
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class DesConnector(val http: HttpClient,
@@ -76,7 +78,8 @@ class DesConnector(val http: HttpClient,
     import json.des.get._
 
     for {
-      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+//      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+      sub  <- getSub(idType, idNumber)
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
@@ -86,18 +89,44 @@ class DesConnector(val http: HttpClient,
     } yield sub
   }
 
+  private def getSub(idType: String, idNumber: String)
+    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
+    import scala.concurrent.stm.TMap
+    import scala.concurrent.stm._
+
+    import json.des.get._
+
+    val cache = TMap[String, (Option[Subscription], LocalDateTime)]()
+    def read(key: String) = Future(atomic {implicit t => cache.get(key)})
+    def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] =
+      Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
+
+    val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
+
+    memoized[Future, String, Option[Subscription]](
+      http.GET[Option[Subscription]],
+      read,
+      write
+    ).apply(url)
+  }
+
+
   def memoized[F[_] : Monad,A,B](
     f: A => F[B],
     cacheRead: A => F[Option[(B,LocalDateTime)]],
-    cacheWrite: (A, Option[B]) => F[Unit],
-    ttl: LocalDateTime = LocalDateTime.now().plusHours(24)
+//    cacheRead: A => F[(B,LocalDateTime)],
+    cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
+//    cacheWrite: (A, Option[B]) => F[Unit],
+//    cacheWrite: (A, Option[(B, LocalDateTime)]) => F[Unit],
+    ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
   ): A => F[B] = { args =>
 
     cacheRead(args).flatMap {
       case Some((v,d)) if d.isAfter(ttl) => v.pure[F]
       case None =>
         f(args).flatMap { z =>
-          cacheWrite(args, Some(z)).map(_=> z)
+//          cacheWrite(args, Some(z)).map(_=> z)
+          cacheWrite(args, (z, LocalDateTime.now())).map(_=> z)
         }
     }
   }
