@@ -35,8 +35,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, SdilPersistence}
 
+import scala.concurrent.stm.TMap
+import scala.concurrent.stm._
 import scala.language.higherKinds
-
 import scala.concurrent.{ExecutionContext, Future}
 
 class DesConnector(val http: HttpClient,
@@ -49,6 +50,7 @@ class DesConnector(val http: HttpClient,
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
+  val cache = TMap[String, (Option[Subscription], LocalDateTime)]()
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -75,10 +77,7 @@ class DesConnector(val http: HttpClient,
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-    import json.des.get._
-
     for {
-//      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
       sub  <- getSub(idType, idNumber)
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
@@ -89,30 +88,23 @@ class DesConnector(val http: HttpClient,
     } yield sub
   }
 
-  // https://nbronson.github.io/scala-stm/quick_start.html
-  // I think the read and write need to be inside the same atomic block
   private def getSub(idType: String, idNumber: String)
     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-    import scala.concurrent.stm.TMap
-    import scala.concurrent.stm._
 
     import json.des.get._
 
-    val cache = TMap[String, (Option[Subscription], LocalDateTime)]()
-    def fetch(key: String) =
-      http.GET[Option[Subscription]](
-        s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
-      )(implicitly, addHeaders, ec)
-    def read(key: String) = {
-      println(s"####################### read with key $key")
+    val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
+
+    def fetch(key: String): Future[Option[Subscription]] =
+      http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
+
+    def read(key: String): Future[Option[(Option[Subscription], LocalDateTime)]] = {
       Future(atomic {implicit t => cache.get(key)})
     }
+
     def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] = {
-      println(s"###################### write with key $key and val $value")
       Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
     }
-
-    val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
 
     memoized[Future, String, Option[Subscription]](
       fetch,
@@ -125,25 +117,15 @@ class DesConnector(val http: HttpClient,
   def memoized[F[_] : Monad,A,B](
     f: A => F[B],
     cacheRead: A => F[Option[(B,LocalDateTime)]],
-//    cacheRead: A => F[(B,LocalDateTime)],
     cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
-//    cacheWrite: (A, Option[B]) => F[Unit],
-//    cacheWrite: (A, Option[(B, LocalDateTime)]) => F[Unit],
     ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
   ): A => F[B] = { args =>
-
-//    val a = cacheRead(args)
-//    a
-
     cacheRead(args).flatMap {
       case Some((v,d)) if d.isBefore(ttl) => {
-        println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX it's in the cache")
         v.pure[F]
       }
       case None => {
-        println("YYYYYYYYYYYYYYYYYYYYYYYYYYYY not in the cache")
         f(args).flatMap { z =>
-          //          cacheWrite(args, Some(z)).map(_=> z)
           cacheWrite(args, (z, LocalDateTime.now())).map(_ => z)
         }
       }
