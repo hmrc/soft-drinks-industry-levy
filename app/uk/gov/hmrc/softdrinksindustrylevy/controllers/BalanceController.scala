@@ -149,7 +149,7 @@ object BalanceController {
         case (4825,2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
         case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
         case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
-        case (60,100)    => PaymentOnAccount(dueDate(in),
+        case (60,100) if in.contractAccountCategory == "32".some => PaymentOnAccount(dueDate(in),
           in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
           in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
           in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
@@ -179,7 +179,7 @@ object BalanceController {
       case (Some(main), Some(sub)) => (main,sub) match {
         case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
         case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
-        case (60,100)    => PaymentOnAccount(dueDate(in),
+        case (60,100) if in.contractAccountCategory == "32".some => PaymentOnAccount(dueDate(in),
           in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
           in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
           in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
