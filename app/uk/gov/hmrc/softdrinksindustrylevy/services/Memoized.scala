@@ -37,7 +37,7 @@ trait Memoized {
     f: A => F[B],
     cacheRead: A => F[Option[(B,LocalDateTime)]],
     cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
-    ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
+    ttl: LocalDateTime
   ): A => F[B] = { args =>
     cacheRead(args).flatMap {
       case Some((v,d)) if d.isBefore(ttl) => {
@@ -51,14 +51,15 @@ trait Memoized {
     }
   }
 
-  protected trait Cache[F[_],A,B] { // F = Future B = Option[Subscription] A = String
-    def fetch(key: A): F[B]
-    def read(key: A): F[Option[(B,LocalDateTime)]] // Future[Option[(Option[Subscription], LocalDateTime)]]
-    def write(key: A, value: (B,LocalDateTime)): F[Unit]
+  protected trait Cache[F[_],A,B] {
+    def fetch(key: A)(implicit hc: HeaderCarrier, ec: ExecutionContext): F[B]
+    def read(key: A)(implicit ec: ExecutionContext): F[Option[(B,LocalDateTime)]]
+    def write(key: A, value: (B,LocalDateTime))(implicit ec: ExecutionContext): F[Unit]
     def ttl: LocalDateTime
   }
 
-//  def subscriptionsCache: Cache[Future, String, Option[Subscription]]
+  def subscriptionsCache: Cache[Future, String, Option[Subscription]]
+
 }
 
 class MemoizedSubscriptions(
@@ -70,50 +71,39 @@ class MemoizedSubscriptions(
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
   val http: HttpClient = httpClient
 
-  def getSubscription(url: String)
-    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
+  val subscriptionsCache = new Cache[Future, String, Option[Subscription]] {
 
     import json.des.get._
 
-    val subscriptionsCache = new Cache[Future, String, Option[Subscription]] {
+    override def fetch(key: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] =
+      http.GET[Option[Subscription]](key)(implicitly, addHeaders, ec)
 
-      override def fetch(key: String): Future[Option[Subscription]] =
-        http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
-
-      override def read(key: String): Future[Option[(Option[Subscription], LocalDateTime)]] = {
-        println(s"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ read $key")
-        Future(atomic {implicit t => cache.get(key)})
-      }
-
-      override def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] = {
-        println(s"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP write $key")
-        Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
-      }
-
-//      override def fetch(key: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] =
-//        http.GET[Option[Subscription]](key)(implicitly, addHeaders, ec)
-//
-//      override def read(key: String)(implicit ec: ExecutionContext) =
-//        Future(atomic {implicit t => cache.get(key)})
-//
-//      override def write(key: String, value: (Option[Subscription], LocalDateTime))(implicit ec: ExecutionContext): Future[Unit] =
-//        Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
-
-      override def ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
+    override def read(key: String)(implicit ec: ExecutionContext): Future[Option[(Option[Subscription], LocalDateTime)]] = {
+      println(s"################################### read $key")
+      Future(atomic {implicit t => cache.get(key)})
     }
 
+    override def write(key: String, value: (Option[Subscription], LocalDateTime))(implicit ec: ExecutionContext): Future[Unit] = {
+      println(s"################################### write $key")
+      Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
+    }
 
-    //    import json.des.get._
+    override def ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
+  }
 
-//    implicit val reads = json.des.get.
+
+  def getSubscription(url: String)
+    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
 
     memoized[Future, String, Option[Subscription]](
       subscriptionsCache.fetch,
       subscriptionsCache.read,
-      subscriptionsCache.write
+      subscriptionsCache.write,
+      subscriptionsCache.ttl
     ).apply(url)
   }
 
+  // TODO check if this still works e.g. make the stub return a 404 for something
 //  implicit def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
 //    def read(method: String, url: String, response: HttpResponse): Option[P] = response.status match {
 //      case 204 | 404 | 503 => None

@@ -17,10 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.net.URLEncoder.encode
-import java.time.{Clock, LocalDate, LocalDateTime}
+import java.time.{Clock, LocalDate}
 
-import cats.Monad
-import cats.implicits._
 import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Json, OWrites}
@@ -34,9 +32,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, MemoizedSubscriptions, SdilPersistence}
 
-import scala.concurrent.stm.TMap
-import scala.concurrent.stm._
-import scala.language.higherKinds
 import scala.concurrent.{ExecutionContext, Future}
 
 class DesConnector(val http: HttpClient,
@@ -51,7 +46,6 @@ class DesConnector(val http: HttpClient,
   val serviceURL: String = "soft-drinks"
   val memoizedSubscriptions = new MemoizedSubscriptions(http, mode, runModeConfiguration)
 
-//  val cache = TMap[String, (Option[Subscription], LocalDateTime)]()
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -78,10 +72,9 @@ class DesConnector(val http: HttpClient,
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-//    val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
+    import json.des.get._
     for {
-//      sub  <- getSub(idType, idNumber)
-//      sub <- http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
+//      sub <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
       sub <- memoizedSubscriptions.getSubscription(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
@@ -91,51 +84,6 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
-
-//  private def getSub(idType: String, idNumber: String)
-//    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-//
-//    import json.des.get._
-//
-//    val url = s"$desURL/$serviceURL/subscription/details/$idType/$idNumber"
-//
-//    def fetch(key: String): Future[Option[Subscription]] =
-//      http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
-//
-//    def read(key: String): Future[Option[(Option[Subscription], LocalDateTime)]] = {
-//      Future(atomic {implicit t => cache.get(key)})
-//    }
-//
-//    def write(key: String, value: (Option[Subscription], LocalDateTime)):Future[Unit] = {
-//      Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
-//    }
-//
-//    memoized[Future, String, Option[Subscription]](
-//      fetch,
-//      read,
-//      write
-//    ).apply(url)
-//  }
-//
-//
-//  def memoized[F[_] : Monad,A,B](
-//    f: A => F[B],
-//    cacheRead: A => F[Option[(B,LocalDateTime)]],
-//    cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
-//    ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
-//  ): A => F[B] = { args =>
-//    cacheRead(args).flatMap {
-//      case Some((v,d)) if d.isBefore(ttl) => {
-//        v.pure[F]
-//      }
-//      case None => {
-//        f(args).flatMap { z =>
-//          cacheWrite(args, (z, LocalDateTime.now())).map(_ => z)
-//        }
-//      }
-//    }
-//  }
-
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
