@@ -97,7 +97,7 @@ class RegistrationController(val authConnector: AuthConnector,
         sub         <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
         subs        <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
         byRef       = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
-        isSmallProd = byRef.forall(b =>
+        isSmallProd = byRef.nonEmpty && byRef.forall(b =>
           b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
             y.isAfter(period.end) && b.activity.isSmallProducer)
         )
