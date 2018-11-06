@@ -44,7 +44,7 @@ class DesConnector(val http: HttpClient,
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
-  val memoizedSubscriptions = new MemoizedSubscriptions(http, mode, runModeConfiguration)
+  val memoizedSubscriptions = new MemoizedSubscriptions
 
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
@@ -72,10 +72,14 @@ class DesConnector(val http: HttpClient,
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-    import json.des.get._
+
+    def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
+      import json.des.get._
+      http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
+    }
+
     for {
-//      sub <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
-      sub <- memoizedSubscriptions.getSubscription(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
+      sub <- memoizedSubscriptions.getSubscription(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
@@ -84,6 +88,8 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
+
+
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
