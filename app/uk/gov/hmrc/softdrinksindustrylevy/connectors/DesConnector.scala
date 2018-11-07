@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, SdilPersistence}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, MemoizedSubscriptions, SdilPersistence}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -44,6 +44,8 @@ class DesConnector(val http: HttpClient,
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
+  val memoizedSubscriptions = new MemoizedSubscriptions
+
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -70,10 +72,14 @@ class DesConnector(val http: HttpClient,
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-    import json.des.get._
+
+    def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
+      import json.des.get._
+      http.GET[Option[Subscription]](url)(implicitly, addHeaders, ec)
+    }
 
     for {
-      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+      sub <- memoizedSubscriptions.getSubscription(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
@@ -82,6 +88,8 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
+
+
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
