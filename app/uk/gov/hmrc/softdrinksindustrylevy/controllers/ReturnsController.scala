@@ -45,19 +45,6 @@ class ReturnsController(
 )(implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
-//  def validateSmallProducer(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
-//    if (sdilRef.matches("X[A-Z]SDIL000[0-9]{6}")) {
-//      desConnector.retrieveSubscriptionDetails("sdil", sdilRef) map {
-//        case Some(subscription) if subscription.isDeregistered => NotFound(Json.obj("errorCode" -> "DEREGISTERED"))
-//        case Some(subscription) if subscription.activity.isSmallProducer => Ok
-//        case Some(subscription) => NotFound(Json.obj("errorCode" -> "NOT_SMALL_PRODUCER"))
-//        case None => NotFound
-//      }
-//    } else {
-//      Future.successful(BadRequest(Json.obj("errorCode" -> "INVALID_REFERENCE")))
-//    }
-//  }
-
   def buildReturnAuditDetail(
     sdilReturn: SdilReturn,
     returnsRequest: ReturnsRequest,
