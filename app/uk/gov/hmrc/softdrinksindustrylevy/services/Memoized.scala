@@ -20,6 +20,7 @@ import java.time.LocalDateTime
 
 import cats.Monad
 import cats.implicits._
+import play.api.Logger
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 
 import scala.concurrent.stm.{TMap, atomic}
@@ -52,33 +53,28 @@ trait Memoized {
     def ttl: LocalDateTime
   }
 
-  def subscriptionsCache: Cache[Future, String, Option[Subscription]]
-
 }
 
 class MemoizedSubscriptions extends Memoized {
 
-  val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
-
-  val subscriptionsCache = new Cache[Future, String, Option[Subscription]] {
+  val underlyingCache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
+  val subscriptionsCache: Cache[Future, String, Option[Subscription]] = new Cache[Future, String, Option[Subscription]] {
 
     override def read(key: String)(implicit ec: ExecutionContext): Future[Option[(Option[Subscription], LocalDateTime)]] = {
-      println(s"################################### read $key")
-      Future(atomic {implicit t => cache.get(key)})
+      Logger.info(s"Reading from MemoizedSubscriptions cache with key: $key")
+      Future(atomic {implicit t => underlyingCache.get(key)})
     }
 
     override def write(key: String, value: (Option[Subscription], LocalDateTime))(implicit ec: ExecutionContext): Future[Unit] = {
-      println(s"################################### write $key")
-      Future(atomic(implicit t => cache.put(key, value)).map(_ => ()))
+      Logger.info(s"Writing to MemoizedSubscriptions cache with key: $key and value: $value")
+      Future(atomic(implicit t => underlyingCache.put(key, value)).map(_ => ()))
     }
 
     override def ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
   }
 
-
-  def getSubscription(f: String => Future[Option[Subscription]], url: String) // TODO investigate using type arguments
-//  def getSubscription[F[_] : Monad,A,B](f: A => F[B], url: A)
-    (implicit ec: ExecutionContext): Future[Option[Subscription]] = { // TODO see if we can get rid of the ec
+  def getSubscription(f: String => Future[Option[Subscription]], url: String)
+    (implicit ec: ExecutionContext): Future[Option[Subscription]] = {
 
     memoized(
       f,
