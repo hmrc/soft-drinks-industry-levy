@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.LocalDate
 
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
+import uk.gov.hmrc.softdrinksindustrylevy.services.{SdilMongoPersistence, SdilPersistence}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
 import org.mockito.ArgumentMatchers.{eq => matching, _}
@@ -41,37 +41,26 @@ import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
 
-  "GET /small-producer" should {
-    "return Bad Request and a INVALID_REFERENCE error code if the SDIL reference is not valid" in {
-      val res = testController.validateSmallProducer("Definitely not a valid SDIL number")(FakeRequest())
-      status(res) mustBe BAD_REQUEST
-      (contentAsJson(res) \ "errorCode").as[String] mustBe "INVALID_REFERENCE"
-    }
-
-    "return Not Found if the subscription does not exist" in {
+  "GET /subscriptions/:idType/:idNumber/year/:year/quarter/:quarter" should {
+//    "return 404 if the SDIL reference is not valid" in {
+//      val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
+//      status(res) mustBe OK
+//      println(contentAsJson(res))
+////      (contentAsJson(res) \ "errorCode").as[String] mustBe "INVALID_REFERENCE"
+//    }
+//
+    "return false if the subscription did not exist during the quarter" in {
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
         matching("XXSDIL000112233")
       )(any(), any())).thenReturn(Future.successful(None))
 
-      val res = testController.validateSmallProducer("XXSDIL000112233")(FakeRequest())
-      status(res) mustBe NOT_FOUND
+      val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
+      status(res) mustBe OK
+      contentAsJson(res).toString mustBe "false"
     }
 
-    "return Not Found and a DEREGISTERED error code if the subscription has been deactivated" in {
-      lazy val deregistered = subscription.copy(deregDate = Some(LocalDate.now.minusDays(1)))
-
-      when(desConnector.retrieveSubscriptionDetails(
-        matching("sdil"),
-        matching("XXSDIL000112234")
-      )(any(), any())).thenReturn(Future.successful(Some(deregistered)))
-
-      val res = testController.validateSmallProducer("XXSDIL000112234")(FakeRequest())
-      status(res) mustBe NOT_FOUND
-      (contentAsJson(res) \ "errorCode").as[String] mustBe "DEREGISTERED"
-    }
-
-    "return Not Found and a NOT_SMALL_PRODUCER error code if the subscription is a large producer" in {
+    "return false if the subscription is a large producer during the entire quarter" in {
       lazy val largeProducer = subscription.copy(
         activity = RetrievedActivity(isProducer = true, isLarge = true, isContractPacker = false, isImporter = false)
       )
@@ -81,12 +70,12 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
         matching("XXSDIL000112235")
       )(any(), any())).thenReturn(Future.successful(Some(largeProducer)))
 
-      val res = testController.validateSmallProducer("XXSDIL000112235")(FakeRequest())
-      status(res) mustBe NOT_FOUND
-      (contentAsJson(res) \ "errorCode").as[String] mustBe "NOT_SMALL_PRODUCER"
+      val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
+      status(res) mustBe OK
+      contentAsJson(res).toString mustBe "false"
     }
 
-    "return Not Found and a NOT_SMALL_PRODUCER error code if the subscription is not a producer" in {
+    "return false if the subscription is not a producer during the quarter" in {
       lazy val nonProducer = subscription.copy(
         activity = RetrievedActivity(isProducer = false, isLarge = false, isContractPacker = false, isImporter = true)
       )
@@ -96,12 +85,12 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
         matching("XXSDIL000112236")
       )(any(), any())).thenReturn(Future.successful(Some(nonProducer)))
 
-      val res = testController.validateSmallProducer("XXSDIL000112236")(FakeRequest())
-      status(res) mustBe NOT_FOUND
-      (contentAsJson(res) \ "errorCode").as[String] mustBe "NOT_SMALL_PRODUCER"
+      val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
+      status(res) mustBe OK
+      contentAsJson(res).toString mustBe "false"
     }
 
-    "return Ok if the subscription is an active small producer" in {
+    "return true if the subscription is an active small producer during the quarter" in {
       lazy val smallProducer = subscription.copy(
         activity = RetrievedActivity(isProducer = true, isLarge = false, isContractPacker = false, isImporter = true)
       )
@@ -111,8 +100,12 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
         matching("XXSDIL000112237")
       )(any(), any())).thenReturn(Future.successful(Some(smallProducer)))
 
-      val res = testController.validateSmallProducer("XXSDIL000112237")(FakeRequest())
+      when(junkPersistence.subscriptions.list(smallProducer.utr)).thenReturn(Future.successful(validSmallProducerSubscriptionList))
+
+
+      val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
       status(res) mustBe OK
+      contentAsJson(res).toString mustBe "true"
     }
   }
 
@@ -130,6 +123,21 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
     endDate = Some(LocalDate.now.plusDays(1))
   )
 
+  lazy val validSmallProducerSubscriptionList = List(Subscription(
+    utr = "9876543210",
+    sdilRef = None,
+    orgName = "Somebody",
+    orgType = None,
+    address = UkAddress(Nil, "SW1A 1AA"),
+    activity = RetrievedActivity(isProducer = false, isLarge = false, isContractPacker = false, isImporter = true),
+    liabilityDate = LocalDate.now,
+    productionSites = Nil,
+    warehouseSites = Nil,
+    contact = Contact(None, None, "½", "¾@⅛.com"),
+    endDate = Some(LocalDate.now.plusDays(1))
+  ))
+
+
   lazy val authConnector: AuthConnector = {
     val m = mock[AuthConnector]
     when(m.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -137,6 +145,9 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
   }
 
   lazy val desConnector: DesConnector = mock[DesConnector]
+//  implicit val subscriptionsCollection: SdilPersistence = mock[SdilPersistence]
+
+//  lazy val foo: testPersistence.SubsDAO[String, Subscription] = testPersistence.subscriptions
   implicit val junkPersistence: SdilPersistence = testPersistence
   implicit lazy val config = SdilConfig(None)
   lazy val testController = wire[ReturnsController]

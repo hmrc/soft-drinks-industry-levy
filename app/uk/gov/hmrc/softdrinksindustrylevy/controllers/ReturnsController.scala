@@ -45,6 +45,28 @@ class ReturnsController(
 )(implicit ec: ExecutionContext, clock: Clock)
   extends BaseController with AuthorisedFunctions {
 
+  def checkSmallProducerStatus(
+    idType: String,
+    idNumber: String,
+    year: Int,
+    quarter: Int
+  ): Action[AnyContent] = Action.async { implicit request =>
+    authorised(AuthProviders(GovernmentGateway)) {
+      val period = ReturnPeriod(year, quarter)
+      for {
+        sub         <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        subs        <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        byRef       = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
+        isSmallProd = byRef.nonEmpty && byRef.forall(b =>
+          b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
+            y.isAfter(period.end) && b.activity.isSmallProducer)
+        )
+      } yield Ok(Json.toJson(isSmallProd))
+    }
+  }
+
+
+
   def buildReturnAuditDetail(
     sdilReturn: SdilReturn,
     returnsRequest: ReturnsRequest,
