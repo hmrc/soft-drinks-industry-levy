@@ -21,10 +21,9 @@ import java.time.LocalDateTime
 import cats.Monad
 import cats.implicits._
 import play.api.Logger
-import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.stm.{TMap, atomic}
-import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 
 trait Memoized {
@@ -55,32 +54,36 @@ trait Memoized {
 
 }
 
-class MemoizedSubscriptions extends Memoized {
+class MemoizedWithSTM[F[_]:Monad,A,B](hours: Int) extends Memoized {
 
-  val underlyingCache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
-  val subscriptionsCache: Cache[Future, String, Option[Subscription]] = new Cache[Future, String, Option[Subscription]] {
+  val underlyingCache: TMap[A, (Option[B], LocalDateTime)] = TMap[A, (Option[B], LocalDateTime)]()
+  val cache: Cache[F, A, Option[B]] = new Cache[F, A, Option[B]] {
 
-    override def read(key: String)(implicit ec: ExecutionContext): Future[Option[(Option[Subscription], LocalDateTime)]] = {
-      Logger.info(s"Reading from MemoizedSubscriptions cache with key: $key")
-      Future(atomic {implicit t => underlyingCache.get(key)})
+    override def read(key: A)(implicit ec: ExecutionContext): F[Option[(Option[B], LocalDateTime)]] = {
+      Logger.info("#################################################################################")
+      Logger.info(s"Reading from MemoizedWithSTM cache with key: $key")
+      Logger.info("#################################################################################")
+      atomic {implicit t => underlyingCache.get(key)}.pure[F]
     }
 
-    override def write(key: String, value: (Option[Subscription], LocalDateTime))(implicit ec: ExecutionContext): Future[Unit] = {
-      Logger.info(s"Writing to MemoizedSubscriptions cache with key: $key and value: $value")
-      Future(atomic(implicit t => underlyingCache.put(key, value)).map(_ => ()))
+    override def write(key: A, value: (Option[B], LocalDateTime))(implicit ec: ExecutionContext): F[Unit] = {
+      Logger.info("#################################################################################")
+      Logger.info(s"Writing to MemoizedWithSTM cache with key: $key and value: $value")
+      Logger.info("#################################################################################")
+      atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
     }
 
-    override def ttl: LocalDateTime = LocalDateTime.now().plusHours(1)
+    override def ttl: LocalDateTime = LocalDateTime.now().plusHours(hours)
   }
 
-  def getSubscription(f: String => Future[Option[Subscription]], url: String)
-    (implicit ec: ExecutionContext): Future[Option[Subscription]] = {
+  def getSubscription(f: A => F[Option[B]], url: A)
+    (implicit ec: ExecutionContext): F[Option[B]] = {
 
     memoized(
       f,
-      subscriptionsCache.read,
-      subscriptionsCache.write,
-      subscriptionsCache.ttl
+      cache.read,
+      cache.write,
+      cache.ttl
     ).apply(url)
   }
 

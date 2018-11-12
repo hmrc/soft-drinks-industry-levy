@@ -89,3 +89,4 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
   }
 
 }
+

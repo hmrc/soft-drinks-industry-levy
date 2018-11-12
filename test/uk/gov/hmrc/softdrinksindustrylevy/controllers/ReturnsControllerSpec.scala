@@ -34,9 +34,12 @@ import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, RetrievedActivity, Subscription, UkAddress}
 import sdil.models._
 
+//import scala.concurrent.ExecutionContext
+
 import scala.concurrent.{ExecutionContext => EC}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 
+import scala.collection.mutable
 import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
@@ -100,10 +103,15 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
         matching("XXSDIL000112237")
       )(any(), any())).thenReturn(Future.successful(Some(smallProducer)))
 
-      when(junkPersistence.subscriptions.list(smallProducer.utr)).thenReturn(Future.successful(validSmallProducerSubscriptionList))
+
+      when(junkPersistence
+        .subscriptions
+        .list(smallProducer.utr)(defaultContext))
+        .thenReturn(Future.successful(validSmallProducerSubscriptionList))
 
 
       val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
+      println(res)
       status(res) mustBe OK
       contentAsJson(res).toString mustBe "true"
     }
@@ -144,11 +152,40 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
     m
   }
 
+//  override def testPersistence.subscriptions.list(key: String)(implicit ec: EC): Future[List[Subscription]] =
+//    data += data.get(key).fold(key -> List(value))(x => key -> (value +: x))
+//    Future.successful(())
+//  }
+
   lazy val desConnector: DesConnector = mock[DesConnector]
+//  lazy val subs = mock[SubsDAO]
+//  lazy val persistence: SdilPersistence = mock[SdilPersistence]
 //  implicit val subscriptionsCollection: SdilPersistence = mock[SdilPersistence]
 
 //  lazy val foo: testPersistence.SubsDAO[String, Subscription] = testPersistence.subscriptions
-  implicit val junkPersistence: SdilPersistence = testPersistence
+//  implicit val junkPersistence: SdilPersistence = testPersistence
+
+  lazy val junkPersistence = new SdilPersistence {
+    override def returns: DAO[String, ReturnPeriod, SdilReturn] = ???
+
+
+    lazy val subscriptions = mock[SubsDAO[String, Subscription]]
+
+    override def subscriptions: SubsDAO[String, Subscription] = new SubsDAO[String, Subscription] {
+//      private var data: scala.collection.mutable.Map[String, List[Subscription]] = mutable.Map.empty
+
+      override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = ???
+
+      override def list(key: String)(implicit ec: EC): Future[List[Subscription]] = {
+        Future(List.empty[Subscription])(ec)
+      }
+
+    }
+  }
+
+
+
+  //  implicit val foo: testPersistence.SubsDAO[String, Subscription] = testPersistence.subscriptions
   implicit lazy val config = SdilConfig(None)
   lazy val testController = wire[ReturnsController]
 }
