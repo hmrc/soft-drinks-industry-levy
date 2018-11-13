@@ -68,4 +68,26 @@ class BalanceControllerSpec extends FlatSpec with Matchers with PropertyChecks  
       .length should be (2)
   }
 
+  "financial data with unknown type, 2 payments with contractAccountCategory of 32 and one charge " should " be converted " +
+    " using 'convertWithoutAssessment' to 4 line items" in {
+
+    val stream = getClass.getResourceAsStream("/des-financial-data-32-two-payments-and-unknown.json")
+    import FinancialTransaction._
+    val obj = Json.parse(stream).as[FinancialTransactionResponse]
+
+    BalanceController.convertWithoutAssessment(obj)
+      .length should be (4)
+  }
+
+  "financial data with unknown type, 2 payments with contractAccountCategory of 32 and one charge " should " be converted " +
+    " using 'convert' to 4 line items" in {
+
+    val stream = getClass.getResourceAsStream("/des-financial-data-32-two-payments-and-unknown.json")
+    import FinancialTransaction._
+    val obj = Json.parse(stream).as[FinancialTransactionResponse]
+
+    BalanceController.convert(obj)
+      .length should be (4)
+  }
+
 }

@@ -154,9 +154,19 @@ object BalanceController {
           in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
           in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
           in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
-        case _           => Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}"); List.empty
+        case (a, b) if in.contractAccountCategory == "32".some =>
+          Logger.warn(s"XXX Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
+          Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+        case _           =>
+          Logger.warn(s"YYY Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+          List.empty
       }
-      case _             => Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}"); List.empty
+      case _ if in.contractAccountCategory == "32".some =>
+        Logger.warn(s"ZZZZ Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
+        Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+      case _             =>
+        Logger.warn(s"QQQQ Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+        List.empty
     }
   }
 
@@ -184,9 +194,19 @@ object BalanceController {
           in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
           in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
           in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
-        case _           => Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}"); List.empty
+        case (a, b) if in.contractAccountCategory == "32".some =>
+          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory: 32")
+          Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+        case _           =>
+          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+          List.empty
       }
-      case _             => Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}"); List.empty
+      case _ if in.contractAccountCategory == "32".some =>
+        Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory: 32")
+        Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+      case _             =>
+        Logger.warn(s"YYY Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+        List.empty
     }
   }
 
