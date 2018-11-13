@@ -16,23 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time._
+
+import cats.implicits._
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
-
-import scala.concurrent._
+import sdil.models._
+import sdil.models.des._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import sdil.models._
-import sdil.models.des._
-import java.time._
-import scala.util.Random
 
-import uk.gov.hmrc.http.HeaderCarrier
-import cats.implicits._
-import cats.syntax.either._
-import cats.data.OptionT
-import play.api.Logger
+import scala.concurrent._
+import scala.util.Random
 
 
 class BalanceController(
@@ -181,32 +178,12 @@ object BalanceController {
   }
 
   def convertWithoutAssessment(in: FinancialTransaction): List[FinancialLineItem] = {
-
-    (
-      in.mainTransaction >>= parseIntOpt,
-      in.subTransaction >>= parseIntOpt
-    ) match {
-      case (Some(main), Some(sub)) => (main,sub) match {
-        case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
-        case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
-        case (60,100) if in.contractAccountCategory == "32".some => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
-          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
-          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
-          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
-        case (a, b) if in.contractAccountCategory == "32".some =>
-          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory: 32")
-          Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-        case _           =>
-          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
-          List.empty
-      }
-      case _ if in.contractAccountCategory == "32".some =>
-        Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory: 32")
-        Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-      case _             =>
-        Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
-        List.empty
+    convert(in).filterNot {
+      case _: CentralAssessment => true
+      case _: CentralAsstInterest => true
+      case _: OfficerAssessment => true
+      case _: OfficerAsstInterest => true
+      case _ => false
     }
   }
 
