@@ -56,7 +56,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
         matching("XXSDIL000112233")
-      )(any(), any())).thenReturn(Future.successful(None))
+      )(any())).thenReturn(Future.successful(None))
 
       val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
       status(res) mustBe OK
@@ -71,7 +71,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
         matching("XXSDIL000112235")
-      )(any(), any())).thenReturn(Future.successful(Some(largeProducer)))
+      )(any())).thenReturn(Future.successful(Some(largeProducer)))
 
       val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
       status(res) mustBe OK
@@ -86,7 +86,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
         matching("XXSDIL000112236")
-      )(any(), any())).thenReturn(Future.successful(Some(nonProducer)))
+      )(any())).thenReturn(Future.successful(Some(nonProducer)))
 
       val res = testController.checkSmallProducerStatus("sdil", "XXSDIL000112233", 2018, 0)(FakeRequest())
       status(res) mustBe OK
@@ -101,7 +101,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
       when(desConnector.retrieveSubscriptionDetails(
         matching("sdil"),
         matching("XXSDIL000112237")
-      )(any(), any())).thenReturn(Future.successful(Some(smallProducer)))
+      )(any())).thenReturn(Future.successful(Some(smallProducer)))
 
 
       when(junkPersistence
@@ -169,7 +169,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
     override def returns: DAO[String, ReturnPeriod, SdilReturn] = ???
 
 
-    lazy val subscriptions = mock[SubsDAO[String, Subscription]]
+//    lazy val subscriptions = mock[SubsDAO[String, Subscription]]
 
     override def subscriptions: SubsDAO[String, Subscription] = new SubsDAO[String, Subscription] {
 //      private var data: scala.collection.mutable.Map[String, List[Subscription]] = mutable.Map.empty
