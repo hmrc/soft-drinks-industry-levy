@@ -34,15 +34,14 @@ trait Memoized {
     cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
     ttl: LocalDateTime
   ): A => F[B] = { args =>
+    val now = LocalDateTime.now
     cacheRead(args).flatMap {
-      case Some((v,d)) if d.isBefore(ttl) => {
+      case Some((v,d)) if d.isAfter(now) =>
         v.pure[F]
-      }
-      case None => {
+      case _ =>
         f(args).flatMap { z =>
-          cacheWrite(args, (z, LocalDateTime.now())).map(_ => z)
+          cacheWrite(args, (z, ttl)).map(_ => z)
         }
-      }
     }
   }
 
@@ -54,30 +53,26 @@ trait Memoized {
 
 }
 
-class MemoizedWithSTM[F[_]:Monad,A,B](hours: Int) extends Memoized {
+class MemoizedWithSTM[F[_]:Monad,A,B](seconds: Long) extends Memoized {
 
   val underlyingCache: TMap[A, (Option[B], LocalDateTime)] = TMap[A, (Option[B], LocalDateTime)]()
   val cache: Cache[F, A, Option[B]] = new Cache[F, A, Option[B]] {
 
     override def read(key: A)(implicit ec: ExecutionContext): F[Option[(Option[B], LocalDateTime)]] = {
-      Logger.info("#################################################################################")
       Logger.info(s"Reading from MemoizedWithSTM cache with key: $key")
-      Logger.info("#################################################################################")
       atomic {implicit t => underlyingCache.get(key)}.pure[F]
     }
 
     override def write(key: A, value: (Option[B], LocalDateTime))(implicit ec: ExecutionContext): F[Unit] = {
-      Logger.info("#################################################################################")
       Logger.info(s"Writing to MemoizedWithSTM cache with key: $key and value: $value")
-      Logger.info("#################################################################################")
       atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
     }
 
-    override def ttl: LocalDateTime = LocalDateTime.now().plusHours(hours)
+    override def ttl: LocalDateTime = LocalDateTime.now().plusSeconds(seconds)
   }
 
-  def getSubscription(f: A => F[Option[B]], url: A)
-    (implicit ec: ExecutionContext): F[Option[B]] = {
+  def get(f: A => F[Option[B]], url: A)
+         (implicit ec: ExecutionContext): F[Option[B]] = {
 
     memoized(
       f,

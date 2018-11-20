@@ -70,7 +70,7 @@ class DesConnector(val http: HttpClient,
   }
 
   lazy val memoizedSubscriptions =
-    new MemoizedWithSTM[Future, String, Subscription](1)
+    new MemoizedWithSTM[Future, String, Subscription](60 * 60)
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
   (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
@@ -82,7 +82,7 @@ class DesConnector(val http: HttpClient,
     }
 
     for {
-      sub <- memoizedSubscriptions.getSubscription(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
+      sub <- memoizedSubscriptions.get(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
