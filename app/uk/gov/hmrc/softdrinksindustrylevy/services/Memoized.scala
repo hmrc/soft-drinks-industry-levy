@@ -26,15 +26,18 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.stm.{TMap, atomic}
 import scala.language.higherKinds
 
-trait Memoized {
+
+object Memoized {
 
   def memoized[F[_] : Monad,A,B](
-    f: A => F[B],
     cacheRead: A => F[Option[(B,LocalDateTime)]],
     cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
-    ttl: LocalDateTime
+    ttlSeconds: Long
+  )(
+    f: A => F[B]
   ): A => F[B] = { args =>
     val now = LocalDateTime.now
+    val ttl = LocalDateTime.now.plusSeconds(ttlSeconds)
     cacheRead(args).flatMap {
       case Some((v,d)) if d.isAfter(now) =>
         v.pure[F]
@@ -45,41 +48,36 @@ trait Memoized {
     }
   }
 
-  protected trait Cache[F[_],A,B] {
-    def read(key: A)(implicit ec: ExecutionContext): F[Option[(B,LocalDateTime)]]
-    def write(key: A, value: (B,LocalDateTime))(implicit ec: ExecutionContext): F[Unit]
-    def ttl: LocalDateTime
-  }
 
-}
+  /**
+    *  There's something odd about ScalaStm that means if you define the cache in the functinon call like this..
+    *
+    *  val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](TMap[String, (Option[LocalDateTime], LocalDateTime)](), 60 * 60)(_,_)
+    *
+    *  Instead you must define cache as a val and then pass that in to the function call like this..
+    *
+    *  val cache: TMap[String, (Option[LocalDateTime], LocalDateTime)] = TMap[String, (Option[LocalDateTime], LocalDateTime)]()
+    *  val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](cache, 60 * 60)(_,_)
+    *
+    */
+  def memoizedCache[F[_] : Monad,A,B](
+    underlyingCache: TMap[A, (Option[B], LocalDateTime)],
+    secondsToCache: Long
+  )(
+    f: A => F[Option[B]], url: A
+  )(implicit ec: ExecutionContext): F[Option[B]] = {
 
-class MemoizedWithSTM[F[_]:Monad,A,B](seconds: Long) extends Memoized {
+    def read(k: A)(implicit ec: ExecutionContext): F[Option[(Option[B], LocalDateTime)]] =
+      atomic {implicit t => underlyingCache.get(k)}.pure[F]
 
-  val underlyingCache: TMap[A, (Option[B], LocalDateTime)] = TMap[A, (Option[B], LocalDateTime)]()
-  val cache: Cache[F, A, Option[B]] = new Cache[F, A, Option[B]] {
-
-    override def read(key: A)(implicit ec: ExecutionContext): F[Option[(Option[B], LocalDateTime)]] = {
-      Logger.info(s"Reading from MemoizedWithSTM cache with key: $key")
-      atomic {implicit t => underlyingCache.get(key)}.pure[F]
-    }
-
-    override def write(key: A, value: (Option[B], LocalDateTime))(implicit ec: ExecutionContext): F[Unit] = {
-      Logger.info(s"Writing to MemoizedWithSTM cache with key: $key and value: $value")
+    def write(key: A, value: (Option[B], LocalDateTime))(implicit ec: ExecutionContext): F[Unit] =
       atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
-    }
-
-    override def ttl: LocalDateTime = LocalDateTime.now().plusSeconds(seconds)
-  }
-
-  def get(f: A => F[Option[B]], url: A)
-         (implicit ec: ExecutionContext): F[Option[B]] = {
 
     memoized(
-      f,
-      cache.read,
-      cache.write,
-      cache.ttl
-    ).apply(url)
+      read,
+      write,
+      secondsToCache
+    )(f).apply(url)
   }
 
 }

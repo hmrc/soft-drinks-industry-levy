@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.net.URLEncoder.encode
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, LocalDateTime}
 
 import cats.implicits._
 import play.api.Configuration
@@ -31,7 +31,9 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, MemoizedWithSTM, SdilPersistence}
+
+import scala.concurrent.stm.TMap
+import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,6 +47,9 @@ class DesConnector(val http: HttpClient,
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
+  val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
+  val memoized: (String => Future[Option[Subscription]], String) => Future[Option[Subscription]] =
+    Memoized.memoizedCache[Future, String, Subscription](cache, 60 * 60)(_,_)
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -69,9 +74,6 @@ class DesConnector(val http: HttpClient,
     desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
   }
 
-  lazy val memoizedSubscriptions =
-    new MemoizedWithSTM[Future, String, Subscription](60 * 60)
-
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
   (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
 
@@ -82,7 +84,7 @@ class DesConnector(val http: HttpClient,
     }
 
     for {
-      sub <- memoizedSubscriptions.get(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
+      sub <- memoized(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
@@ -91,9 +93,7 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
-
-
-
+  
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
   }
