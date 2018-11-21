@@ -77,7 +77,6 @@ class DesConnector(val http: HttpClient,
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
   (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
 
-
     def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
       import json.des.get._
       http.GET[Option[Subscription]](url)(implicitly, addHeaders, implicitly)
@@ -93,7 +92,7 @@ class DesConnector(val http: HttpClient,
       }
     } yield sub
   }
-  
+
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
   }
