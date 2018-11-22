@@ -48,8 +48,6 @@ class DesConnector(val http: HttpClient,
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
-  val memoized: (String => Future[Option[Subscription]], String) => Future[Option[Subscription]] =
-    Memoized.memoizedCache[Future, String, Subscription](cache, 60 * 60)(_,_)
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -77,13 +75,16 @@ class DesConnector(val http: HttpClient,
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
   (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
 
+    lazy val memoized: String => Future[Option[Subscription]] =
+      Memoized.memoizedCache[Future, String, Option[Subscription]](cache, 60 * 60)(getSubscriptionFromDES)
+
     def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
       import json.des.get._
       http.GET[Option[Subscription]](url)(implicitly, addHeaders, implicitly)
     }
 
     for {
-      sub <- memoized(getSubscriptionFromDES, s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
+      sub <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {

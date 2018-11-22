@@ -28,14 +28,14 @@ import scala.concurrent.stm.TMap
 
 class MemoizedWithSTMSpec extends AsyncFlatSpec {
 
-  def testFunc(k: String): Future[Option[LocalDateTime]] = Future(Some(LocalDateTime.now))
-  val cache: TMap[String, (Option[LocalDateTime], LocalDateTime)] = TMap[String, (Option[LocalDateTime], LocalDateTime)]()
+  def testFunc(k: String): Future[LocalDateTime] = Future(LocalDateTime.now)
+  val cache: TMap[String, (LocalDateTime, LocalDateTime)] = TMap[String, (LocalDateTime, LocalDateTime)]()
 
   "Memoized function" should "return a cached result" in {
-    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 60 * 60)(_,_)
+    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 60 * 60)(testFunc)
     val x = for {
-      a <- memoized(testFunc, "test1")
-      b <- memoized(testFunc, "test1")
+      a <- memoized("test1")
+      b <- memoized("test1")
     } yield (a, b)
     x.map { y =>
       assert(y._1 == y._2)
@@ -44,11 +44,11 @@ class MemoizedWithSTMSpec extends AsyncFlatSpec {
   }
 
   "Memoized function" should "return a fresh result when the cache has timed out" in {
-    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 1)(_,_)
+    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 1)(testFunc)
     val x = for {
-      a <- memoized(testFunc, "test2")
+      a <- memoized("test2")
       _ = Thread.sleep(2000)
-      b <- memoized(testFunc, "test2")
+      b <- memoized("test2")
     } yield (a, b)
     x.map { y =>
       assert(y._1 != y._2)

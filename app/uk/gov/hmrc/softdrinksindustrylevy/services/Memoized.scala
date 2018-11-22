@@ -61,23 +61,23 @@ object Memoized {
     *
     */
   def memoizedCache[F[_] : Monad,A,B](
-    underlyingCache: TMap[A, (Option[B], LocalDateTime)],
+    underlyingCache: TMap[A, (B, LocalDateTime)],
     secondsToCache: Long
   )(
-    f: A => F[Option[B]], url: A
-  )(implicit ec: ExecutionContext): F[Option[B]] = {
+    f: A => F[B]
+  ): A => F[B] = {
 
-    def read(k: A)(implicit ec: ExecutionContext): F[Option[(Option[B], LocalDateTime)]] =
+    def read(k: A): F[Option[(B, LocalDateTime)]] =
       atomic {implicit t => underlyingCache.get(k)}.pure[F]
 
-    def write(key: A, value: (Option[B], LocalDateTime))(implicit ec: ExecutionContext): F[Unit] =
+    def write(key: A, value: (B, LocalDateTime)): F[Unit] =
       atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
 
     memoized(
       read,
       write,
       secondsToCache
-    )(f).apply(url)
+    )(f)
   }
 
 }
