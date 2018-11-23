@@ -2,10 +2,8 @@
 
 POST        /subscription/:idType/:idNumber/:safeId                          uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.submitRegistration(idType, idNumber, safeId)
 GET         /subscription/:idType/:idNumber                                  uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.retrieveSubscriptionDetails(idType, idNumber)
-GET         /subscriptions/:idType/:idNumber/year/:year/quarter/:quarter     uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkSmallProducerStatus(idType: String, idNumber: String, year: Int, quarter: Int)
+GET         /subscriptions/:idType/:idNumber/year/:year/quarter/:quarter     uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.checkSmallProducerStatus(idType: String, idNumber: String, year: Int, quarter: Int)
 GET         /check-enrolment-status/:utr                                     uk.gov.hmrc.softdrinksindustrylevy.controllers.RegistrationController.checkEnrolmentStatus(utr)
-
-GET         /small-producer/sdil/:sdilRef                                    uk.gov.hmrc.softdrinksindustrylevy.controllers.ReturnsController.validateSmallProducer(sdilRef)
 
 GET         /rosm-registration/lookup/:utr                                   uk.gov.hmrc.softdrinksindustrylevy.controllers.RosmController.lookupRegistration(utr)
 

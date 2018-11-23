@@ -49,7 +49,8 @@ libraryDependencies ++= Seq(
   "uk.gov.hmrc"               %% "auth-client"           % "2.6.0",
   "uk.gov.hmrc"               %% "bootstrap-play-25"     % "1.7.0",
   "uk.gov.hmrc"               %% "mongo-lock"            % "5.1.0",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "6.1.0"
+  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "6.1.0",
+  "org.scala-stm"             %% "scala-stm"             % "0.7"
 )
 
 resolvers ++= Seq(

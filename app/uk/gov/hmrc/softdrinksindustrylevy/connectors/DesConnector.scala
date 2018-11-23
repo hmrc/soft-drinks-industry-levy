@@ -17,8 +17,9 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.net.URLEncoder.encode
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, LocalDateTime}
 
+import cats.implicits._
 import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Json, OWrites}
@@ -30,7 +31,9 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, SdilPersistence}
+
+import scala.concurrent.stm.TMap
+import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,11 +42,12 @@ class DesConnector(val http: HttpClient,
                    val runModeConfiguration: Configuration,
                    persistence: SdilPersistence,
                    auditing: AuditConnector)
-                  (implicit clock: Clock)
+                  (implicit clock: Clock, executionContext: ExecutionContext)
   extends ServicesConfig with OptionHttpReads with DesHelpers {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"
+  val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
@@ -54,7 +58,7 @@ class DesConnector(val http: HttpClient,
   }
 
   def createSubscription(request: Subscription, idType: String, idNumber: String)
-                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[CreateSubscriptionResponse] = {
+                        (implicit hc: HeaderCarrier): Future[CreateSubscriptionResponse] = {
     import json.des.create._
     import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
     val formattedLines = request.address.lines.map { line => line.clean }
@@ -69,11 +73,18 @@ class DesConnector(val http: HttpClient,
   }
 
   def retrieveSubscriptionDetails(idType: String, idNumber: String)
-                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[Subscription]] = {
-    import json.des.get._
+  (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
+
+    lazy val memoized: String => Future[Option[Subscription]] =
+      Memoized.memoizedCache[Future, String, Option[Subscription]](cache, 60 * 60)(getSubscriptionFromDES)
+
+    def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
+      import json.des.get._
+      http.GET[Option[Subscription]](url)(implicitly, addHeaders, implicitly)
+    }
 
     for {
-      sub  <- http.GET[Option[Subscription]](s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")(implicitly, addHeaders, ec)
+      sub <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
         if (!subs.contains(x)) {
@@ -83,7 +94,7 @@ class DesConnector(val http: HttpClient,
     } yield sub
   }
 
-  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, ec: ExecutionContext, period: ReturnPeriod): Future[HttpResponse] = {
+  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, period: ReturnPeriod): Future[HttpResponse] = {
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
   }
 
@@ -97,8 +108,7 @@ class DesConnector(val http: HttpClient,
     sdilRef: String,
     year: Option[Int] = Some(LocalDate.now.getYear)
   )(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext
+    implicit hc: HeaderCarrier
   ): Future[Option[des.FinancialTransactionResponse]] = {
     import des.FinancialTransaction._
 
@@ -124,7 +134,7 @@ class DesConnector(val http: HttpClient,
       args.map{encodePair}.mkString("&")
 
 
-    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, ec).flatMap{x =>
+    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, implicitly).flatMap{x =>
       x.map { y =>
         auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
       }

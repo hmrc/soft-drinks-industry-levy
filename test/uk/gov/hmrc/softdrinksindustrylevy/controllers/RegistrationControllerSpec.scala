@@ -64,7 +64,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
       import json.des.create._
-      when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
+      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockBuffer.insert(any())(any()))
@@ -76,7 +76,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
-      verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any(), any())
+      verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any())
       contentAsJson(response) mustBe Json.toJson(validSubscriptionResponse)
     }
 
@@ -93,7 +93,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
     }
 
     "return Status: Conflict for duplicate subscription submission" in {
-      when(mockDesConnector.createSubscription(any(), any(), any())(any(), any()))
+      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockBuffer.insert(any())(any())).thenReturn(Future.failed(LastError(
@@ -119,7 +119,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -132,7 +132,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber)
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -142,7 +142,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
     "return Status: OK for subscription for a sub that is in Des but is not in the pending queue (Mongo)" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -165,7 +165,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         )
       )
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
         .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
@@ -184,7 +184,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         Future.failed(new NotFoundException("foo"))
       )
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -194,7 +194,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
       val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any(), any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())

@@ -73,7 +73,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
         }
     }
 
-    override def subscriptions: SubsDAO[String, Subscription] = new SubsDAO[String, Subscription] {
+    val subscriptions: SubsDAO[String, Subscription] = new SubsDAO[String, Subscription] {
       private var data: scala.collection.mutable.Map[String, List[Subscription]] = mutable.Map.empty
 
       override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
@@ -88,3 +88,4 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
   }
 
 }
+
