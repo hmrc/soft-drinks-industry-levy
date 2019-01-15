@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.util
 
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
 import play.api.libs.ws.{WSAPI, WSClient}
-import play.api.{Application, ApplicationLoader}
+import play.api.{Application, ApplicationLoader, Play}
 import play.core.DefaultWebCommands
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
@@ -43,8 +43,10 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
     new SdilApplicationLoader().load(context)
   }
 
+  lazy val actorSystem = Play.current.actorSystem
+
   private lazy val wsClient = app.injector.instanceOf[WSAPI].client
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, auditConnector, wsClient)
+  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, auditConnector, wsClient,actorSystem)
 
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {

@@ -52,7 +52,7 @@ class SdilComponents(context: Context)
 
   override lazy val httpRequestHandler: HttpRequestHandler = wire[RequestHandler]
 
-  lazy val customInjector: Injector = new SimpleInjector(injector) + adminController + wsApi
+  lazy val customInjector: Injector = new SimpleInjector(injector) + healthController + wsApi
 
   override lazy val application: Application = wire[DefaultApplication]
 
