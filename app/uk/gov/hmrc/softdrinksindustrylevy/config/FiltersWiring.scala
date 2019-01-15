@@ -27,6 +27,7 @@ trait FiltersWiring {
 
   def metrics: Metrics
 
+  lazy val mdcFilter: MDCFilter = wire[MDCFilter]
   lazy val auditFilter: AuditFilter = wire[DefaultMicroserviceAuditFilter]
   lazy val cacheControlFilter: CacheControlFilter = wire[CacheControlFilter]
   lazy val loggingFilter: LoggingFilter = wire[DefaultLoggingFilter]

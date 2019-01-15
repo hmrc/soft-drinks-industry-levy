@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 import com.kenshoo.play.metrics.{Metrics, MetricsController, MetricsImpl}
 import com.softwaremill.macwire._
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.play.health.AdminController
+import uk.gov.hmrc.play.health.HealthController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers._
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController
 
@@ -30,7 +30,7 @@ trait ControllerWiring {
 
   lazy val metrics: Metrics = wire[MetricsImpl]
 
-  lazy val adminController: AdminController = wire[AdminController]
+  lazy val healthController: HealthController = wire[HealthController]
   lazy val metricsController: MetricsController = wire[MetricsController]
   lazy val rosmController: RosmController = wire[RosmController]
   lazy val sdilController: RegistrationController = wire[RegistrationController]
