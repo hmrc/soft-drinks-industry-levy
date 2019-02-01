@@ -1,3 +1,5 @@
+digital-service: SDIL
+
 leakDetectionExemptions:
 - ruleId: 'ip_addresses'
   filePaths:
