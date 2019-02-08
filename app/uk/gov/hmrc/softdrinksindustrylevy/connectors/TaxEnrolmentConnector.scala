@@ -32,6 +32,7 @@ class TaxEnrolmentConnector(http: HttpClient,
 
   val callbackUrl: String = getConfString("tax-enrolments.callback", "")
   val serviceName: String = getConfString("tax-enrolments.serviceName", "")
+  lazy val taxEnrolmentsUrl: String = baseUrl("tax-enrolments")
 
   def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
@@ -43,7 +44,7 @@ class TaxEnrolmentConnector(http: HttpClient,
   }
 
   def getSubscription(subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] = {
-    http.GET[TaxEnrolmentsSubscription](s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId")
+    http.GET[TaxEnrolmentsSubscription](s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId")
   }
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
