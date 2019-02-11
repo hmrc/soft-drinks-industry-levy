@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy
 
-import java.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime}
 
 import play.api.libs.json.{JsValue, Json}
+import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object controllers {
@@ -104,6 +105,43 @@ package object controllers {
       None,
       Some("qovmlk@rlkioorw.com")
     )
+  )
+
+  val sub = Subscription(
+    "1234567890",
+    Some("1234"),
+    "org name",
+    None,
+    UkAddress(List("line1"), "AA11AA"),
+    activity,
+    LocalDate.now(),
+    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
+    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
+    Contact(None, None, "0843858438", "test@test.com"),
+    None,
+    None
+  )
+
+  def internalActivity(produced: LitreBands = zero,
+                       copackedAll: LitreBands = zero,
+                       imported: LitreBands = zero,
+                       copackedByOthers: LitreBands = zero) = {
+    InternalActivity(
+      Map(
+        ProducedOwnBrand -> produced,
+        CopackerAll -> copackedAll,
+        Imported -> imported,
+        Copackee -> copackedByOthers
+      ), false
+    )
+  }
+
+  lazy val zero: LitreBands = (0, 0)
+
+  lazy val activity = internalActivity(
+    produced = (1, 2),
+    copackedAll = (3, 4),
+    imported = (5, 6)
   )
 
 }

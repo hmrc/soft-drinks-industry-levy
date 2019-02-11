@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.Instant
-
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlEqualTo, urlPathEqualTo}
-
 import scala.util.{Failure, Success, Try}
 
 class FileUploadConnectorSpec extends WiremockSpec {

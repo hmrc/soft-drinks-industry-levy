@@ -16,15 +16,10 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.{Instant, LocalDate}
-
+import java.time.Instant
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlPathEqualTo, urlEqualTo}
-import org.mockito.Mockito
-import play.api.test.Helpers.SERVICE_UNAVAILABLE
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, InternalActivity, LitreBands, Site, Subscription, UkAddress}
-
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors._
 import scala.util.{Failure, Success, Try}
 
 class ContactFrontendConnectorSpec extends WiremockSpec {
@@ -33,48 +28,13 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
     override lazy val contactFrontendUrl: String = mockServerUrl
   }
 
-  def internalActivity(produced: LitreBands = zero,
-                       copackedAll: LitreBands = zero,
-                       imported: LitreBands = zero,
-                       copackedByOthers: LitreBands = zero) = {
-    InternalActivity(
-      Map(
-        ProducedOwnBrand -> produced,
-        CopackerAll -> copackedAll,
-        Imported -> imported,
-        Copackee -> copackedByOthers
-      ), false
-    )
-  }
-
-  val activity = internalActivity(
-    produced = (1, 2),
-    copackedAll = (3, 4),
-    imported = (5, 6)
-  )
-  lazy val zero: LitreBands = (0, 0)
-
   implicit val hc: HeaderCarrier = HeaderCarrier()
-  val subscription = Subscription(
-    "1234567890",
-    Some("asfdsfdsfd"),
-    "org name",
-    None,
-    UkAddress(List("line1"), "AA11AA"),
-    activity,
-    LocalDate.now,
-    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
-    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
-    Contact(None, None, "0843858438", "test@test.com"),
-    None,
-    None
-  )
 
   "attempted contact form should fail if contact service is not available" in {
     stubFor(post(urlPathEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
       .willReturn(aResponse().withStatus(500)))
 
-    Try(TestContactConnector.raiseTicket(subscription, "safeid1", Instant.now()).futureValue) match {
+    Try(TestContactConnector.raiseTicket(sub, "safeid1", Instant.now()).futureValue) match {
       case Success(_) => fail
       case Failure(_) =>
     }
@@ -83,9 +43,10 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
   "attempted contact form should succeed if contact service is available" in {
     stubFor(post(urlEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
       .willReturn(aResponse().withStatus(200).withBody("")))
-    Try(TestContactConnector.raiseTicket(subscription, "test1", Instant.now()).futureValue) match {
+    Try(TestContactConnector.raiseTicket(sub, "test1", Instant.now()).futureValue) match {
       case Success(_) =>
       case Failure(_) => fail
     }
   }
+
 }

@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo, urlPathEqualTo}
 import play.api.libs.json.Json
-import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
 
@@ -58,7 +57,7 @@ class RosmConnectorSpec extends WiremockSpec {
     stubFor(post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
       .willReturn(aResponse()
         .withStatus(200)
-          .withBody(Json.toJson(req).toString())
+        .withBody(Json.toJson(req).toString())
       ))
 
     val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)

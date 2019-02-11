@@ -15,8 +15,8 @@
  */
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
-import java.util.Base64
 
+import java.util.Base64
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}

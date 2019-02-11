@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalatest.mockito.MockitoSugar
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HeaderCarrier
 import scala.util.{Failure, Success, Try}
 
 class EmailConnectorSpec extends WiremockSpec {

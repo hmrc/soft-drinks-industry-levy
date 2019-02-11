@@ -33,14 +33,14 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
 
   "should get successful response back" in {
     stubFor(get(urlPathEqualTo("/tax-enrolments/subscriptions/1234567890"))
-    .willReturn(aResponse()
-      .withStatus(200)
-      .withBody(Json.toJson(req).toString())
-    ))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withBody(Json.toJson(req).toString())
+      ))
 
-  val response: TaxEnrolmentsSubscription = TestConnector.getSubscription("1234567890").futureValue
+    val response: TaxEnrolmentsSubscription = TestConnector.getSubscription("1234567890").futureValue
     response mustBe req
-}
+  }
 
   "should subscribe successfully" in {
     stubFor(put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))

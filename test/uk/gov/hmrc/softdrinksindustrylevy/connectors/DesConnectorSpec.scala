@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.LocalDate
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
@@ -25,10 +23,8 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.models
-import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbSubRequest, sub}
 
 class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
@@ -36,33 +32,33 @@ class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Ma
 
   test("∀ Activity: parse(toJson(x)) = x") {
     forAll { r: Activity =>
-      Json.toJson(r).as[Activity] should be (r)
+      Json.toJson(r).as[Activity] should be(r)
     }
   }
 
   test("∀ UkAddress: parse(toJson(x)) = x") {
     forAll { r: Address =>
-      Json.toJson(r).as[Address] should be (r)
+      Json.toJson(r).as[Address] should be(r)
     }
   }
 
   test("∀ Contact: parse(toJson(x)) = x") {
     forAll { r: Contact =>
-      Json.toJson(r).as[Contact] should be (r)
+      Json.toJson(r).as[Contact] should be(r)
     }
   }
 
   test("∀ Subscription: parse(toJson(x)) = x") {
     forAll { r: Subscription =>
-      Json.toJson(r).as[Subscription] should be (r)
+      Json.toJson(r).as[Subscription] should be(r)
     }
   }
 
 }
 
 class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
-  import play.api.test.Helpers.SERVICE_UNAVAILABLE
 
+  import play.api.test.Helpers.SERVICE_UNAVAILABLE
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 
@@ -91,51 +87,14 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
       response.map { x => x mustBe None }
     }
 
-    "create subscription" in {
+    "create subscription should throw an exception if des is unavailable" in {
 
       stubFor(post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
         .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
-      val response = the [Exception] thrownBy(TestDesConnector.createSubscription(sub, "utr", "11111111119").futureValue)
-    response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+      val response = the[Exception] thrownBy (TestDesConnector.createSubscription(sub, "utr", "11111111119").futureValue)
+      response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
     }
-
   }
 
-  val sub = Subscription(
-    "1234567890",
-    Some("1234"),
-    "org name",
-    None,
-    UkAddress(List("line1"), "AA11AA"),
-    activity,
-    LocalDate.now(),
-    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
-    List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
-    Contact(None, None, "0843858438", "test@test.com"),
-    None,
-    None
-  )
-
-  def internalActivity(produced: LitreBands = zero,
-                       copackedAll: LitreBands = zero,
-                       imported: LitreBands = zero,
-                       copackedByOthers: LitreBands = zero) = {
-    InternalActivity(
-      Map(
-        ProducedOwnBrand -> produced,
-        CopackerAll -> copackedAll,
-        Imported -> imported,
-        Copackee -> copackedByOthers
-      ), false
-    )
-  }
-
-  lazy val zero: LitreBands = (0, 0)
-
-  lazy val activity = internalActivity(
-    produced = (1, 2),
-    copackedAll = (3, 4),
-    imported = (5, 6)
-  )
 }

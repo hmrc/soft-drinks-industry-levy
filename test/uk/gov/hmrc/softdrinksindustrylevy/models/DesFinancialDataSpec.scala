@@ -16,14 +16,9 @@
 
 package sdil.models.des
 
-import java.time._
 import org.scalatest.{ FlatSpec, Matchers }
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Prop._
-import org.scalacheck.Gen
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import cats.implicits._
 
 class DesFinancialDataSpec extends FlatSpec with Matchers with PropertyChecks {
 
