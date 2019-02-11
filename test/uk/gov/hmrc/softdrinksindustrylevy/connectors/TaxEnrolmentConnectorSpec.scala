@@ -16,19 +16,15 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlPathEqualTo, urlEqualTo}
-import org.scalatest.Matchers
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, put, stubFor, urlPathEqualTo, urlEqualTo}
 import play.api.libs.json.Json
-import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.Future
 
 class TaxEnrolmentConnectorSpec extends WiremockSpec {
 
   object TestConnector extends TaxEnrolmentConnector(httpClient, environment.mode, configuration) {
     override val callbackUrl: String = mockServerUrl
-    override lazy val taxUrl: String = mockServerUrl
+    override lazy val taxEnrolmentsUrl: String = mockServerUrl
     override val serviceName: String = "service-name"
   }
 
@@ -46,5 +42,22 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
     response mustBe req
 }
 
+  "should subscribe successfully" in {
+    stubFor(put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
+      .willReturn(aResponse()
+        .withStatus(200)
+        .withBody(Json.toJson(req).toString())
+      ))
+    val res = TestConnector.subscribe("safe1", "1234").futureValue
+    res.status mustBe 200
+  }
 
+  "should handle errors for create subscribtion" in {
+    stubFor(put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
+      .willReturn(aResponse()
+        .withStatus(400)
+      ))
+    val res = TestConnector.subscribe("safe1", "1234").futureValue
+    res.status mustBe 400
+  }
 }

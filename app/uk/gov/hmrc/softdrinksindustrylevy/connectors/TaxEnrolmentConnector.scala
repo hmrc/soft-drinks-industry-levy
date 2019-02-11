@@ -53,7 +53,7 @@ class TaxEnrolmentConnector(http: HttpClient,
   }
 
   private def subscribeUrl(subscriptionId: String) =
-    s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId/subscriber"
+    s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId/subscriber"
 
   private def requestBody(safeId: String, formBundleNumber: String): JsObject = {
     Json.obj(
