@@ -115,7 +115,7 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // ================================================================================
   import scoverage.ScoverageKeys._
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
-  coverageMinimum := 40
+  coverageMinimum := 70
   coverageFailOnMinimum := false
   coverageHighlighting := true
   ScoverageKeys.coverageExcludedFiles :=
