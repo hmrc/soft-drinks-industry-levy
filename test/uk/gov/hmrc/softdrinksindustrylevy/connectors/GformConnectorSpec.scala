@@ -15,11 +15,10 @@
  */
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
-import java.util.Base64
 
+import java.util.Base64
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.hmrc.http.HeaderCarrier
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
 class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwaitTimeout {

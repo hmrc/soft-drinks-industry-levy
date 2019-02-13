@@ -25,7 +25,7 @@ import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbSubRequest
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 

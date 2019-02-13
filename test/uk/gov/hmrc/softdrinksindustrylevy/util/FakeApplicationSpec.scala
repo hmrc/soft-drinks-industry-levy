@@ -45,7 +45,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
   lazy val actorSystem = Play.current.actorSystem
 
-  private lazy val wsClient = app.injector.instanceOf[WSAPI].client
+  lazy val wsClient = app.injector.instanceOf[WSAPI].client
   lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, auditConnector, wsClient,actorSystem)
 
 

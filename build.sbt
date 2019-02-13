@@ -1,3 +1,4 @@
+import scoverage.ScoverageKeys
 // ================================================================================
 // Plugins
 // ================================================================================
@@ -108,3 +109,15 @@ initialCommands in console := "import cats.implicits._"
 majorVersion := 0
 
 uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+
+// ================================================================================
+// Testing
+// ================================================================================
+  import scoverage.ScoverageKeys._
+  ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
+  coverageMinimum := 70
+  coverageFailOnMinimum := false
+  coverageHighlighting := true
+  ScoverageKeys.coverageExcludedFiles :=
+    """<empty>;.*javascript.*;.*models.*;.*Routes.*;.*testonly.*;
+      |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin

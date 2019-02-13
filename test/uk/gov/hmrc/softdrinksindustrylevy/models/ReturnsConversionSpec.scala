@@ -17,13 +17,12 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.{Clock, LocalDate, LocalDateTime, ZoneId}
-
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main.JsonSchemaFactory
 import org.scalatest.prop.PropertyChecks
 import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json.Json
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.arbReturnReq
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
 

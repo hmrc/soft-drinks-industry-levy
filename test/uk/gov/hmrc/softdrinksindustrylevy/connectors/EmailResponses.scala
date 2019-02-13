@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package sdil.models.des
+package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.scalatest.{ FlatSpec, Matchers }
-import org.scalatest.prop.PropertyChecks
-import play.api.libs.json._
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlPathEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 
-class DesFinancialDataSpec extends FlatSpec with Matchers with PropertyChecks {
+object EmailResponses {
 
-  "A FinancialDataResponse" should "be readable from DES's sample record" in {
-    val stream = getClass.getResourceAsStream("/des-financial-data.sample.json")
-    import FinancialTransaction._
-
-    val obj = Json.parse(stream).as[FinancialTransactionResponse]
-    obj.idType == "ZSDIL"
+  def send(success: Boolean = true) : StubMapping = {
+    stubFor(
+      post(urlPathEqualTo("/hmrc/email"))
+        .willReturn(
+          aResponse()
+            .withStatus(
+              if (success) 200 else 500
+            )
+            .withBody("")
+        )
+    )
   }
-
 }

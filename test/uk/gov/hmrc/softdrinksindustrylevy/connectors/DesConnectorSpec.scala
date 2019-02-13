@@ -21,9 +21,10 @@ import org.scalatest._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
+import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.gen.{arbActivity, arbAddress, arbContact, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbSubRequest, sub}
 
 class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
 
@@ -31,33 +32,33 @@ class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Ma
 
   test("∀ Activity: parse(toJson(x)) = x") {
     forAll { r: Activity =>
-      Json.toJson(r).as[Activity] should be (r)
+      Json.toJson(r).as[Activity] should be(r)
     }
   }
 
   test("∀ UkAddress: parse(toJson(x)) = x") {
     forAll { r: Address =>
-      Json.toJson(r).as[Address] should be (r)
+      Json.toJson(r).as[Address] should be(r)
     }
   }
 
   test("∀ Contact: parse(toJson(x)) = x") {
     forAll { r: Contact =>
-      Json.toJson(r).as[Contact] should be (r)
+      Json.toJson(r).as[Contact] should be(r)
     }
   }
 
   test("∀ Subscription: parse(toJson(x)) = x") {
     forAll { r: Subscription =>
-      Json.toJson(r).as[Subscription] should be (r)
+      Json.toJson(r).as[Subscription] should be(r)
     }
   }
 
 }
 
 class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
-  import play.api.test.Helpers.SERVICE_UNAVAILABLE
 
+  import play.api.test.Helpers.SERVICE_UNAVAILABLE
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 
@@ -75,6 +76,24 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
 
       val response: Future[Option[Subscription]] = TestDesConnector.retrieveSubscriptionDetails("utr", "11111111119")
       response.map { x => x mustBe None }
+    }
+
+    "return : None financial data when nothing is returned" in {
+
+      stubFor(get(urlEqualTo("/enterprise/financial-data/ZSDL/"))
+        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+
+      val response: Future[Option[des.FinancialTransactionResponse]] = TestDesConnector.retrieveFinancialData("utr", None)
+      response.map { x => x mustBe None }
+    }
+
+    "create subscription should throw an exception if des is unavailable" in {
+
+      stubFor(post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
+        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+
+      val response = the[Exception] thrownBy (TestDesConnector.createSubscription(sub, "utr", "11111111119").futureValue)
+      response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
     }
   }
 

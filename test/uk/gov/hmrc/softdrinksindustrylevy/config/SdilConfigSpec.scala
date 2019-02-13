@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package sdil.models.des
+package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import org.scalatest.{ FlatSpec, Matchers }
-import org.scalatest.prop.PropertyChecks
-import play.api.libs.json._
+import java.time.LocalDate
 
-class DesFinancialDataSpec extends FlatSpec with Matchers with PropertyChecks {
+import uk.gov.hmrc.play.test.UnitSpec
 
-  "A FinancialDataResponse" should "be readable from DES's sample record" in {
-    val stream = getClass.getResourceAsStream("/des-financial-data.sample.json")
-    import FinancialTransaction._
+class SdilConfigSpec extends UnitSpec {
 
-    val obj = Json.parse(stream).as[FinancialTransactionResponse]
-    obj.idType == "ZSDIL"
+  val timeWrap = LocalDate.of(2019, 1, 8)
+
+  "the sdil config should return today as the date specified by time wrap if present " in {
+    SdilConfig(Some(timeWrap)).today.toString shouldBe "2019-01-08"
+  }
+
+  "the sdil config should return today as the date if the timeWrap is not specified" in {
+    SdilConfig().today shouldNot be("2019-01-08")
   }
 
 }

@@ -16,14 +16,9 @@
 
 package sdil.models
 
-import java.time._
 import org.scalatest.{ FlatSpec, Matchers }
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Prop._
-import org.scalacheck.Gen
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
-import cats.implicits._
 import java.time.LocalDate
 
 class FinancialLineItemSpec extends FlatSpec with Matchers with PropertyChecks {

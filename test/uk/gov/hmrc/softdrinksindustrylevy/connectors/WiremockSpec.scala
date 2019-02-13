@@ -18,25 +18,41 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.play.it.Port
+import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll {
-  val port = Port.randomAvailable
+import scala.concurrent.ExecutionContext
+
+trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll
+  with ScalaFutures {
+  val port = WireMockSupport.port
   val mockServer = new WireMockServer(port)
 
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
   val mockServerUrl = s"http://localhost:$port"
+
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     mockServer.start()
-    WireMock.configureFor("localhost", port)
+    WireMock.configureFor("localhost", WireMockSupport.port)
   }
+
+  protected val baseUrl = s"http://localhost:${WireMockSupport.port}"
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
     WireMock.reset()
+  }
+
+  object WireMockSupport {
+    val port = 11111
   }
 
   override protected def afterAll(): Unit = {
