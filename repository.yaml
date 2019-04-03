@@ -5,3 +5,4 @@ leakDetectionExemptions:
   filePaths:
     # We have a dependency with a version that looks similar to an IP address
     - '/project/MicroService.scala'
+repoVisibility: public_0C3F0CE3E6E6448FAD341E7BFA50FCD333E06A20CFF05FCACE61154DDBBADF71
