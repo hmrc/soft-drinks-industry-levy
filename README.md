@@ -3,7 +3,7 @@
 [ ![Download](https://api.bintray.com/packages/hmrc/releases/soft-drinks-industry-levy/images/download.svg) ](https://bintray.com/hmrc/releases/soft-drinks-industry-levy/_latestVersion)
 
 ## About
-The Soft Drinks Industry Levy (SDIL) digital service is split into a number of different microservices all serving specific functions which are listed below:
+The Soft Drinks Industry Levy (SDIL) digital service is split into a number of different microservices all serving specific functions which are listed below: 
 
 Liability tool - Standalone frontend service that is used to check a company's liability in regards to the levy.
 
