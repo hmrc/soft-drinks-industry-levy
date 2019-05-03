@@ -117,6 +117,32 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
       contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
     }
 
+
+    "return Status: Exception rethrown for error code other than 11000" in {
+      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
+        .thenReturn(Future.successful(validSubscriptionResponse))
+
+      val testLastError = LastError(
+        ok = false,
+        errmsg = None,
+        code = Some(1),
+        lastOp = None,
+        n = 2,
+        singleShard = None,
+        updatedExisting = false,
+        upserted = None,
+        wnote = None,
+        wtimeout = false,
+        waited = None,
+        wtime = None)
+
+      when(mockBuffer.insert(any())(any())).thenReturn(Future.failed(testLastError))
+
+        the [LastError] thrownBy contentAsString(testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
+        .withBody(validCreateSubscriptionRequest)))
+
+    }
+
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
@@ -199,6 +225,47 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe NOT_FOUND
+    }
+  }
+
+  "retrieveSubscriptionDetails" should {
+    "retrieveSubscriptionDetails returning None" in {
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful None)
+
+      val response = testSdilController.retrieveSubscriptionDetails("", "123")(FakeRequest())
+      status(response) mustBe NOT_FOUND
+    }
+
+    "retrieveSubscriptionDetails returning Some" in {
+      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful Some(deregisteredSubscription))
+
+      val response = testSdilController.retrieveSubscriptionDetails("", "123")(FakeRequest())
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.toJson(validCreateSubscriptionRequest)
+    }
+  }
+
+  "checkSmallProducerStatus" should {
+    "retrieveSubscriptionDetails returning None" in {
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful None)
+
+      val response = testSdilController.checkSmallProducerStatus("123", "123", 2018, 1)(FakeRequest())
+      status(response) mustBe OK
+      contentAsString(response) mustBe "false"
+    }
+
+    "retrieveSubscriptionDetails returning Some of non-small producer" in {
+      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful Some(deregisteredSubscription))
+
+      val response = testSdilController.checkSmallProducerStatus("123", "123", 2018, 1)(FakeRequest())
+      status(response) mustBe OK
+      contentAsString(response) mustBe "false"
     }
   }
 }
