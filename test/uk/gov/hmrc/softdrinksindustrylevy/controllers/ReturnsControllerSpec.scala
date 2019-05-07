@@ -1,0 +1,63 @@
+/*
+ * Copyright 2019 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.softdrinksindustrylevy.controllers
+
+import java.time.Clock
+
+import org.scalatest.mockito.MockitoSugar
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import com.softwaremill.macwire._
+import org.mockito.ArgumentMatchers.{any, eq => matching}
+import org.mockito.Mockito.when
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
+import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+
+class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar {
+  val mockAuthConnector: AuthConnector = mock[AuthConnector]
+  val mockDesConnector: DesConnector = mock[DesConnector]
+  val mockSdilConfig = mock[SdilConfig]
+
+  implicit val mockExecutionContext = mock[ExecutionContext]
+  implicit def mockClock: Clock = Clock.systemDefaultZone()
+
+  val testReturnsContoller = wire[ReturnsController]
+
+  when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
+    .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
+
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any())).thenReturn(Future.successful(()))
+
+  "variable method" should {
+    "return list of variables" in {
+      val testReturnPeriod = ReturnPeriod(2018, 1)
+      val testUtr = "someTestUtr"
+      testPersistence.returns.update(testUtr, testReturnPeriod, mock[SdilReturn])
+      val response = testReturnsContoller.variable(testUtr)(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) mustBe s"""[{\"year\":${testReturnPeriod.year},\"quarter\":${testReturnPeriod.quarter}}]"""
+    }
+  }
+}
