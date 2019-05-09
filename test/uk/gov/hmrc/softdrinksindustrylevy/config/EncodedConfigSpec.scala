@@ -16,11 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import java.util.Map.Entry
-
-import com.typesafe.config.{ConfigParseOptions, ConfigSyntax, ConfigValue}
-import com.typesafe.config.impl.Parseable
-import scala.collection.JavaConverters._
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 class EncodedConfigSpec extends FakeApplicationSpec {
