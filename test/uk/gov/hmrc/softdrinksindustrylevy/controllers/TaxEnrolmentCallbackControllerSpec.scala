@@ -90,6 +90,12 @@ class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with Mockit
           matching("XZSDIL0009999")
         )(any(), any())
     }
+
+    "body state other than SUCCEEDED" in {
+      val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "FAILED")))
+
+      status(res) mustBe NO_CONTENT
+    }
   }
 
   val mockBuffer = mock[MongoBufferService]
