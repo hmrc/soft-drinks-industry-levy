@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import java.time.LocalDate
+
 import com.softwaremill.macwire.wire
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
@@ -24,12 +26,14 @@ import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
-import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse}
+import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, ReturnChargeInterest, Unknown}
+import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubItem}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -140,4 +144,96 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
     status(response) mustBe 200
   }
+
+  "convert" should {
+    val testDate = LocalDate.of(2019, 5, 9)
+    val testBigDecimal = BigDecimal(123)
+    val emptySubItem = SubItem("",
+      testDate, testBigDecimal, None, None, None, None, None, None, None,
+      None, None, None, None, None, None, None, None, None, None
+    )
+
+    "empty FinancialTransaction returns Nil" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, None, None, testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      BalanceController.convert(testFinancialTransaction) mustBe Nil
+    }
+
+    "FinancialTransaction in.contractAccountCategory 32" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, Some("32"), None, None,
+        None, None, None, None, None, None, testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(Unknown(testDate, testFinancialTransaction.mainType.getOrElse("Unknown"), -testBigDecimal))
+      result mustBe expectedResult
+    }
+
+    "FinancialTransaction case (4815,2215)" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, Some("4815"), Some("2215"), testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(ReturnChargeInterest(testDate, -testBigDecimal))
+      result mustBe expectedResult
+    }
+
+    "FinancialTransaction case (4820,1540)" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, Some("4820"), Some("1540"), testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(CentralAssessment(testDate, -testBigDecimal))
+      result mustBe expectedResult
+    }
+
+    "FinancialTransaction case (4825,2215)" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, Some("4825"), Some("2215"), testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(CentralAsstInterest(testDate, -testBigDecimal))
+      result mustBe expectedResult
+    }
+
+    "FinancialTransaction case (4830,1540)" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, Some("4830"), Some("1540"), testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(OfficerAssessment(testDate, -testBigDecimal))
+      result mustBe expectedResult
+    }
+
+    "FinancialTransaction case (4835,2215)" in {
+      val testFinancialTransaction = FinancialTransaction("",
+        None, None, None, None, None, None, None, None,
+        None, None, None, None, Some("4835"), Some("2215"), testBigDecimal,
+        None, None, List(emptySubItem)
+      )
+
+      val result = BalanceController.convert(testFinancialTransaction)
+      val expectedResult = List(OfficerAsstInterest(testDate, -testBigDecimal))
+      result mustBe expectedResult
+    }
+  }
+
 }
