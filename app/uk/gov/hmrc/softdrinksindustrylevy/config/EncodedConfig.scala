@@ -32,7 +32,6 @@ object EncodedConfig {
     in.entrySet.asScala.foldLeft(in){case (config, entry) =>
       val key = entry.getKey
       if (key.endsWith("-b64encoded")) {
-        val newkey = key.replace("-b64encoded","")
         val value = new String(decoder.decode(in.getString(key)), "UTF-8")
         val newVal = Parseable.newString(value, ConfigParseOptions.defaults).parse()
         config.withValue(key.replace("-b64encoded",""), newVal)

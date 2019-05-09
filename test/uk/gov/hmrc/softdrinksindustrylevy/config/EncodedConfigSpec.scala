@@ -16,19 +16,24 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import uk.gov.hmrc.play.test.UnitSpec
+import java.util.Map.Entry
 
-class EncodedConfigSpec extends UnitSpec {
+import com.typesafe.config.{ConfigParseOptions, ConfigSyntax, ConfigValue}
+import com.typesafe.config.impl.Parseable
+import scala.collection.JavaConverters._
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+
+class EncodedConfigSpec extends FakeApplicationSpec {
 
   "EncodedConfig" should {
     val testDecoded = "I love scala"
     val testEncoded = "SSBsb3ZlIHNjYWxh"
     "b64encode" in {
-      EncodedConfig.b64encode(testDecoded) shouldBe testEncoded
+      EncodedConfig.b64encode(testDecoded) mustBe testEncoded
     }
 
     "decoder" in {
-      EncodedConfig.decoder.decode(testEncoded).map(_.toChar).mkString shouldBe testDecoded
+      EncodedConfig.decoder.decode(testEncoded).map(_.toChar).mkString mustBe testDecoded
     }
   }
 }

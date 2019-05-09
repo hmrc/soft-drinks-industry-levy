@@ -24,7 +24,9 @@ import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers.any
-import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSugar {
   val minutesTestVal: Long = 59
@@ -57,7 +59,7 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
     }
   }
 
-  "vals" should {
+  "exceptions" should {
 
     "jobEnabled throw exception" in {
       val configMock: Configuration = mock[Configuration]
@@ -95,7 +97,6 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         mock[MongoBufferService],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.overduePeriodMinutes"
     }
-
 
     "jobInterval throw exception" in {
       val configMock: Configuration = mock[Configuration]
