@@ -30,7 +30,9 @@ libraryDependencies ++= Seq(
   "org.scalatest"               %% "scalatest"           % "2.2.6",
   "org.scalatestplus.play"      %% "scalatestplus-play"  % "2.0.1",
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.8.0-play-25",
-  "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3"
+  "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
+  "com.typesafe.akka"           %% "akka-testkit"        % "2.5.22",
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.13.0-play-25"
 ).map(_ % "test")
 
 // ================================================================================
@@ -114,10 +116,10 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // Testing
 // ================================================================================
   import scoverage.ScoverageKeys._
-  ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
-  coverageMinimum := 70
+  ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
+  coverageMinimum := 80
   coverageFailOnMinimum := false
   coverageHighlighting := true
   ScoverageKeys.coverageExcludedFiles :=
-    """<empty>;.*javascript.*;.*models.*;.*Routes.*;.*testonly.*;
+    """<empty>;.*javascript;.*Routes.*;.*testonly.*;
       |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin
