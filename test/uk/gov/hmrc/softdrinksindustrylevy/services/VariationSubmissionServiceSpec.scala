@@ -20,17 +20,13 @@ import java.time.Instant
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VariationSubmissionServiceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach {
-
-  protected val databaseName: String = "test-" + this.getClass.getSimpleName
-  protected val mongoUri: String     = s"mongodb://127.0.0.1:27017/$databaseName"
-  implicit val mongoConnector = MongoConnector(mongoUri)
+class VariationSubmissionServiceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
 
   private val service = new VariationSubmissionService
 

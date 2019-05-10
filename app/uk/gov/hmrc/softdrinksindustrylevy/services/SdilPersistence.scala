@@ -68,8 +68,8 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
     import json.internal._
     implicit val formatWrapper = Json.format[Wrapper]
 
-    override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
-      subscriptionsMongo.insert(Wrapper(key, value)).map(_ => ())
+    override def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
+      subscriptionsMongo.insert(Wrapper(utr, value)).map(_ => ())
     }
 
     override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] = {
@@ -112,11 +112,7 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       )
     }
 
-    def update(
-      utr: String,
-      period: ReturnPeriod,
-      value: SdilReturn
-    )(implicit ec: EC): Future[Unit] = {
+    def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
       import returnsMongo._
 
       val data = Wrapper(utr, period, value)
@@ -134,10 +130,7 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       }
     }.map{_ => ()}
 
-    def get(
-      utr: String,
-      period: ReturnPeriod
-    )(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
+    def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
       returnsMongo.find(
         "utr" -> utr,
         "period.year" -> period.year,
@@ -147,17 +140,12 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       }
     }
 
-    def list(
-      utr: String
-    )(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
+    def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
       returnsMongo.find(
         "utr" -> utr
       ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
 
-    def listVariable(
-      utr: String
-
-    )(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
+    def listVariable(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
       val since = LocalDate.now.minusYears(4)
 
       returnsMongo.find(
