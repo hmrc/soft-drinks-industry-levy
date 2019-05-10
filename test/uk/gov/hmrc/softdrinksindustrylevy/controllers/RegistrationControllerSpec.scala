@@ -200,6 +200,78 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
       status(response) mustBe OK
     }
 
+    "Returns OK for TaxEnrolmentsSubscription state of ERROR" in {
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
+      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        Future.successful(
+          TaxEnrolmentsSubscription(
+            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+            "safe-id",
+            "ERROR",
+            None)
+        )
+      )
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+      when(mockBuffer.remove(any())(any()))
+        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe OK
+    }
+
+    "Returns ACCEPTED for TaxEnrolmentsSubscription state of PENDING" in {
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
+      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        Future.successful(
+          TaxEnrolmentsSubscription(
+            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+            "safe-id",
+            "PENDING",
+            None)
+        )
+      )
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+      when(mockBuffer.remove(any())(any()))
+        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe ACCEPTED
+    }
+
+    "Returns OK for TaxEnrolmentsSubscription state of anything else" in {
+      val wrapper = SubscriptionWrapper(
+        "safe-id",
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+        formBundleNumber)
+      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        Future.successful(
+          TaxEnrolmentsSubscription(
+            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+            "safe-id",
+            "INVALIDSTRING",
+            None)
+        )
+      )
+      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+      when(mockBuffer.remove(any())(any()))
+        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+
+      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+      status(response) mustBe OK
+    }
+
     "return Status: OK for subscription for a sub that doesn't have an enrolment but is in the pending queue (Mongo)" +
       " n.b. an error should be logged" in {
       val wrapper = SubscriptionWrapper(
