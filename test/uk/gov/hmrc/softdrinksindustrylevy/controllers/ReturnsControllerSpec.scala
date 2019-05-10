@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
 import org.scalatest.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
@@ -33,6 +33,7 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -119,8 +120,8 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   "RichLong" should {
     "asMilliseconds" in {
-      val seventhMay2019 = 1557243435251L
-      testReturnsContoller.RichLong(seventhMay2019).asMilliseconds.toString mustBe "2019-05-07T16:37:15.251"
+      val testDate = LocalDateTime.now()
+      testReturnsContoller.RichLong(testDate.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli).asMilliseconds.toString mustBe testDate.toString
     }
   }
 
