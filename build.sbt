@@ -19,20 +19,20 @@ PlayKeys.playDefaultPort := 8701
 // Testing
 // ================================================================================
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.8.11",
-  "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.8.11.2",
-  "com.github.tomakehurst"      %  "wiremock"            % "2.18.0",
+  "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.9.8",
+  "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.9.8",
+  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.23.2",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
-  "org.jsoup"                   %  "jsoup"               % "1.11.3",
-  "org.mockito"                 %  "mockito-core"        % "2.19.1",
+  "org.jsoup"                   %  "jsoup"               % "1.12.1",
+  "org.mockito"                 %  "mockito-core"        % "2.27.0",
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
   "org.scalacheck"              %% "scalacheck"          % "1.14.0",
-  "org.scalatest"               %% "scalatest"           % "2.2.6",
-  "org.scalatestplus.play"      %% "scalatestplus-play"  % "2.0.1",
-  "uk.gov.hmrc"                 %% "hmrctest"            % "3.8.0-play-25",
+  "org.scalatest"               %% "scalatest"           % "3.0.7",
+  "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.2",
+  "uk.gov.hmrc"                 %% "hmrctest"            % "3.8.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.22",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.13.0-play-25"
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.14.0-play-26"
 ).map(_ % "test")
 
 // ================================================================================
@@ -43,17 +43,17 @@ scalaVersion := "2.11.12"
 libraryDependencies ++= Seq(
   ws,
   "com.github.fge"            %  "json-schema-validator" % "2.2.6",
-  "com.github.pureconfig"     %% "pureconfig"            % "0.9.1",
-  "com.softwaremill.macwire"  %% "macros"                % "2.3.1" % "provided",
-  "com.softwaremill.macwire"  %% "macrosakka"            % "2.3.1" % "provided",
-  "com.softwaremill.macwire"  %% "proxy"                 % "2.3.1",
-  "com.softwaremill.macwire"  %% "util"                  % "2.3.1",
-  "org.typelevel"             %% "cats-core"             % "1.1.0",
-  "uk.gov.hmrc"               %% "auth-client"           % "2.20.0-play-25",
-  "uk.gov.hmrc"               %% "bootstrap-play-25"     % "4.11.0",
-  "uk.gov.hmrc"               %% "mongo-lock"            % "6.12.0-play-25",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.19.0-play-25",
-  "org.scala-stm"             %% "scala-stm"             % "0.7"
+  "com.github.pureconfig"     %% "pureconfig"            % "0.11.0",
+  "com.softwaremill.macwire"  %% "macros"                % "2.3.2" % "provided",
+  "com.softwaremill.macwire"  %% "macrosakka"            % "2.3.2" % "provided",
+  "com.softwaremill.macwire"  %% "proxy"                 % "2.3.2",
+  "com.softwaremill.macwire"  %% "util"                  % "2.3.2",
+  "org.typelevel"             %% "cats-core"             % "1.6.0",
+  "uk.gov.hmrc"               %% "auth-client"           % "2.21.0-play-26",
+  "uk.gov.hmrc"               %% "bootstrap-play-26"     % "0.39.0",
+  "uk.gov.hmrc"               %% "mongo-lock"            % "6.12.0-play-26",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.19.0-play-26",
+  "org.scala-stm"             %% "scala-stm"             % "0.9.1"
 )
 
 resolvers ++= Seq(
