@@ -21,12 +21,12 @@ import java.io.PrintWriter
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
-import play.api.mvc.Action
+import play.api.mvc.{Action, ControllerComponents}
 import sdil.models.{ReturnPeriod, ReturnVariationData}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.AuthProviders
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
@@ -40,8 +40,9 @@ class VariationsController(
   gforms: GformConnector,
   variationSubmissions: VariationSubmissionService,
   returnSubmission: ReturnsVariationSubmissionService,
-  returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService
-) extends BaseController with I18nSupport {
+  returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService,
+  val cc: ControllerComponents
+) extends BackendController(cc) with I18nSupport {
 
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>

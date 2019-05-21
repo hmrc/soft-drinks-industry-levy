@@ -20,14 +20,16 @@ import akka.util.ByteString
 import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.ws.WSClient
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.RunMode
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadConnector(ws: WSClient,
                           val mode: Mode,
-                          val runModeConfiguration: Configuration)
-                         (implicit ec: ExecutionContext) extends ServicesConfig {
+                          val runModeConfiguration: Configuration,
+                          val runMode: RunMode)
+                         (implicit ec: ExecutionContext) extends ServicesConfig(runModeConfiguration, runMode) {
 
   val url: String = baseUrl("file-upload")
 

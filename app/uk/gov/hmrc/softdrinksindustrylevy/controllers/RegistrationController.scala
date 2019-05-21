@@ -28,7 +28,7 @@ import uk.gov.hmrc.auth.core.retrieve.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
@@ -44,8 +44,9 @@ class RegistrationController(val authConnector: AuthConnector,
                              buffer: MongoBufferService,
                              emailConnector: EmailConnector,
                              auditing: AuditConnector,
-                             persistence: SdilPersistence)
-  extends BaseController with AuthorisedFunctions {
+                             persistence: SdilPersistence,
+                             val cc: ControllerComponents)
+  extends BackendController(cc) with AuthorisedFunctions {
 
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] = {
     Action.async(parse.json) { implicit request =>

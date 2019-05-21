@@ -28,7 +28,7 @@ import sdil.models.des.FinancialTransactionResponse
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 
@@ -40,10 +40,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
                    val runModeConfiguration: Configuration,
+                   val runMode: RunMode,
                    persistence: SdilPersistence,
                    auditing: AuditConnector)
                   (implicit clock: Clock, executionContext: ExecutionContext)
-  extends ServicesConfig with OptionHttpReads with DesHelpers {
+  extends ServicesConfig(runModeConfiguration, runMode) with OptionHttpReads with DesHelpers {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "soft-drinks"

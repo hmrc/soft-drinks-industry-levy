@@ -22,14 +22,16 @@ import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.config.RunMode
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class GformConnector(http: HttpClient,
                      val mode: Mode,
-                     val runModeConfiguration: Configuration) extends ServicesConfig {
+                     val runModeConfiguration: Configuration,
+                     val runMode: RunMode) extends ServicesConfig(runModeConfiguration, runMode) {
 
   val gformUrl: String = baseUrl("gform")
 

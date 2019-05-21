@@ -25,11 +25,11 @@ import play.api.i18n.MessagesApi
 import play.api.inject.ApplicationLifecycle
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.softdrinksindustrylevy.services.DataCorrector
 import pureconfig._
 import pureconfig.configurable._
 import java.time.format._
 
+import pureconfig.generic.ProductHint
 import sdil.models.SdilReturn
 
 trait PlayWiring {

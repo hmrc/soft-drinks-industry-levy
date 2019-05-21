@@ -18,19 +18,18 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import play.api.Configuration
 import play.api.Mode.Mode
-import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class RosmConnector(val http: HttpClient,
                     val mode: Mode,
-                    val runModeConfiguration: Configuration)
-  extends ServicesConfig with DesHelpers {
+                    val runModeConfiguration: Configuration,
+                    val runMode: RunMode)
+  extends ServicesConfig(runModeConfiguration, runMode) with DesHelpers {
 
   val desURL: String = baseUrl("des")
   val serviceURL: String = "registration/organisation"
