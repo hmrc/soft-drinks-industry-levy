@@ -23,7 +23,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.ControllerComponents
 import play.api.{Application, ApplicationLoader, Play}
 import play.core.DefaultWebCommands
-import play.inject.ApplicationLifecycle
+import play.api.inject.{ApplicationLifecycle, DefaultApplicationLifecycle}
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
@@ -42,7 +42,8 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
       environment,
       sourceMapper = None,
       new DefaultWebCommands,
-      configuration
+      configuration,
+      new DefaultApplicationLifecycle
     )
 
     new SdilApplicationLoader().load(context)
