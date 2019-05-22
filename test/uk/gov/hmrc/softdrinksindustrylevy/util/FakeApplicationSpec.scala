@@ -16,12 +16,17 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
+import com.softwaremill.macwire._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
-import play.api.libs.ws.{WSAPI, WSClient}
+import play.api.libs.ws.WSClient
+import play.api.mvc.ControllerComponents
 import play.api.{Application, ApplicationLoader, Play}
 import play.core.DefaultWebCommands
+import play.inject.ApplicationLifecycle
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpClient, HttpClient}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilApplicationLoader
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
@@ -31,7 +36,7 @@ import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
 
 
-trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring {
+trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
   override def fakeApplication(): Application = {
     val context = ApplicationLoader.Context(
       environment,
@@ -45,9 +50,10 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
   lazy val actorSystem = Play.current.actorSystem
 
-  lazy val wsClient = app.injector.instanceOf[WSAPI].client
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, auditConnector, wsClient,actorSystem)
-
+  lazy val wsClient = app.injector.instanceOf[WSClient]
+  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
+  val servicesConfig = app.injector.instanceOf[ServicesConfig]
+  lazy val cc = app.injector.instanceOf[ControllerComponents]
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 

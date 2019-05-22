@@ -56,7 +56,7 @@ class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Ma
 
 }
 
-class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
+class DesConnectorSpecBehavioural extends WiremockSpec {
 
   import play.api.test.Helpers.SERVICE_UNAVAILABLE
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,7 +64,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec with MockitoSugar {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector extends DesConnector(httpClient, environment.mode, configuration, testPersistence, auditConnector) {
+  object TestDesConnector extends DesConnector(httpClient, environment.mode, servicesConfig, testPersistence, auditConnector) {
     override val desURL: String = mockServerUrl
   }
 

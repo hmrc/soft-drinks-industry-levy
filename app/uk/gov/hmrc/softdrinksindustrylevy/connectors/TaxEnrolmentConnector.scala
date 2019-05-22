@@ -29,12 +29,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentConnector(http: HttpClient,
                             val mode: Mode,
-                            val runModeConfiguration: Configuration,
-                            val runMode: RunMode) extends ServicesConfig(runModeConfiguration, runMode) {
+                            servicesConfig: ServicesConfig) {
 
-  val callbackUrl: String = getConfString("tax-enrolments.callback", "")
-  val serviceName: String = getConfString("tax-enrolments.serviceName", "")
-  lazy val taxEnrolmentsUrl: String = baseUrl("tax-enrolments")
+  val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
+  val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
+  lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
 
   def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {

@@ -27,26 +27,24 @@ import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-
-import scala.concurrent.stm.TMap
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
 
+import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
-                   val runModeConfiguration: Configuration,
-                   val runMode: RunMode,
+                   servicesConfig: ServicesConfig,
                    persistence: SdilPersistence,
                    auditing: AuditConnector)
                   (implicit clock: Clock, executionContext: ExecutionContext)
-  extends ServicesConfig(runModeConfiguration, runMode) with OptionHttpReads with DesHelpers {
+  extends DesHelpers(servicesConfig) with OptionHttpReads {
 
-  val desURL: String = baseUrl("des")
+  val desURL: String = servicesConfig.baseUrl("des")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 

@@ -25,7 +25,7 @@ import scala.concurrent.Future
 
 class RosmConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends RosmConnector(httpClient, environment.mode, configuration) {
+  object TestConnector extends RosmConnector(httpClient, environment.mode, servicesConfig) {
     override val desURL: String = mockServerUrl
   }
 

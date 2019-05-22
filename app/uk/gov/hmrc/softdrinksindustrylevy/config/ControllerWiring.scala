@@ -18,7 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import com.kenshoo.play.metrics.{Metrics, MetricsController, MetricsImpl}
 import com.softwaremill.macwire._
-import play.api.mvc.ControllerComponents
+import play.api.http.{DefaultFileMimeTypes, DefaultHttpErrorHandler, FileMimeTypesConfiguration, ParserConfiguration}
+import play.api.i18n.DefaultLangs
+import play.api.mvc.{ActionBuilder, AnyContent, ControllerComponents, DefaultActionBuilder, DefaultActionBuilderImpl, DefaultControllerComponents, DefaultPlayBodyParsers, Request}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.health.HealthController
 import uk.gov.hmrc.softdrinksindustrylevy.controllers._
@@ -40,6 +42,6 @@ trait ControllerWiring {
   lazy val variationsController: VariationsController = wire[VariationsController]
   lazy val returnsController: ReturnsController = wire[ReturnsController]
   lazy val balanceController: BalanceController = wire[BalanceController]
-  lazy val cc: ControllerComponents = wire[ControllerComponents]
 
+  val cc: ControllerComponents
 }

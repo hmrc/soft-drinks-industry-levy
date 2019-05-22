@@ -28,10 +28,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EmailConnector(http: HttpClient,
                      val mode: Mode,
-                     val runModeConfiguration: Configuration,
-                     val runMode: RunMode) extends ServicesConfig(runModeConfiguration, runMode) {
+                     servicesConfig: ServicesConfig){
 
-  val emailUrl: String = baseUrl("email")
+  val emailUrl: String = servicesConfig.baseUrl("email")
 
   def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(

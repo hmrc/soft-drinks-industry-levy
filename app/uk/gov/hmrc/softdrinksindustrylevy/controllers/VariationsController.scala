@@ -36,7 +36,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class VariationsController(
-  val messagesApi: MessagesApi,
+  override val messagesApi: MessagesApi,
   gforms: GformConnector,
   variationSubmissions: VariationSubmissionService,
   returnSubmission: ReturnsVariationSubmissionService,

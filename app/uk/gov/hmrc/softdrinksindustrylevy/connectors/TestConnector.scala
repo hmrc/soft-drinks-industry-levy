@@ -16,21 +16,18 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import play.api.Configuration
 import play.api.Mode.Mode
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.RunMode
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class TestConnector(http: HttpClient,
                     val mode: Mode,
-                    val runModeConfiguration: Configuration,
-                    val runMode: RunMode) extends ServicesConfig(runModeConfiguration, runMode) {
+                    servicesConfig: ServicesConfig) {
 
-  val resetURL: String = baseUrl("des")
+  val resetURL: String = servicesConfig.baseUrl("des")
 
   def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     http.GET(s"$resetURL/$url")

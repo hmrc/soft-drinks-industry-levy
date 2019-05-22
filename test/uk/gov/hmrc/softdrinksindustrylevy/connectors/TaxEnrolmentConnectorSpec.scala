@@ -22,7 +22,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class TaxEnrolmentConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends TaxEnrolmentConnector(httpClient, environment.mode, configuration) {
+  object TestConnector extends TaxEnrolmentConnector(httpClient, environment.mode, servicesConfig) {
     override val callbackUrl: String = mockServerUrl
     override lazy val taxEnrolmentsUrl: String = mockServerUrl
     override val serviceName: String = "service-name"

@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import java.time.LocalDate
 
 import org.scalatest.mockito.MockitoSugar
-import play.api.i18n.{Lang, Messages, MessagesApi}
+import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.api.mvc.{RequestHeader, Result}
 import play.mvc.Http
 import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, PaymentOnAccount, ReturnCharge, ReturnChargeInterest, ReturnPeriod}
@@ -83,7 +83,7 @@ class MessagesSpec extends UnitSpec with MockitoSugar{
     )
   )
 
-  implicit val messagesStub: Messages = Messages(mock[Lang], new MessagesApiStub(messagesMap))
+  implicit val messagesStub: Messages = MessagesImpl(mock[Lang], new MessagesApiStub(messagesMap))
 
   "messages" should {
     "ReturnCharge" in {

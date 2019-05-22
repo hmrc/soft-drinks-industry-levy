@@ -59,7 +59,7 @@ class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwai
     }
   }
 
-  lazy val testConnector = new GformConnector(httpClient, environment.mode, configuration) {
+  lazy val testConnector = new GformConnector(httpClient, environment.mode, servicesConfig) {
     override val gformUrl = mockServerUrl
   }
 

@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 class ContactFrontendConnectorSpec extends WiremockSpec {
 
-  object TestContactConnector extends ContactFrontendConnector(httpClient, environment.mode, configuration) {
+  object TestContactConnector extends ContactFrontendConnector(httpClient, environment.mode, configuration, runMode) {
     override lazy val contactFrontendUrl: String = mockServerUrl
   }
 

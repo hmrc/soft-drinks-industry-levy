@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 class FileUploadConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends FileUploadConnector(wsClient, environment.mode, configuration) {
+  object TestConnector extends FileUploadConnector(wsClient, environment.mode, servicesConfig) {
     override val url: String = mockServerUrl
   }
 
