@@ -46,7 +46,9 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  val testReturnsContoller = wire[ReturnsController]
+//  val testReturnsContoller = wire[ReturnsController]
+  val testReturnsContoller = app.injector.instanceOf[ReturnsController]
+
 
   override def beforeEach() {
     reset(mockDesConnector)

@@ -101,5 +101,7 @@ class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with Mockit
   val mockBuffer = mock[MongoBufferService]
   val mockEmail = mock[EmailConnector]
   val mockTaxEnrolments = mock[TaxEnrolmentConnector]
-  lazy val testController = wire[TaxEnrolmentCallbackController]
+//  lazy val testController = wire[TaxEnrolmentCallbackController]
+  lazy val testController = app.injector.instanceOf[TaxEnrolmentCallbackController]
+
 }

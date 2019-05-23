@@ -42,7 +42,9 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
-  val testBalanceController = wire[BalanceController]
+//  val testBalanceController = wire[BalanceController]
+  val testBalanceController = app.injector.instanceOf[BalanceController]
+
 
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier
 

@@ -46,7 +46,9 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
 
-  val testSdilController = wire[RegistrationController]
+//  val testSdilController = wire[RegistrationController]
+  val testSdilController = app.injector.instanceOf[RegistrationController]
+
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

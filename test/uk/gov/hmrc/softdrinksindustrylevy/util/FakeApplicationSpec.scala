@@ -54,7 +54,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
   lazy val wsClient = app.injector.instanceOf[WSClient]
   lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
   val servicesConfig = wire[ServicesConfig]
-  lazy val cc = wire[ControllerComponents]
+//  lazy val cc =   //wire[ControllerComponents]
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 

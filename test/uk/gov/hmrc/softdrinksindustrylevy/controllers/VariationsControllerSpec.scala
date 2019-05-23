@@ -46,8 +46,9 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
 
-  val controller: VariationsController = wire[VariationsController]
+//  val controller: VariationsController = wire[VariationsController]
 
+  val controller = app.injector.instanceOf[VariationsController]
   override def beforeEach() {
     reset(mockGformConnector)
     reset(mockVariationSubmissionService)
