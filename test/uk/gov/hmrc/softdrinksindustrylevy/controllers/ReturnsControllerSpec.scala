@@ -49,8 +49,6 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   lazy val cc = new SdilComponents(context).cc
   val testReturnsContoller = wire[ReturnsController]
-//  val testReturnsContoller = app.injector.instanceOf[ReturnsController]
-
 
   override def beforeEach() {
     reset(mockDesConnector)

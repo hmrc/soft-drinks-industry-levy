@@ -45,8 +45,6 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   lazy val cc = new SdilComponents(context).cc
   val testBalanceController = wire[BalanceController]
-//  val testBalanceController = app.injector.instanceOf[BalanceController]
-
 
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier
 

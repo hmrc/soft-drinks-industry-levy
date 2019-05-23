@@ -41,8 +41,6 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
 
   lazy val cc = new SdilComponents(context).cc
   val testRosmController = wire[RosmController]
-//  val testRosmController = app.injector.instanceOf[RosmController]
-
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

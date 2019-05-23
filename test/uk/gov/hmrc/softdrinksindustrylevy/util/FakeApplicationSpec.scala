@@ -19,8 +19,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.util
 import com.softwaremill.macwire._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
+import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ControllerComponents, MessagesControllerComponents}
 import play.api.{Application, ApplicationLoader, Play}
 import play.core.DefaultWebCommands
 import play.api.inject.{ApplicationLifecycle, DefaultApplicationLifecycle}
@@ -45,16 +46,13 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
     new DefaultApplicationLifecycle
   )
 
+  lazy val messagesApi = app.injector.instanceOf[MessagesApi]
+  lazy val wsClient = app.injector.instanceOf[WSClient]
+  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
+
   override def fakeApplication(): Application = {
     new SdilApplicationLoader().load(context)
   }
-
-  lazy val actorSystem = Play.current.actorSystem
-
-  lazy val wsClient = app.injector.instanceOf[WSClient]
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
-  val servicesConfig = wire[ServicesConfig]
-//  lazy val cc =   //wire[ControllerComponents]
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 

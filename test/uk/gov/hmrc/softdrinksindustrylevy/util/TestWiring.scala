@@ -21,12 +21,11 @@ import java.time.Clock
 
 import com.softwaremill.macwire._
 import play.api.Mode.Mode
-import play.api.i18n.{DefaultLangs, DefaultMessagesApi, MessagesApi}
-import play.api.{Configuration, Environment}
+import play.api.{Configuration, Environment, Play}
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
-import uk.gov.hmrc.play.bootstrap.config.{AuditingConfigProvider, RunMode}
+import uk.gov.hmrc.play.bootstrap.config.{AuditingConfigProvider, RunMode, ServicesConfig}
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpAuditing
 
 trait TestWiring {
@@ -39,6 +38,7 @@ trait TestWiring {
   lazy val runMode = wire[RunMode]
   lazy val environment: Environment = Environment.simple(new File("."))
   lazy val mode: Mode = environment.mode
-  lazy val messagesApi: MessagesApi = new DefaultMessagesApi()
   implicit def clock: Clock = Clock.systemDefaultZone()
+  lazy val actorSystem = Play.current.actorSystem
+  val servicesConfig = wire[ServicesConfig]
 }

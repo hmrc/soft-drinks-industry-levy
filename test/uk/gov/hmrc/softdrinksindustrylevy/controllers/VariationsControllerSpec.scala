@@ -24,7 +24,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
-import play.api.mvc.Request
+import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn, SmallProducer}
@@ -49,7 +49,6 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
   lazy val cc = new SdilComponents(context).cc
   val controller: VariationsController = wire[VariationsController]
-//  val controller = app.injector.instanceOf[VariationsController]
 
   override def beforeEach() {
     reset(mockGformConnector)

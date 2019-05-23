@@ -105,6 +105,4 @@ class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with Mockit
 
   lazy val cc = new SdilComponents(context).cc
   lazy val testController = wire[TaxEnrolmentCallbackController]
-//  lazy val testController = app.injector.instanceOf[TaxEnrolmentCallbackController]
-
 }

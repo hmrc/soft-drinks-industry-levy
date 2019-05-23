@@ -49,8 +49,6 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
   lazy val cc = new SdilComponents(context).cc
   val testSdilController = wire[RegistrationController]
-//  val testSdilController = app.injector.instanceOf[RegistrationController]
-
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
