@@ -29,6 +29,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, _}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 
 import scala.concurrent.Future
 
@@ -37,8 +38,10 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-//  val testRosmController = wire[RosmController]
-  val testRosmController = app.injector.instanceOf[RosmController]
+
+  lazy val cc = new SdilComponents(context).cc
+  val testRosmController = wire[RosmController]
+//  val testRosmController = app.injector.instanceOf[RosmController]
 
 
   implicit val hc: HeaderCarrier = new HeaderCarrier

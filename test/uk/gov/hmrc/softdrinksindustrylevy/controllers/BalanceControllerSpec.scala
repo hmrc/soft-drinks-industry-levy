@@ -31,6 +31,7 @@ import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubI
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
@@ -42,8 +43,9 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
-//  val testBalanceController = wire[BalanceController]
-  val testBalanceController = app.injector.instanceOf[BalanceController]
+  lazy val cc = new SdilComponents(context).cc
+  val testBalanceController = wire[BalanceController]
+//  val testBalanceController = app.injector.instanceOf[BalanceController]
 
 
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier

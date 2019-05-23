@@ -29,6 +29,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 
 import scala.concurrent.Future
 
@@ -101,7 +102,9 @@ class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with Mockit
   val mockBuffer = mock[MongoBufferService]
   val mockEmail = mock[EmailConnector]
   val mockTaxEnrolments = mock[TaxEnrolmentConnector]
-//  lazy val testController = wire[TaxEnrolmentCallbackController]
-  lazy val testController = app.injector.instanceOf[TaxEnrolmentCallbackController]
+
+  lazy val cc = new SdilComponents(context).cc
+  lazy val testController = wire[TaxEnrolmentCallbackController]
+//  lazy val testController = app.injector.instanceOf[TaxEnrolmentCallbackController]
 
 }

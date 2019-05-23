@@ -37,15 +37,15 @@ import scala.concurrent.{Future, ExecutionContext => EC}
 
 
 trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
-  override def fakeApplication(): Application = {
-    val context = ApplicationLoader.Context(
-      environment,
-      sourceMapper = None,
-      new DefaultWebCommands,
-      configuration,
-      new DefaultApplicationLifecycle
-    )
+  protected val context = ApplicationLoader.Context(
+    environment,
+    sourceMapper = None,
+    new DefaultWebCommands,
+    configuration,
+    new DefaultApplicationLifecycle
+  )
 
+  override def fakeApplication(): Application = {
     new SdilApplicationLoader().load(context)
   }
 
