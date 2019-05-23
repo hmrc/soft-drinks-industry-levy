@@ -46,7 +46,7 @@ class SdilComponents(context: Context)
     with ConfigWiring
     with HttpFiltersComponents {
 
-  override lazy val configuration: Configuration = decodeConfig(context.initialConfiguration)
+  override lazy val configuration: Configuration = DefaultBase64ConfigDecoder.decodeConfig(context.initialConfiguration)
   override def errorHandler: HttpErrorHandler = wire[JsonErrorHandler]
   override implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
   override def httpClient: HttpClient = wire[DefaultHttpClient]
