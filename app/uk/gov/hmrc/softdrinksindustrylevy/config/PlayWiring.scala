@@ -28,7 +28,7 @@ import pureconfig._
 import pureconfig.configurable._
 import pureconfig.generic.ProductHint
 import sdil.models.SdilReturn
-
+import pureconfig.generic.auto._
 import scala.concurrent.ExecutionContext
 
 trait PlayWiring {

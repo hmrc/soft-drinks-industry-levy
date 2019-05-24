@@ -48,7 +48,7 @@ trait ConnectorWiring {
   lazy val testConnector: TestConnector = wire[TestConnector]
   lazy val serviceConfig: ServicesConfig = wire[ServicesConfig]
 
-  val appName = configuration.getString("appName").get
+  val appName = configuration.get[String]("appName")
   lazy val auditingConfigProvider: AuditingConfigProvider= wire[AuditingConfigProvider]
   lazy val runMode: RunMode = wire[RunMode]
   lazy val auditingConfig: AuditingConfig = auditingConfigProvider.get()
