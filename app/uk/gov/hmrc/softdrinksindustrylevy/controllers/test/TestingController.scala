@@ -50,5 +50,4 @@ class TestingController(override val messagesApi: MessagesApi,
       case None => NotFound
     }
   }
-
 }

@@ -36,5 +36,4 @@ class RosmConnector(val http: HttpClient,
                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] = {
     desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)
   }
-
 }

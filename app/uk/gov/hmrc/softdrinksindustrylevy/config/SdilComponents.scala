@@ -16,21 +16,21 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
+import com.softwaremill.macwire._
 import play.api.ApplicationLoader.Context
-import play.api.{Application, BuiltInComponentsFromContext, Configuration, DefaultApplication}
 import play.api.http.{HttpErrorHandler, HttpRequestHandler}
 import play.api.i18n.I18nComponents
-import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
-import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpAuditing, DefaultHttpClient, HttpClient, JsonErrorHandler, RequestHandler}
-import com.softwaremill.macwire._
 import play.api.inject.{Injector, SimpleInjector}
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.ControllerComponents
+import play.api.{Application, BuiltInComponentsFromContext, Configuration, DefaultApplication}
 import play.filters.HttpFiltersComponents
 import uk.gov.hmrc.play.audit.http.HttpAuditing
+import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
+import uk.gov.hmrc.play.bootstrap.http._
+import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 import scala.concurrent.ExecutionContext
-import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 class SdilComponents(context: Context)
   extends BuiltInComponentsFromContext(context)
@@ -51,7 +51,7 @@ class SdilComponents(context: Context)
   override implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
   override def httpClient: HttpClient = wire[DefaultHttpClient]
   override lazy val httpRequestHandler: HttpRequestHandler = wire[RequestHandler]
-  lazy val customInjector: Injector = new SimpleInjector(injector) + healthController + wsClient//TODO double check that "wsClient" was the replacement for "wsApi"
+  lazy val customInjector: Injector = new SimpleInjector(injector) + healthController + wsClient
   lazy val httpAuditing: HttpAuditing = wire[DefaultHttpAuditing]
   override lazy val application: Application = wire[DefaultApplication]
   val dataCorrector: DataCorrector = wire[DataCorrector]

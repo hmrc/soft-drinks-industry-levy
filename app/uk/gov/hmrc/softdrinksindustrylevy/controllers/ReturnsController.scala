@@ -66,8 +66,6 @@ class ReturnsController(
     }
   }
 
-
-
   def buildReturnAuditDetail(
     sdilReturn: SdilReturn,
     returnsRequest: ReturnsRequest,

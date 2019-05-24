@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.api.mvc.{RequestHeader, Result}
 import play.mvc.Http

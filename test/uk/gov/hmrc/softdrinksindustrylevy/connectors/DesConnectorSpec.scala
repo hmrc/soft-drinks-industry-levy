@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import sdil.models.des
@@ -59,6 +58,7 @@ class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Ma
 class DesConnectorSpecBehavioural extends WiremockSpec {
 
   import play.api.test.Helpers.SERVICE_UNAVAILABLE
+
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 

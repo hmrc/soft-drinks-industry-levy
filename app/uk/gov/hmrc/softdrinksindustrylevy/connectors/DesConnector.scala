@@ -20,14 +20,13 @@ import java.net.URLEncoder.encode
 import java.time.{Clock, LocalDate, LocalDateTime}
 
 import cats.implicits._
-import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Json, OWrites}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
@@ -150,5 +149,4 @@ class DesConnector(val http: HttpClient,
     )
     new BalanceQueryEvent(path, detailJson)
   }
-
 }

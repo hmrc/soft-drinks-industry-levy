@@ -31,7 +31,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import scala.concurrent._
 import scala.util.Random
 
-
 class BalanceController(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
@@ -191,5 +190,4 @@ object BalanceController {
   implicit class RichLineItems(lineItems: List[FinancialLineItem]) {
     def balance: BigDecimal = lineItems.map(_.amount).sum
   }
-
 }

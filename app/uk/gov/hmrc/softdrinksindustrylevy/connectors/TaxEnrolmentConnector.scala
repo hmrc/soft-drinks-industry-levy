@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import play.api.Logger
 import play.api.Mode.Mode
 import play.api.libs.json.{Format, JsObject, Json}
-import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.play.bootstrap.config.RunMode
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

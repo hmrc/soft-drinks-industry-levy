@@ -211,5 +211,4 @@ class RegistrationController(val authConnector: AuthConnector,
     case "7" => "Limited Company"
     case other => throw new IllegalArgumentException(s"Unexpected orgType $other")
   }
-
 }

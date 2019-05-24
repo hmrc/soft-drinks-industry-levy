@@ -26,9 +26,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GformConnector(http: HttpClient,
-                     val mode: Mode,
-                     servicesConfig: ServicesConfig) {
+class GformConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val gformUrl: String = servicesConfig.baseUrl("gform")
 

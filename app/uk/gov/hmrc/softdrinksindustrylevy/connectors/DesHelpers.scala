@@ -36,5 +36,4 @@ abstract class DesHelpers(servicesConfig: ServicesConfig) {
       "Environment" -> servicesConfig.getConfString("des.environment", "")
     ).copy(authorization = Some(Authorization(s"Bearer ${servicesConfig.getConfString("des.token", "")}")))
   }
-
 }

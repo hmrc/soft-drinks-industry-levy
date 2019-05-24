@@ -16,18 +16,15 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
-import com.softwaremill.macwire._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
 import play.api.i18n.MessagesApi
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.ws.WSClient
-import play.api.mvc.{ControllerComponents, MessagesControllerComponents}
-import play.api.{Application, ApplicationLoader, Play}
+import play.api.{Application, ApplicationLoader}
 import play.core.DefaultWebCommands
-import play.api.inject.{ApplicationLifecycle, DefaultApplicationLifecycle}
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpClient, HttpClient}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilApplicationLoader
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
@@ -35,7 +32,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
-
 
 trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
   protected val context = ApplicationLoader.Context(
@@ -90,9 +86,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =
         Future(data.getOrElse(key, List.empty[Subscription]))
-
     }
   }
-
 }
 

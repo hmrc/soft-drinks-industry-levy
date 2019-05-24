@@ -32,5 +32,4 @@ class TestConnector(http: HttpClient,
   def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     http.GET(s"$resetURL/$url")
   }
-
 }

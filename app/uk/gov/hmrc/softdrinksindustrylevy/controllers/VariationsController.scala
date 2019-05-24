@@ -16,24 +16,17 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.io.PrintWriter
-
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
-import sdil.models.{ReturnPeriod, ReturnVariationData}
-import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.AuthProviders
-import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
+import sdil.models.ReturnVariationData
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.addressFormat
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 
 class VariationsController(
   override val messagesApi: MessagesApi,
@@ -77,5 +70,4 @@ class VariationsController(
 
       }
     }
-
 }

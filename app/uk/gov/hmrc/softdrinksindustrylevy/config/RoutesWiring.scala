@@ -27,7 +27,6 @@ trait RoutesWiring {
   def errorHandler: HttpErrorHandler
 
   private lazy val prefix: String = ""
-
   private lazy val appRoutes = wire[app.Routes]
   private lazy val healthRoutes = wire[health.Routes]
   private lazy val testOnlyDoNotUseInAppConfRoutes = wire[testOnlyDoNotUseInAppConf.Routes]

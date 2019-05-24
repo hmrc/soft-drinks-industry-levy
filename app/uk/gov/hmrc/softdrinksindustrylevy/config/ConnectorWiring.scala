@@ -20,7 +20,7 @@ import com.softwaremill.macwire._
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.play.audit.http.config.{AuditingConfig, Consumer}
+import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
@@ -47,8 +47,6 @@ trait ConnectorWiring {
   lazy val taxEnrolmentConnector: TaxEnrolmentConnector = wire[TaxEnrolmentConnector]
   lazy val testConnector: TestConnector = wire[TestConnector]
   lazy val serviceConfig: ServicesConfig = wire[ServicesConfig]
-
-
 
   val appName = configuration.getString("appName").get
   lazy val auditingConfigProvider: AuditingConfigProvider= wire[AuditingConfigProvider]

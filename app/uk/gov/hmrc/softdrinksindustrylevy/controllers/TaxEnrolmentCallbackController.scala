@@ -22,8 +22,8 @@ import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService

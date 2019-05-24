@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, put, stubFor, urlPathEqualTo, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 
