@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlEqualTo, urlPathEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlPathEqualTo}
+
 import scala.util.{Failure, Success, Try}
 
 class FileUploadConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends FileUploadConnector(wsClient, environment.mode, configuration) {
+  object TestConnector extends FileUploadConnector(wsClient, environment.mode, servicesConfig) {
     override val url: String = mockServerUrl
   }
 

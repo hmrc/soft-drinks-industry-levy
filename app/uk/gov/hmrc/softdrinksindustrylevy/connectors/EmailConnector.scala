@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class EmailConnector(http: HttpClient,
                      val mode: Mode,
-                     val runModeConfiguration: Configuration) extends ServicesConfig {
+                     servicesConfig: ServicesConfig){
 
-  val emailUrl: String = baseUrl("email")
+  val emailUrl: String = servicesConfig.baseUrl("email")
 
   def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
@@ -58,5 +57,4 @@ class EmailConnector(http: HttpClient,
 
     http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
   }
-
 }

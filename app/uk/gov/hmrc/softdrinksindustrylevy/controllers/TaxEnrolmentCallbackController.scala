@@ -18,12 +18,12 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import play.api.Mode.Mode
 import play.api.libs.json._
-import play.api.mvc.Action
+import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
@@ -35,9 +35,13 @@ class TaxEnrolmentCallbackController(buffer: MongoBufferService,
                                      emailConnector: EmailConnector,
                                      taxEnrolments: TaxEnrolmentConnector,
                                      val mode: Mode,
+                                     val cc: ControllerComponents,
                                      val runModeConfiguration: Configuration,
+                                     val runMode: RunMode,
                                      auditing: AuditConnector)
-  extends BaseController with ServicesConfig {
+  extends BackendController(cc) {
+
+  val serviceConfig = new ServicesConfig(runModeConfiguration, runMode)
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>
@@ -83,7 +87,7 @@ class TaxEnrolmentCallbackController(buffer: MongoBufferService,
     implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
-      "url" -> s"${baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",
+      "url" -> s"${serviceConfig.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",
       "outcome" -> (callback.state match {
         case "SUCCEEDED" => "SUCCESS"
         case _ => "ERROR"

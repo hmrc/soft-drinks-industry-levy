@@ -20,14 +20,14 @@ import java.time._
 
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -41,9 +41,10 @@ class ReturnsController(
   desConnector: DesConnector,
   val persistence: SdilPersistence,
   val sdilConfig: SdilConfig,
-  auditing: AuditConnector
+  auditing: AuditConnector,
+  val cc: ControllerComponents
 )(implicit ec: ExecutionContext, clock: Clock)
-  extends BaseController with AuthorisedFunctions {
+  extends BackendController(cc) with AuthorisedFunctions {
 
   def checkSmallProducerStatus(
     idType: String,
@@ -64,8 +65,6 @@ class ReturnsController(
       } yield Ok(Json.toJson(isSmallProd))
     }
   }
-
-
 
   def buildReturnAuditDetail(
     sdilReturn: SdilReturn,

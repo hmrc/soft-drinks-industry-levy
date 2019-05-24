@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo, urlPathEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlPathEqualTo}
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
@@ -25,7 +25,7 @@ import scala.concurrent.Future
 
 class RosmConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends RosmConnector(httpClient, environment.mode, configuration) {
+  object TestConnector extends RosmConnector(httpClient, environment.mode, servicesConfig) {
     override val desURL: String = mockServerUrl
   }
 
@@ -63,6 +63,5 @@ class RosmConnectorSpec extends WiremockSpec {
     val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)
     response.map { x => x mustBe Some(res) }
   }
-
 }
 

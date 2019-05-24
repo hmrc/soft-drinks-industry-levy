@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 class EmailConnectorSpec extends WiremockSpec {
 
-  object TestEmailConnector extends EmailConnector(httpClient, environment.mode, configuration) {
+  object TestEmailConnector extends EmailConnector(httpClient, environment.mode, servicesConfig) {
     override val emailUrl: String = mockServerUrl
   }
 

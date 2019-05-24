@@ -17,9 +17,10 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
+
 import org.scalatest.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
+import uk.gov.hmrc.softdrinksindustrylevy.config.{SdilComponents, SdilConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
@@ -46,6 +47,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
+  lazy val cc = new SdilComponents(context).cc
   val testReturnsContoller = wire[ReturnsController]
 
   override def beforeEach() {

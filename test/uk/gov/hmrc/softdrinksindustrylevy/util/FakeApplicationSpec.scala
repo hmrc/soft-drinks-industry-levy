@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
-import play.api.libs.ws.{WSAPI, WSClient}
-import play.api.{Application, ApplicationLoader, Play}
+import play.api.i18n.MessagesApi
+import play.api.inject.DefaultApplicationLifecycle
+import play.api.libs.ws.WSClient
+import play.api.{Application, ApplicationLoader}
 import play.core.DefaultWebCommands
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
@@ -30,24 +33,22 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
 
+trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
+  protected val context = ApplicationLoader.Context(
+    environment,
+    sourceMapper = None,
+    new DefaultWebCommands,
+    configuration,
+    new DefaultApplicationLifecycle
+  )
 
-trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring {
+  lazy val messagesApi = app.injector.instanceOf[MessagesApi]
+  lazy val wsClient = app.injector.instanceOf[WSClient]
+  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
+
   override def fakeApplication(): Application = {
-    val context = ApplicationLoader.Context(
-      environment,
-      sourceMapper = None,
-      new DefaultWebCommands,
-      configuration
-    )
-
     new SdilApplicationLoader().load(context)
   }
-
-  lazy val actorSystem = Play.current.actorSystem
-
-  lazy val wsClient = app.injector.instanceOf[WSAPI].client
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, auditConnector, wsClient,actorSystem)
-
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 
@@ -85,9 +86,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =
         Future(data.getOrElse(key, List.empty[Subscription]))
-
     }
   }
-
 }
 

@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
+import java.util.Base64
+
 import com.typesafe.config._
 import com.typesafe.config.impl.Parseable
+import play.api.Configuration
+import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
+
 import scala.collection.JavaConverters._
-import java.util.Base64
 
 object EncodedConfig {
 
@@ -39,4 +43,8 @@ object EncodedConfig {
         config
     }
   }
+}
+
+object DefaultBase64ConfigDecoder extends Base64ConfigDecoder {
+  override def decodeConfig(configuration: Configuration): Configuration = super.decodeConfig(configuration)
 }

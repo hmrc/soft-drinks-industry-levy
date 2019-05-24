@@ -22,8 +22,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
@@ -34,12 +34,16 @@ class RosmController(val authConnector: AuthConnector,
                      rosmConnector: RosmConnector,
                      taxEnrolmentConnector: TaxEnrolmentConnector,
                      val mode: Mode,
-                     val runModeConfiguration: Configuration)
-  extends BaseController with ServicesConfig with AuthorisedFunctions {
+                     val cc: ControllerComponents,
+                     val runModeConfiguration: Configuration,
+                     val runMode: RunMode)
+  extends BackendController(cc) with AuthorisedFunctions {
+
+  val serviceConfig = new ServicesConfig(runModeConfiguration, runMode)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
-      rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = getString("etmp.sdil.regime"))).map {
+      rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = serviceConfig.getString("etmp.sdil.regime"))).map {
         case Some(r) if r.organisation.isDefined || r.individual.isDefined =>
           JsonSchemaChecker[RosmRegisterResponse](r, "rosm-response")
           Ok(Json.toJson(r))
@@ -47,5 +51,4 @@ class RosmController(val authConnector: AuthConnector,
       }
     }
   }
-
 }

@@ -35,6 +35,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 
 import scala.concurrent.Future
 
@@ -46,6 +47,7 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
 
+  lazy val cc = new SdilComponents(context).cc
   val testSdilController = wire[RegistrationController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier

@@ -25,17 +25,17 @@ import play.api.mvc._
 import sdil.models._
 import sdil.models.des._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 
 import scala.concurrent._
 import scala.util.Random
 
-
 class BalanceController(
   val authConnector: AuthConnector,
-  desConnector: DesConnector
-)(implicit ec: ExecutionContext) extends BaseController with AuthorisedFunctions {
+  desConnector: DesConnector,
+  val cc: ControllerComponents
+)(implicit ec: ExecutionContext) extends BackendController(cc) with AuthorisedFunctions {
 
   import BalanceController._
 
@@ -190,5 +190,4 @@ object BalanceController {
   implicit class RichLineItems(lineItems: List[FinancialLineItem]) {
     def balance: BigDecimal = lineItems.map(_.amount).sum
   }
-
 }

@@ -16,23 +16,22 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import play.api.Logger
 import play.api.Mode.Mode
 import play.api.libs.json.{Format, JsObject, Json}
-import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentConnector(http: HttpClient,
                             val mode: Mode,
-                            val runModeConfiguration: Configuration) extends ServicesConfig {
+                            servicesConfig: ServicesConfig) {
 
-  val callbackUrl: String = getConfString("tax-enrolments.callback", "")
-  val serviceName: String = getConfString("tax-enrolments.serviceName", "")
-  lazy val taxEnrolmentsUrl: String = baseUrl("tax-enrolments")
+  val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
+  val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
+  lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
 
   def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {

@@ -17,14 +17,14 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import play.api.libs.json.Writes
-import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
 import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DesHelpers extends ServicesConfig {
+abstract class DesHelpers(servicesConfig: ServicesConfig) {
 
   val http: HttpClient
 
@@ -33,8 +33,7 @@ trait DesHelpers extends ServicesConfig {
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier = {
     hc.withExtraHeaders(
-      "Environment" -> getConfString("des.environment", "")
-    ).copy(authorization = Some(Authorization(s"Bearer ${getConfString("des.token", "")}")))
+      "Environment" -> servicesConfig.getConfString("des.environment", "")
+    ).copy(authorization = Some(Authorization(s"Bearer ${servicesConfig.getConfString("des.token", "")}")))
   }
-
 }

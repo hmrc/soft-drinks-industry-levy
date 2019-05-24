@@ -20,32 +20,30 @@ import java.net.URLEncoder.encode
 import java.time.{Clock, LocalDate, LocalDateTime}
 
 import cats.implicits._
-import play.api.Configuration
 import play.api.Mode.Mode
 import play.api.libs.json.{Json, OWrites}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-
-import scala.concurrent.stm.TMap
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
 
+import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class DesConnector(val http: HttpClient,
                    val mode: Mode,
-                   val runModeConfiguration: Configuration,
+                   servicesConfig: ServicesConfig,
                    persistence: SdilPersistence,
                    auditing: AuditConnector)
                   (implicit clock: Clock, executionContext: ExecutionContext)
-  extends ServicesConfig with OptionHttpReads with DesHelpers {
+  extends DesHelpers(servicesConfig) with OptionHttpReads {
 
-  val desURL: String = baseUrl("des")
+  val desURL: String = servicesConfig.baseUrl("des")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 
@@ -151,5 +149,4 @@ class DesConnector(val http: HttpClient,
     )
     new BalanceQueryEvent(path, detailJson)
   }
-
 }

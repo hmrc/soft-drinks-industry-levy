@@ -20,6 +20,7 @@ import com.kenshoo.play.metrics.{Metrics, MetricsFilter, MetricsFilterImpl}
 import uk.gov.hmrc.play.bootstrap.filters._
 import com.softwaremill.macwire._
 import play.api.BuiltInComponentsFromContext
+import uk.gov.hmrc.play.bootstrap.config.{DefaultHttpAuditEvent, HttpAuditEvent}
 import uk.gov.hmrc.play.bootstrap.filters.microservice.DefaultMicroserviceAuditFilter
 
 trait FiltersWiring {
@@ -33,4 +34,5 @@ trait FiltersWiring {
   lazy val loggingFilter: LoggingFilter = wire[DefaultLoggingFilter]
   lazy val metricsFilter: MetricsFilter = wire[MetricsFilterImpl]
   lazy val filters: MicroserviceFilters = wire[MicroserviceFilters]
+  lazy val httpAuditEvent: HttpAuditEvent = wire[DefaultHttpAuditEvent]
 }
