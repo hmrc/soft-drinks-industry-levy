@@ -20,7 +20,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
-import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, VariationSubmissionService}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilPersistence, VariationSubmissionService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,7 +29,8 @@ class TestingController(override val messagesApi: MessagesApi,
                         buffer: MongoBufferService,
                         fileUpload: FileUploadConnector,
                         variationSubmissions: VariationSubmissionService,
-                        cc: ControllerComponents)
+                        cc: ControllerComponents,
+                        persistence: SdilPersistence)
   extends BackendController(cc) with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
@@ -48,6 +49,13 @@ class TestingController(override val messagesApi: MessagesApi,
     variationSubmissions.get(sdilNumber) map {
       case Some(v) => Ok(views.html.variations_pdf(v, sdilNumber))
       case None => NotFound
+    }
+  }
+
+  def getSdilReturnsMongoDrop: Action[AnyContent] = Action.async { implicit request =>
+    persistence.returns.dropCollection.map{
+      case true => Ok
+      case false => NotModified
     }
   }
 }

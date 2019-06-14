@@ -42,6 +42,7 @@ trait SdilPersistence {
       get(user, key).map{_.get._1}
     def list(user: U)(implicit ec: EC): Future[Map[K,V]]
     def listVariable(user: U)(implicit ec: EC): Future[Map[K,V]]
+    def dropCollection(implicit ec: EC): Future[Boolean]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
@@ -78,6 +79,8 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       ).map(_.map(_.subscription))
     }
 
+    def dropDb(implicit ec: EC) = subscriptionsMongo.drop
+
     val subscriptionsMongo = new
       ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
       override def indexes: Seq[Index] = Seq(
@@ -111,6 +114,8 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
         )
       )
     }
+
+    def dropCollection(implicit ec: EC) = returnsMongo.drop
 
     def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
       import returnsMongo._
