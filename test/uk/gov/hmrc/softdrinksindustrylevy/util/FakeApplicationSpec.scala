@@ -52,12 +52,18 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 
+
     val returns: DAO[String, ReturnPeriod, SdilReturn] = new DAO[String, ReturnPeriod, SdilReturn] {
       private var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
       private var getData: Map[(String, ReturnPeriod), (SdilReturn, Option[BSONObjectID])] = Map.empty
       def update(user: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
         data = data + { (user, period) -> value }
         Future.successful(())
+      }
+
+      def dropCollection(implicit ec: EC): Future[Boolean] ={
+        data = Map.empty
+        Future.successful(data.isEmpty)
       }
 
       def get(
@@ -82,6 +88,11 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
       override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
         data += data.get(key).fold(key -> List(value))(x => key -> (value +: x))
         Future.successful(())
+      }
+
+      def dropCollection(implicit ec: EC): Future[Boolean] ={
+        data = scala.collection.mutable.Map.empty[String, List[Subscription]]
+        Future.successful(data.isEmpty)
       }
 
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =
