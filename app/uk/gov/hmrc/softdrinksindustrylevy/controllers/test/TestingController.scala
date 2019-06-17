@@ -55,7 +55,7 @@ class TestingController(override val messagesApi: MessagesApi,
   def getSdilReturnsMongoDrop: Action[AnyContent] = Action.async { implicit request =>
     persistence.returns.dropCollection.map{
       case true => Ok
-      case false => NotModified
+      case false => NoContent
     }
   }
 }
