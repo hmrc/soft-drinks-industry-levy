@@ -29,10 +29,10 @@ libraryDependencies ++= Seq(
   "org.scalacheck"              %% "scalacheck"          % "1.14.0",
   "org.scalatest"               %% "scalatest"           % "3.0.7",
   "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.2",
-  "uk.gov.hmrc"                 %% "hmrctest"            % "3.8.0-play-26",
+  "uk.gov.hmrc"                 %% "hmrctest"            % "3.9.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.22",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.14.0-play-26"
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.15.0-play-26"
 ).map(_ % "test")
 
 // ================================================================================
@@ -49,10 +49,10 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "proxy"                 % "2.3.2",
   "com.softwaremill.macwire"  %% "util"                  % "2.3.2",
   "org.typelevel"             %% "cats-core"             % "1.6.0",
-  "uk.gov.hmrc"               %% "auth-client"           % "2.21.0-play-26",
+  "uk.gov.hmrc"               %% "auth-client"           % "2.22.0-play-26",
   "uk.gov.hmrc"               %% "bootstrap-play-26"     % "0.39.0",
-  "uk.gov.hmrc"               %% "mongo-lock"            % "6.12.0-play-26",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.19.0-play-26",
+  "uk.gov.hmrc"               %% "mongo-lock"            % "6.15.0-play-26",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.20.0-play-26",
   "org.scala-stm"             %% "scala-stm"             % "0.9.1"
 )
 
