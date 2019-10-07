@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.softdrinksindustrylevy.config
+package uk.gov.hmrc.softdrinksindustrylevy.util
 
-import java.time.LocalDate
+import org.scalatest.{Matchers, OptionValues, WordSpecLike}
 
-import uk.gov.hmrc.softdrinksindustrylevy.util.UnitSpec
+import scala.language.implicitConversions
 
-class SdilConfigSpec extends UnitSpec {
+trait UnitSpec extends WordSpecLike with Matchers with OptionValues {
 
-  val timeWrap = LocalDate.of(2019, 1, 8)
+  import scala.concurrent.duration._
+  import scala.concurrent.{Await, Future}
 
-  "the sdil config should return today as the date specified by time wrap if present " in {
-    SdilConfig(Some(timeWrap)).today.toString shouldBe "2019-01-08"
-  }
+  implicit val defaultTimeout: FiniteDuration = 5 seconds
 
-  "the sdil config should return today as the date if the timeWrap is not specified" in {
-    SdilConfig().today shouldNot be("2019-01-08")
-  }
+  implicit def extractAwait[A](future: Future[A]): A = await[A](future)
 
+  def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 }

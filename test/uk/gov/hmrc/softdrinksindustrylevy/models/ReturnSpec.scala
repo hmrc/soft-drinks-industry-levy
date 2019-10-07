@@ -16,16 +16,16 @@
 
 package sdil.models
 
-import org.scalatest.Matchers
 import java.time.LocalDate
 
 import org.scalacheck.Gen
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.prop.PropertyChecks
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatest.Matchers
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
+import uk.gov.hmrc.softdrinksindustrylevy.util.UnitSpec
 
-class ReturnSpec extends UnitSpec with Matchers with PropertyChecks with MockitoSugar
+class ReturnSpec extends UnitSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar
 {
 
 

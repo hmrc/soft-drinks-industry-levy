@@ -1,4 +1,4 @@
-import scoverage.ScoverageKeys
+ import scoverage.ScoverageKeys
 // ================================================================================
 // Plugins
 // ================================================================================
@@ -29,7 +29,6 @@ libraryDependencies ++= Seq(
   "org.scalacheck"              %% "scalacheck"          % "1.14.0",
   "org.scalatest"               %% "scalatest"           % "3.0.8",
   "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.2",
-  "uk.gov.hmrc"                 %% "hmrctest"            % "3.9.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.23",
   "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.15.0-play-26"

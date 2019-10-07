@@ -20,7 +20,7 @@ import java.time.Instant
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.softdrinksindustrylevy.util.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 

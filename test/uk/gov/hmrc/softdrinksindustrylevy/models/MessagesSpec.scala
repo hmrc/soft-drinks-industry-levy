@@ -23,7 +23,7 @@ import play.api.i18n.{Lang, Messages, MessagesApi, MessagesImpl}
 import play.api.mvc.{RequestHeader, Result}
 import play.mvc.Http
 import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, PaymentOnAccount, ReturnCharge, ReturnChargeInterest, ReturnPeriod}
-import uk.gov.hmrc.play.test.UnitSpec
+import uk.gov.hmrc.softdrinksindustrylevy.util.UnitSpec
 
 class MessagesSpec extends UnitSpec with MockitoSugar{
 
