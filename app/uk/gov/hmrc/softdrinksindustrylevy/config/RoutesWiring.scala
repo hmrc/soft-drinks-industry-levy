@@ -32,14 +32,15 @@ trait RoutesWiring {
   private lazy val testOnlyDoNotUseInAppConfRoutes = wire[testOnlyDoNotUseInAppConf.Routes]
   private lazy val prodRoutes = wire[prod.Routes]
 
-  def router: Router = if (configuration.underlying.hasPath("play.http.router")) {
-    configuration.getString("play.http.router") match {
-      case Some("testOnlyDoNotUseInAppConf.Routes") => testOnlyDoNotUseInAppConfRoutes
-      case Some("prod.Routes") => prodRoutes
-      case Some(other) => Logger.warn(s"Unrecognised router $other; using prod.Routes"); prodRoutes
-      case _ => prodRoutes
+  def router: Router =
+    if (configuration.underlying.hasPath("play.http.router")) {
+      configuration.getString("play.http.router") match {
+        case Some("testOnlyDoNotUseInAppConf.Routes") => testOnlyDoNotUseInAppConfRoutes
+        case Some("prod.Routes")                      => prodRoutes
+        case Some(other)                              => Logger.warn(s"Unrecognised router $other; using prod.Routes"); prodRoutes
+        case _                                        => prodRoutes
+      }
+    } else {
+      prodRoutes
     }
-  } else {
-    prodRoutes
-  }
 }

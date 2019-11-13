@@ -48,7 +48,7 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
     val testUtr = Some("456")
 
     "sdilRef and utr not defined" in {
-      the [IllegalArgumentException] thrownBy ReturnsCorrection(None, None, mock[ReturnPeriod], mock[SdilReturn]) must have message("requirement failed: Either sdilRef or utr must be defined")
+      the[IllegalArgumentException] thrownBy ReturnsCorrection(None, None, mock[ReturnPeriod], mock[SdilReturn]) must have message ("requirement failed: Either sdilRef or utr must be defined")
     }
 
     "Only sdilRef defined" in {
@@ -72,29 +72,32 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
     val testReturnsCorrector = TestActorRef(new ReturnsCorrectorWorker(mockDesConnector, mock[SdilPersistence]))
 
     "getUtrFromSdil with None" in {
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(None)
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+        None)
       val result = testReturnsCorrector.underlyingActor.getUtrFromSdil(testSdilRef)
 
       whenReady(result.failed)(e => {
-        e mustBe a [NoSuchElementException]
+        e mustBe a[NoSuchElementException]
         e.getMessage mustBe s"Cannot find subscription with SDIL ref $testSdilRef"
       })
     }
 
     "getUtrFromSdil with Some" in {
       val testUtr = "someTestUtr"
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(Some(Subscription(testUtr,
-        Some(testSdilRef),
-        "",
-        None,
-        mock[Address],
-        mock[Activity],
-        LocalDate.now(),
-        Nil,
-        Nil,
-        mock[Contact],
-        None
-      )))
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+        Some(
+          Subscription(
+            testUtr,
+            Some(testSdilRef),
+            "",
+            None,
+            mock[Address],
+            mock[Activity],
+            LocalDate.now(),
+            Nil,
+            Nil,
+            mock[Contact],
+            None)))
 
       val result = testReturnsCorrector.underlyingActor.getUtrFromSdil(testSdilRef)
 

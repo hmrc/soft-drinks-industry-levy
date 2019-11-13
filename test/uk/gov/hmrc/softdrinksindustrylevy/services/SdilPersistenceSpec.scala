@@ -36,13 +36,12 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
   val sDbSubscriptions = service.subscriptions
 
   val sReturnsMongo = service.returns.returnsMongo
-  val sSubscriptionsMongo= service.subscriptions.subscriptionsMongo
+  val sSubscriptionsMongo = service.subscriptions.subscriptionsMongo
 
   override def beforeEach() {
     sReturnsMongo.drop
     sSubscriptionsMongo.drop
   }
-
 
   val utr = "7674173564"
 
@@ -54,7 +53,8 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
 
       val result = await(sSubscriptionsMongo.find()).toString
 
-      Seq(utr, subscription.orgName, subscription.utr, "Wrapper").foreach(testFor => result.contains(testFor.toString) shouldBe true)
+      Seq(utr, subscription.orgName, subscription.utr, "Wrapper").foreach(testFor =>
+        result.contains(testFor.toString) shouldBe true)
     }
 
     "insert => allow for duplicate submissions" in {
@@ -102,7 +102,8 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
       val result = await(sReturnsMongo.find())
       result.size shouldBe 1
 
-      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor => result.toString.contains(testFor.toString) shouldBe true)
+      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor =>
+        result.toString.contains(testFor.toString) shouldBe true)
     }
 
     "get => successfully get Tuple(sdilReturn, BsonObjectId) when matching utr & returnPeriod" in {

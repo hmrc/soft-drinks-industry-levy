@@ -24,16 +24,14 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RosmConnector(val http: HttpClient,
-                    val mode: Mode,
-                    servicesConfig: ServicesConfig)
-  extends DesHelpers(servicesConfig) {
+class RosmConnector(val http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig)
+    extends DesHelpers(servicesConfig) {
 
   val desURL: String = servicesConfig.baseUrl("des")
   val serviceURL: String = "registration/organisation"
 
-  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)
-                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[RosmRegisterResponse]] = {
+  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Option[RosmRegisterResponse]] =
     desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)
-  }
 }

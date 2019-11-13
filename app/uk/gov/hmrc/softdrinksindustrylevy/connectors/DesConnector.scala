@@ -35,13 +35,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized,
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class DesConnector(val http: HttpClient,
-                   val mode: Mode,
-                   servicesConfig: ServicesConfig,
-                   persistence: SdilPersistence,
-                   auditing: AuditConnector)
-                  (implicit clock: Clock, executionContext: ExecutionContext)
-  extends DesHelpers(servicesConfig) with OptionHttpReads {
+class DesConnector(
+  val http: HttpClient,
+  val mode: Mode,
+  servicesConfig: ServicesConfig,
+  persistence: SdilPersistence,
+  auditing: AuditConnector)(implicit clock: Clock, executionContext: ExecutionContext)
+    extends DesHelpers(servicesConfig) with OptionHttpReads {
 
   val desURL: String = servicesConfig.baseUrl("des")
   val serviceURL: String = "soft-drinks"
@@ -51,17 +51,19 @@ class DesConnector(val http: HttpClient,
   implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
     def read(method: String, url: String, response: HttpResponse): Option[P] = response.status match {
       case 204 | 404 | 503 | 403 => None
-      case _ => Some(rds.read(method, url, response))
+      case _                     => Some(rds.read(method, url, response))
     }
   }
 
-  def createSubscription(request: Subscription, idType: String, idNumber: String)
-                        (implicit hc: HeaderCarrier): Future[CreateSubscriptionResponse] = {
+  def createSubscription(request: Subscription, idType: String, idNumber: String)(
+    implicit hc: HeaderCarrier): Future[CreateSubscriptionResponse] = {
     import json.des.create._
     import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
-    val formattedLines = request.address.lines.map { line => line.clean }
+    val formattedLines = request.address.lines.map { line =>
+      line.clean
+    }
     val formattedAddress = request.address match {
-      case a: UkAddress => a.copy(lines = formattedLines)
+      case a: UkAddress      => a.copy(lines = formattedLines)
       case b: ForeignAddress => b.copy(lines = formattedLines)
     }
     val submission = request.copy(address = formattedAddress)
@@ -70,8 +72,8 @@ class DesConnector(val http: HttpClient,
     desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String)
-  (implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
+  def retrieveSubscriptionDetails(idType: String, idNumber: String)(
+    implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
 
     lazy val memoized: String => Future[Option[Subscription]] =
       Memoized.memoizedCache[Future, String, Option[Subscription]](cache, 60 * 60)(getSubscriptionFromDES)
@@ -82,19 +84,20 @@ class DesConnector(val http: HttpClient,
     }
 
     for {
-      sub <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
+      sub  <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
-        if (!subs.contains(x)) {
-          persistence.subscriptions.insert(x.utr, x)
-        } else Future(())
-      }
+            if (!subs.contains(x)) {
+              persistence.subscriptions.insert(x.utr, x)
+            } else Future(())
+          }
     } yield sub
   }
 
-  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit hc: HeaderCarrier, period: ReturnPeriod): Future[HttpResponse] = {
+  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(
+    implicit hc: HeaderCarrier,
+    period: ReturnPeriod): Future[HttpResponse] =
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest)
-  }
 
   /** Calls API#1166: Get Financial Data.
     *
@@ -110,29 +113,29 @@ class DesConnector(val http: HttpClient,
   ): Future[Option[des.FinancialTransactionResponse]] = {
     import des.FinancialTransaction._
 
-    val args: Map[String,Any] = Map(
-      "onlyOpenItems" -> year.isEmpty,
-      "includeLocks" -> false,
-      "calculateAccruedInterest" -> true,
+    val args: Map[String, Any] = Map(
+      "onlyOpenItems"              -> year.isEmpty,
+      "includeLocks"               -> false,
+      "calculateAccruedInterest"   -> true,
       "customerPaymentInformation" -> true
     ) ++ (
       year match {
-        case Some(y) => Map(
-          "dateFrom" -> s"$y-01-01",
-          "dateTo" -> s"$y-12-31"
-        )
-        case None => Map.empty[String,Any]
+        case Some(y) =>
+          Map(
+            "dateFrom" -> s"$y-01-01",
+            "dateTo"   -> s"$y-12-31"
+          )
+        case None => Map.empty[String, Any]
       }
     )
 
-    def encodePair(in: (String,Any)): String = 
+    def encodePair(in: (String, Any)): String =
       s"${encode(in._1, "UTF-8")}=${encode(in._2.toString, "UTF-8")}"
 
-    val uri = s"$desURL/enterprise/financial-data/ZSDL/${sdilRef}/ZSDL?" ++
-      args.map{encodePair}.mkString("&")
+    val uri = s"$desURL/enterprise/financial-data/ZSDL/$sdilRef/ZSDL?" ++
+      args.map { encodePair }.mkString("&")
 
-
-    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, implicitly).flatMap{x =>
+    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, implicitly).flatMap { x =>
       x.map { y =>
         auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
       }
@@ -140,12 +143,13 @@ class DesConnector(val http: HttpClient,
     }
   }
 
-  private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(implicit hc: HeaderCarrier) = {
+  private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(
+    implicit hc: HeaderCarrier) = {
     implicit val callbackFormat: OWrites[FinancialTransactionResponse] = Json.writes[FinancialTransactionResponse]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
-      "url" -> path,
-      "response" -> body
+      "url"            -> path,
+      "response"       -> body
     )
     new BalanceQueryEvent(path, detailJson)
   }

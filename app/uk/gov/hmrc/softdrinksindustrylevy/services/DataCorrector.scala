@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 import javax.inject.{Inject, Named}
 import akka.actor._
 import play.api.Logger
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Akka
 import play.api.Application
@@ -38,13 +38,14 @@ import cats.implicits._
 class ReturnsCorrectorWorker(
   connector: DesConnector,
   persistence: SdilPersistence
-)(implicit ec: ExecutionContext) extends Actor {
+)(implicit ec: ExecutionContext)
+    extends Actor {
   import DataCorrector._
   implicit val hc = new HeaderCarrier()
   val logger = Logger("DataCorrector")
 
   def getUtrFromSdil(sdilRef: String): Future[String] =
-    connector.retrieveSubscriptionDetails("sdil", sdilRef).map{
+    connector.retrieveSubscriptionDetails("sdil", sdilRef).map {
       case Some(x) =>
         logger.info(s"found UTR of ${x.utr} for SDIL ref $sdilRef")
         x.utr
@@ -54,14 +55,14 @@ class ReturnsCorrectorWorker(
 
   override def receive = {
     case ReturnsCorrection(sdilRefO, utrO, period, data) =>
-      logger.info(s"attempting to process ${utrO}/${sdilRefO}")
+      logger.info(s"attempting to process $utrO/$sdilRefO")
       val job: Future[Unit] = for {
         utr <- utrO.fold(getUtrFromSdil(sdilRefO.get))(_.pure[Future])
       } yield {
         persistence.returns(utr, period) = data
       }
-      job.onSuccess{
-        case _ => logger.info(s"done processing ${utrO}/${sdilRefO}")
+      job.onSuccess {
+        case _ => logger.info(s"done processing $utrO/$sdilRefO")
       }
 
     case e => logger.warn(s"Don't understand $e")
@@ -94,17 +95,19 @@ class DataCorrector(
     val worker = context.actorOf(
       Props(
         new ReturnsCorrectorWorker(connector, persistence)
-      ), name = "worker")
+      ),
+      name = "worker")
 
     override def receive = {
-      case "next" => pending match {
-        case (h::hs) =>
-          pending = hs
-          worker ! h
-          if (pending.isEmpty)
-            logger.info(s"no more records to process")
-        case Nil => 
-      }
+      case "next" =>
+        pending match {
+          case (h :: hs) =>
+            pending = hs
+            worker ! h
+            if (pending.isEmpty)
+              logger.info(s"no more records to process")
+          case Nil =>
+        }
       case e => logger.warn(s"Don't understand $e")
     }
   }
@@ -120,17 +123,13 @@ class DataCorrector(
 
 }
 
-
 object DataCorrector {
 
-  case class Config (
-
+  case class Config(
     /** Rate at which records are processed */
     interval: FiniteDuration = 30 seconds,
-
     /** Delay between startup and the first record being processed */
     initialDelay: FiniteDuration = 10 seconds,
-
     /** Individual records to be upserted into mongo */
     returns: List[ReturnsCorrection] = Nil
   )

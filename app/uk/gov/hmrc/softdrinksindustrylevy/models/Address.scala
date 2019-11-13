@@ -31,4 +31,4 @@ case class UkAddress(
 case class ForeignAddress(
   lines: List[String],
   country: String
-) extends Address 
+) extends Address

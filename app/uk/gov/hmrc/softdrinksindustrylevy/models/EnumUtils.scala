@@ -30,8 +30,9 @@ object EnumUtils {
           JsSuccess(enum.withName(s))
         } catch {
           case _: NoSuchElementException =>
-            JsError(s"Enumeration expected of type: '${enum.getClass}'," ++
-              s" but it does not appear to contain the value: '$s'")
+            JsError(
+              s"Enumeration expected of type: '${enum.getClass}'," ++
+                s" but it does not appear to contain the value: '$s'")
         }
       case _ => JsError("String value expected")
     }
@@ -41,8 +42,7 @@ object EnumUtils {
     def writes(v: E#Value): JsValue = JsString(v.toString)
   }
 
-  implicit def enumFormat[E <: Enumeration](enum: E): Format[E#Value] = {
+  implicit def enumFormat[E <: Enumeration](enum: E): Format[E#Value] =
     Format(enumReads(enum), enumWrites)
-  }
 
 }

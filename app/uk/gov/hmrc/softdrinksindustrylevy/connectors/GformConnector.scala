@@ -33,7 +33,9 @@ class GformConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesC
   def submitToDms(html: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
     val payload = DmsHtmlSubmission(encode(html), DmsMetadata("SDIL-VAR-1", sdilNumber, "BT-NRU-SDIL", "BT"))
 
-    http.POST[DmsHtmlSubmission, HttpResponse](s"$gformUrl/gform/dms/submit", payload) map { _ => () }
+    http.POST[DmsHtmlSubmission, HttpResponse](s"$gformUrl/gform/dms/submit", payload) map { _ =>
+      ()
+    }
   }
 
   private val encode = (s: String) => new String(Base64.getEncoder.encode(s.getBytes))
@@ -45,10 +47,7 @@ object DmsHtmlSubmission {
   implicit val format: Format[DmsHtmlSubmission] = Json.format[DmsHtmlSubmission]
 }
 
-case class DmsMetadata(dmsFormId: String,
-                       customerId: String,
-                       classificationType: String,
-                       businessArea: String)
+case class DmsMetadata(dmsFormId: String, customerId: String, classificationType: String, businessArea: String)
 
 object DmsMetadata {
   implicit val format: Format[DmsMetadata] = Json.format[DmsMetadata]

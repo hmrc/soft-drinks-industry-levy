@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-
 import uk.gov.hmrc.http.HeaderCarrier
 import scala.util.{Failure, Success, Try}
 
@@ -34,7 +33,7 @@ class EmailConnectorSpec extends WiremockSpec {
       case Success(_) =>
       case Failure(_) => fail
     }
-    }
+  }
 
   "attempted email should fail when the response from email service is a failure" in {
     EmailResponses.send(false)
@@ -44,20 +43,20 @@ class EmailConnectorSpec extends WiremockSpec {
     }
   }
 
-    "attempted submission email should succeed" in {
-      EmailResponses.send(true)
-      Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
-        case Success(_) =>
-        case Failure(_) => fail
-      }
+  "attempted submission email should succeed" in {
+    EmailResponses.send(true)
+    Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+      case Success(_) =>
+      case Failure(_) => fail
     }
+  }
 
-    "attempted submission email should fail if email service fails" in {
-      EmailResponses.send(false)
-      Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
-        case Success(_) => fail
-        case Failure(_) => // do nothing
-      }
+  "attempted submission email should fail if email service fails" in {
+    EmailResponses.send(false)
+    Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+      case Success(_) => fail
+      case Failure(_) => // do nothing
+    }
   }
 
 }

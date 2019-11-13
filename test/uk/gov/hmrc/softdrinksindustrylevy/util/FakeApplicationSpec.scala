@@ -33,7 +33,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
 
-trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
+trait FakeApplicationSpec
+    extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
   protected val context = ApplicationLoader.Context(
     environment,
     sourceMapper = None,
@@ -44,14 +45,12 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
 
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient,actorSystem)
+  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem)
 
-  override def fakeApplication(): Application = {
+  override def fakeApplication(): Application =
     new SdilApplicationLoader().load(context)
-  }
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
-
 
     val returns: DAO[String, ReturnPeriod, SdilReturn] = new DAO[String, ReturnPeriod, SdilReturn] {
       private var data: Map[(String, ReturnPeriod), SdilReturn] = Map.empty
@@ -61,7 +60,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
         Future.successful(())
       }
 
-      def dropCollection(implicit ec: EC): Future[Boolean] ={
+      def dropCollection(implicit ec: EC): Future[Boolean] = {
         data = Map.empty
         Future.successful(data.isEmpty)
       }
@@ -73,12 +72,12 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
         Future.successful(getData.get((user, key)))
 
       def list(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
-        Future.successful{
-          data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
+        Future.successful {
+          data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
         }
       def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
-        Future.successful{
-          data.toList.collect{ case ((`user`, period), ret) => (period, ret) }.toMap
+        Future.successful {
+          data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
         }
     }
 
@@ -90,7 +89,7 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
         Future.successful(())
       }
 
-      def dropCollection(implicit ec: EC): Future[Boolean] ={
+      def dropCollection(implicit ec: EC): Future[Boolean] = {
         data = scala.collection.mutable.Map.empty[String, List[Subscription]]
         Future.successful(data.isEmpty)
       }
@@ -100,4 +99,3 @@ trait FakeApplicationSpec extends PlaySpec with BaseOneAppPerSuite with FakeAppl
     }
   }
 }
-

@@ -55,7 +55,8 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
     .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any())).thenReturn(Future.successful(()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+    .thenReturn(Future.successful(()))
 
   "financial data with 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convert' to 3 line items" in {
 
@@ -63,8 +64,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convert(obj)
-      .length must be(3)
+    BalanceController.convert(obj).length must be(3)
   }
 
   "financial data with 1 payment with contractAccountCategory of 32, one with contractAccountCategory of 33 and" +
@@ -74,8 +74,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convert(obj)
-      .length must be(2)
+    BalanceController.convert(obj).length must be(2)
   }
 
   "financial data with 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convertWithoutAssessment' to 3 line items" in {
@@ -84,8 +83,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convertWithoutAssessment(obj)
-      .length must be(3)
+    BalanceController.convertWithoutAssessment(obj).length must be(3)
   }
 
   "financial data with 1 payment with contractAccountCategory of 32, one with contractAccountCategory of 33 and" +
@@ -95,10 +93,8 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convertWithoutAssessment(obj)
-      .length must be(2)
+    BalanceController.convertWithoutAssessment(obj).length must be(2)
   }
-
 
   "financial data with unknown type, 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convertWithoutAssessment' to 4 line items" in {
 
@@ -106,8 +102,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convertWithoutAssessment(obj)
-      .length must be(4)
+    BalanceController.convertWithoutAssessment(obj).length must be(4)
   }
 
   "financial data with unknown type, 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convert' to 4 line items" in {
@@ -116,10 +111,8 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     import FinancialTransaction._
     val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convert(obj)
-      .length must be(4)
+    BalanceController.convert(obj).length must be(4)
   }
-
 
   "return Status: OK Body: None when checking for balance which has no financial transaction data" in {
     when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
@@ -150,46 +143,168 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "convert methods" should {
     val testDate = LocalDate.of(2019, 4, 9)
     val testBigDecimal = BigDecimal(123)
-    val emptySubItem = SubItem("",
-      testDate, testBigDecimal, None, None, None, None, None, None, None,
-      None, None, None, None, None, None, None, None, None, None
-    )
+    val emptySubItem = SubItem(
+      "",
+      testDate,
+      testBigDecimal,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None)
 
-    val emptyFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, None, None, testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val unknownFT = FinancialTransaction("",
-      None, None, None, None, None, Some("32"), None, None,
-      None, None, None, None, None, None, testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val ReturnChargeInterestFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, Some("4815"), Some("2215"), testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val CentralAssessmentFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, Some("4820"), Some("1540"), testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val CentralAsstInterestFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, Some("4825"), Some("2215"), testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val OfficerAssessmentFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, Some("4830"), Some("1540"), testBigDecimal,
-      None, None, List(emptySubItem)
-    )
-    val OfficerAsstInterestFT = FinancialTransaction("",
-      None, None, None, None, None, None, None, None,
-      None, None, None, None, Some("4835"), Some("2215"), testBigDecimal,
-      None, None, List(emptySubItem)
-    )
+    val emptyFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val unknownFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("32"),
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val ReturnChargeInterestFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("4815"),
+      Some("2215"),
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val CentralAssessmentFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("4820"),
+      Some("1540"),
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val CentralAsstInterestFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("4825"),
+      Some("2215"),
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val OfficerAssessmentFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("4830"),
+      Some("1540"),
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
+    val OfficerAsstInterestFT = FinancialTransaction(
+      "",
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      Some("4835"),
+      Some("2215"),
+      testBigDecimal,
+      None,
+      None,
+      List(emptySubItem))
 
     "convert(in: FinancialTransaction)" should {
 
@@ -234,17 +349,32 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       }
 
       "FinancialTransaction case (60,100)" in {
-        val testFinancialTransaction = FinancialTransaction("",
-          None, None, None, None, None, Some("32"), None, None,
-          None, None, None, None, Some("60"), Some("100"), testBigDecimal,
-          None, None, List(emptySubItem)
-        )
+        val testFinancialTransaction = FinancialTransaction(
+          "",
+          None,
+          None,
+          None,
+          None,
+          None,
+          Some("32"),
+          None,
+          None,
+          None,
+          None,
+          None,
+          None,
+          Some("60"),
+          Some("100"),
+          testBigDecimal,
+          None,
+          None,
+          List(emptySubItem))
 
         val result = BalanceController.convert(testFinancialTransaction)
         result.length mustBe 1
 
         result.head match {
-          case PaymentOnAccount(date, reference, amount, lot, lotItem) =>{
+          case PaymentOnAccount(date, reference, amount, lot, lotItem) => {
             date mustBe testDate
             reference.length mustBe 10
             amount mustBe 0
@@ -297,49 +427,158 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
     "convert on list" should {
       val testNowDate = LocalDate.now()
-      val testFinancialTransaction1 = FinancialTransaction("",
-        None, None, None, None, None, None, None, None,
-        None, None, None, None, Some("4820"), Some("1540"), testBigDecimal,
-        None, None, List(SubItem("",
-          testNowDate, testBigDecimal, None, None, None, None, None, None, None,
-          None, None, None, None, None, None, None, None, None, None
-        ))
+      val testFinancialTransaction1 = FinancialTransaction(
+        "",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some("4820"),
+        Some("1540"),
+        testBigDecimal,
+        None,
+        None,
+        List(
+          SubItem(
+            "",
+            testNowDate,
+            testBigDecimal,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None))
       )
-      val testFinancialTransaction2 = FinancialTransaction("",
-        None, None, None, None, None, None, None, None,
-        None, None, None, None, Some("4820"), Some("1540"), testBigDecimal,
-        None, None, List(emptySubItem, emptySubItem)
+      val testFinancialTransaction2 = FinancialTransaction(
+        "",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some("4820"),
+        Some("1540"),
+        testBigDecimal,
+        None,
+        None,
+        List(emptySubItem, emptySubItem))
+      val testFinancialTransaction3 = FinancialTransaction(
+        "",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some("4815"),
+        Some("2215"),
+        testBigDecimal,
+        None,
+        None,
+        List(
+          SubItem(
+            "",
+            testNowDate,
+            testBigDecimal,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None))
       )
-      val testFinancialTransaction3 = FinancialTransaction("",
-        None, None, None, None, None, None, None, None,
-        None, None, None, None, Some("4815"), Some("2215"), testBigDecimal,
-        None, None, List(SubItem("",
-          testNowDate, testBigDecimal, None, None, None, None, None, None, None,
-          None, None, None, None, None, None, None, None, None, None
-        ))
-      )
-      val testFinancialTransaction4 = FinancialTransaction("",
-        None, None, None, None, None, None, None, None,
-        None, None, None, None, Some("4815"), Some("2215"), testBigDecimal,
-        None, None, List(emptySubItem)
-      )
+      val testFinancialTransaction4 = FinancialTransaction(
+        "",
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some("4815"),
+        Some("2215"),
+        testBigDecimal,
+        None,
+        None,
+        List(emptySubItem))
 
       "convert(in: List[FinancialTransactionResponse]) returns order non-duplicates" in {
-        val result = BalanceController.convert(List(
-          FinancialTransactionResponse("", "", "",LocalDateTime.now(), List(testFinancialTransaction1)),
-          FinancialTransactionResponse("", "", "",LocalDateTime.now(), List(testFinancialTransaction2))
-        ))
+        val result = BalanceController.convert(
+          List(
+            FinancialTransactionResponse("", "", "", LocalDateTime.now(), List(testFinancialTransaction1)),
+            FinancialTransactionResponse("", "", "", LocalDateTime.now(), List(testFinancialTransaction2))
+          ))
 
-        result mustBe List(CentralAssessment(testDate, -testBigDecimal*2), CentralAssessment(testNowDate, -testBigDecimal))
+        result mustBe List(
+          CentralAssessment(testDate, -testBigDecimal * 2),
+          CentralAssessment(testNowDate, -testBigDecimal))
       }
       "convertWithoutAssessment(in: List[FinancialTransactionResponse]) returns order non-duplicates and without assessment" in {
 
-        val result = BalanceController.convertWithoutAssessment(List(
-          FinancialTransactionResponse("", "", "",LocalDateTime.now(), List(testFinancialTransaction3)),
-          FinancialTransactionResponse("", "", "",LocalDateTime.now(), List(testFinancialTransaction2, testFinancialTransaction4))
-        ))
+        val result = BalanceController.convertWithoutAssessment(
+          List(
+            FinancialTransactionResponse("", "", "", LocalDateTime.now(), List(testFinancialTransaction3)),
+            FinancialTransactionResponse(
+              "",
+              "",
+              "",
+              LocalDateTime.now(),
+              List(testFinancialTransaction2, testFinancialTransaction4))
+          ))
 
-        result mustBe List(ReturnChargeInterest(testDate, -testBigDecimal), ReturnChargeInterest(testNowDate, -testBigDecimal))
+        result mustBe List(
+          ReturnChargeInterest(testDate, -testBigDecimal),
+          ReturnChargeInterest(testNowDate, -testBigDecimal))
       }
     }
   }
@@ -353,11 +592,14 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     val testOfficerAssessment = OfficerAssessment(testDate, testAmount)
     val testOfficerAsstInterest = OfficerAsstInterest(testDate, testAmount)
 
-    BalanceController.RichLineItems(List(testReturnChargeInterest,
-      testCentralAssessment,
-      testCentralAsstInterest,
-      testOfficerAssessment,
-      testOfficerAsstInterest
-    )).balance mustBe testAmount*5
+    BalanceController
+      .RichLineItems(
+        List(
+          testReturnChargeInterest,
+          testCentralAssessment,
+          testCentralAsstInterest,
+          testOfficerAssessment,
+          testOfficerAsstInterest))
+      .balance mustBe testAmount * 5
   }
 }

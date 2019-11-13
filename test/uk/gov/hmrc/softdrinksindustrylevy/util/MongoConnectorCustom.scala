@@ -21,6 +21,6 @@ import uk.gov.hmrc.mongo.MongoConnector
 trait MongoConnectorCustom {
 
   protected val databaseName: String = "test-" + this.getClass.getSimpleName
-  protected val mongoUri: String     = s"mongodb://127.0.0.1:27017/$databaseName"
+  protected val mongoUri: String = s"mongodb://127.0.0.1:27017/$databaseName"
   implicit val mongoConnector = MongoConnector(mongoUri)
 }

@@ -22,10 +22,11 @@ import cats.kernel.Monoid
 import sdil.models._
 
 @deprecated("use SdilReturn", "0.36")
-case class ReturnsRequest(packaged: Option[ReturnsPackaging],
-                          imported: Option[ReturnsImporting],
-                          exported: Option[LitreBands],
-                          wastage: Option[LitreBands]) {
+case class ReturnsRequest(
+  packaged: Option[ReturnsPackaging],
+  imported: Option[ReturnsImporting],
+  exported: Option[LitreBands],
+  wastage: Option[LitreBands]) {
 
   lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
@@ -51,7 +52,9 @@ object ReturnsRequest {
   def apply(sdilReturn: SdilReturn): ReturnsRequest = {
 
     val pack = ReturnsPackaging(
-      sdilReturn.packSmall.map { sp => SmallProducerVolume(sp.sdilRef, sp.litreage) },
+      sdilReturn.packSmall.map { sp =>
+        SmallProducerVolume(sp.sdilRef, sp.litreage)
+      },
       (sdilReturn.packLarge._1 + sdilReturn.ownBrand._1, sdilReturn.packLarge._2 + sdilReturn.ownBrand._2)
     )
 
@@ -63,4 +66,3 @@ object ReturnsRequest {
     )
   }
 }
-	

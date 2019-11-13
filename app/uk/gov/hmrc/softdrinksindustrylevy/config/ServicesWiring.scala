@@ -24,6 +24,8 @@ trait ServicesWiring {
 
   lazy val mongoBufferService: MongoBufferService = wire[MongoBufferService]
   lazy val variationSubmissionService: VariationSubmissionService = wire[VariationSubmissionService]
-  lazy val returnsVariationSubmissionService: ReturnsVariationSubmissionService = wire[ReturnsVariationSubmissionService]
-  lazy val returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService = wire[ReturnsAdjustmentSubmissionService]
+  lazy val returnsVariationSubmissionService: ReturnsVariationSubmissionService =
+    wire[ReturnsVariationSubmissionService]
+  lazy val returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService =
+    wire[ReturnsAdjustmentSubmissionService]
 }

@@ -27,8 +27,9 @@ class FileUploadConnectorSpec extends WiremockSpec {
   }
 
   "attempted get of file should succeed if the file is returned" in {
-    stubFor(get(urlPathEqualTo("/file-upload/envelopes/1234/files/testfile/content"))
-      .willReturn(aResponse().withStatus(200).withBody("some data")))
+    stubFor(
+      get(urlPathEqualTo("/file-upload/envelopes/1234/files/testfile/content"))
+        .willReturn(aResponse().withStatus(200).withBody("some data")))
 
     Try(TestConnector.getFile("1234", "testfile").futureValue) match {
       case Success(_) =>

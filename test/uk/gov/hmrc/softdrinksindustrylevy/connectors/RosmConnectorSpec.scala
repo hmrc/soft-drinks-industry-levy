@@ -44,24 +44,28 @@ class RosmConnectorSpec extends WiremockSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "should get no response back if des is not available" in {
-    stubFor(post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
-      .willReturn(aResponse()
-        .withStatus(500)
-      ))
+    stubFor(
+      post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
+        .willReturn(aResponse()
+          .withStatus(500)))
 
     val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)
-    response.map { x => x mustBe None }
+    response.map { x =>
+      x mustBe None
+    }
   }
 
   "should get a response back if des available" in {
-    stubFor(post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
-      .willReturn(aResponse()
-        .withStatus(200)
-        .withBody(Json.toJson(req).toString())
-      ))
+    stubFor(
+      post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(Json.toJson(req).toString())))
 
     val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)
-    response.map { x => x mustBe Some(res) }
+    response.map { x =>
+      x mustBe Some(res)
+    }
   }
 }
-

@@ -65,7 +65,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       val configMock: Configuration = mock[Configuration]
       when(configMock.getBoolean(any[String])) thenReturn None
 
-      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(configMock,
+      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
+        configMock,
         mock[MongoConnector],
         mock[ActorSystem],
         mock[MongoBufferService],
@@ -77,13 +78,13 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getLong("overdueSubmissions.startDelayMinutes")) thenReturn None
       when(configMock.getBoolean(any[String])) thenReturn Option(false)
 
-      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(configMock,
+      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
+        configMock,
         mock[MongoConnector],
         mock[ActorSystem],
         mock[MongoBufferService],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.startDelayMinutes"
     }
-
 
     "overduePeriod throw exception" in {
       val configMock: Configuration = mock[Configuration]
@@ -91,7 +92,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getLong("overdueSubmissions.overduePeriodMinutes")) thenReturn None
       when(configMock.getBoolean(any[String])) thenReturn Option(false)
 
-      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(configMock,
+      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
+        configMock,
         mock[MongoConnector],
         mock[ActorSystem],
         mock[MongoBufferService],
@@ -105,7 +107,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getLong("overdueSubmissions.jobIntervalMinutes")) thenReturn None
       when(configMock.getBoolean(any[String])) thenReturn Option(false)
 
-      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(configMock,
+      the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
+        configMock,
         mock[MongoConnector],
         mock[ActorSystem],
         mock[MongoBufferService],

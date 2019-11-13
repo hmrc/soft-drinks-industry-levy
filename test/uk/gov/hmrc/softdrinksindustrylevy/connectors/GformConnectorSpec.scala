@@ -48,7 +48,8 @@ class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwai
       )
 
       val sdilNumber = "XZSDIL0009999"
-      val expectedMetadataJson = """{"dmsFormId":"SDIL-VAR-1","customerId":"XZSDIL0009999","classificationType":"BT-NRU-SDIL","businessArea":"BT"}"""
+      val expectedMetadataJson =
+        """{"dmsFormId":"SDIL-VAR-1","customerId":"XZSDIL0009999","classificationType":"BT-NRU-SDIL","businessArea":"BT"}"""
 
       await(testConnector.submitToDms("", sdilNumber))
 

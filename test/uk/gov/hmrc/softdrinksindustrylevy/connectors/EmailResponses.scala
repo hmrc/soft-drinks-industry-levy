@@ -21,7 +21,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 
 object EmailResponses {
 
-  def send(success: Boolean = true) : StubMapping = {
+  def send(success: Boolean = true): StubMapping =
     stubFor(
       post(urlPathEqualTo("/hmrc/email"))
         .willReturn(
@@ -32,5 +32,4 @@ object EmailResponses {
             .withBody("")
         )
     )
-  }
 }

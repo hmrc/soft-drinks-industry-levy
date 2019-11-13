@@ -64,36 +64,48 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector extends DesConnector(httpClient, environment.mode, servicesConfig, testPersistence, auditConnector) {
+  object TestDesConnector
+      extends DesConnector(httpClient, environment.mode, servicesConfig, testPersistence, auditConnector) {
     override val desURL: String = mockServerUrl
   }
 
   "DesConnector" should {
     "return : None when DES returns 503 for an unknown UTR" in {
 
-      stubFor(get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
-        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+      stubFor(
+        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
+          .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
       val response: Future[Option[Subscription]] = TestDesConnector.retrieveSubscriptionDetails("utr", "11111111119")
-      response.map { x => x mustBe None }
+      response.map { x =>
+        x mustBe None
+      }
     }
 
     "return : None financial data when nothing is returned" in {
 
-      stubFor(get(urlEqualTo("/enterprise/financial-data/ZSDL/"))
-        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+      stubFor(
+        get(urlEqualTo("/enterprise/financial-data/ZSDL/"))
+          .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
-      val response: Future[Option[des.FinancialTransactionResponse]] = TestDesConnector.retrieveFinancialData("utr", None)
-      response.map { x => x mustBe None }
+      val response: Future[Option[des.FinancialTransactionResponse]] =
+        TestDesConnector.retrieveFinancialData("utr", None)
+      response.map { x =>
+        x mustBe None
+      }
     }
 
     "create subscription should throw an exception if des is unavailable" in {
 
-      stubFor(post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
-        .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+      stubFor(
+        post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
+          .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
-      val response = the[Exception] thrownBy (TestDesConnector.createSubscription(sub, "utr", "11111111119").futureValue)
-      response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+      val response = the[Exception] thrownBy (TestDesConnector
+        .createSubscription(sub, "utr", "11111111119")
+        .futureValue)
+      response.getMessage must startWith(
+        "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
     }
   }
 

@@ -30,15 +30,15 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
-  extends ReactiveRepository[VariationWrapper, String]("variations", mc.db, VariationWrapper.format, implicitly) {
+    extends ReactiveRepository[VariationWrapper, String]("variations", mc.db, VariationWrapper.format, implicitly) {
 
-  def save(variation: VariationsRequest, sdilRef: String): Future[Unit] = {
-    insert(VariationWrapper(variation, sdilRef)) map { _ => () }
-  }
+  def save(variation: VariationsRequest, sdilRef: String): Future[Unit] =
+    insert(VariationWrapper(variation, sdilRef)) map { _ =>
+      ()
+    }
 
-  def get(sdilRef: String): Future[Option[VariationsRequest]] = {
+  def get(sdilRef: String): Future[Option[VariationsRequest]] =
     find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
-  }
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -49,20 +49,21 @@ class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionConte
   )
 }
 
-case class VariationWrapper(submission: VariationsRequest,
-                            sdilRef: String,
-                            _id: BSONObjectID = BSONObjectID.generate(),
-                            timestamp: Instant = Instant.now)
+case class VariationWrapper(
+  submission: VariationsRequest,
+  sdilRef: String,
+  _id: BSONObjectID = BSONObjectID.generate(),
+  timestamp: Instant = Instant.now)
 
 object VariationWrapper {
   implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue = {
+    override def writes(o: Instant): JsValue =
       Json.toJson(BSONDateTime(o.toEpochMilli))
-    }
 
-    override def reads(json: JsValue): JsResult[Instant] = {
-      json.validate[BSONDateTime] map { dt => Instant.ofEpochMilli(dt.value) }
-    }
+    override def reads(json: JsValue): JsResult[Instant] =
+      json.validate[BSONDateTime] map { dt =>
+        Instant.ofEpochMilli(dt.value)
+      }
   }
 
   val format: Format[VariationWrapper] = Json.format[VariationWrapper]

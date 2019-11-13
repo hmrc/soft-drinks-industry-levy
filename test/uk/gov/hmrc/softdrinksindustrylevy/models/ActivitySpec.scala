@@ -61,19 +61,20 @@ class ActivitySpec extends PlaySpec with AppendedClues {
     }
   }
 
-  def internalActivity(produced: LitreBands = zero,
-                       copackedAll: LitreBands = zero,
-                       imported: LitreBands = zero,
-                       copackedByOthers: LitreBands = zero) = {
+  def internalActivity(
+    produced: LitreBands = zero,
+    copackedAll: LitreBands = zero,
+    imported: LitreBands = zero,
+    copackedByOthers: LitreBands = zero) =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,
-        CopackerAll -> copackedAll,
-        Imported -> imported,
-        Copackee -> copackedByOthers
-      ), false
+        CopackerAll      -> copackedAll,
+        Imported         -> imported,
+        Copackee         -> copackedByOthers
+      ),
+      false
     )
-  }
 
   lazy val zero: LitreBands = (0, 0)
 }

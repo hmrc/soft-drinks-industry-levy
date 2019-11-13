@@ -36,8 +36,7 @@ class ReturnsConversionSpec extends FunSuite with PropertyChecks with Matchers {
   test("∀ Returns: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator
 
-    val stream = getClass.getResourceAsStream(
-      "/test/des-return.schema.json")
+    val stream = getClass.getResourceAsStream("/test/des-return.schema.json")
     val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
     stream.close
     val schema = JsonLoader.fromString(schemaText)

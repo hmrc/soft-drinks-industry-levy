@@ -23,7 +23,7 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json, OFormat}
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _,_}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _, _}
 
 case class ReturnVariationData(
   original: SdilReturn,
@@ -44,25 +44,29 @@ object ReturnVariationData {
 }
 
 case class SdilReturn(
-  ownBrand     : (Long,Long) = (0,0),
-  packLarge    : (Long,Long) = (0,0),
-  packSmall    : List[SmallProducer] = Nil, // zero charge
-  importSmall  : (Long,Long) = (0,0), // zero charge
-  importLarge  : (Long,Long) = (0,0),
-  export       : (Long,Long) = (0,0), // negative charge
-  wastage      : (Long,Long) = (0,0), // negative charge
-  submittedOn  : Option[LocalDateTime]
+  ownBrand: (Long, Long) = (0, 0),
+  packLarge: (Long, Long) = (0, 0),
+  packSmall: List[SmallProducer] = Nil, // zero charge
+  importSmall: (Long, Long) = (0, 0), // zero charge
+  importLarge: (Long, Long) = (0, 0),
+  export: (Long, Long) = (0, 0), // negative charge
+  wastage: (Long, Long) = (0, 0), // negative charge
+  submittedOn: Option[LocalDateTime]
 ) {
-  private def toLongs: List[(Long,Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
-  private val keys = List("ownBrand","packLarge","importSmall","importLarge","export","wastage")
+  private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
+  private val keys = List("ownBrand", "packLarge", "importSmall", "importLarge", "export", "wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
     val y = this.toLongs
-    other.toLongs.zipWithIndex.filter { x => x._1 != y(x._2) }.map(x => keys(x._2) -> x._1).toMap
+    other.toLongs.zipWithIndex
+      .filter { x =>
+        x._1 != y(x._2)
+      }
+      .map(x => keys(x._2) -> x._1)
+      .toMap
   }
   private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
-  def total: BigDecimal = {
+  def total: BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
-  }
 }
 object SdilReturn {
   // TODO extract to config
@@ -103,7 +107,7 @@ object ReturnPeriod {
   def quarter(date: LocalDate): Int = { date.getMonthValue - 1 } / 3
 
   def fromPeriodKey(in: String): ReturnPeriod = {
-    val (y::q::_) = in.split("C").toList
+    val (y :: q :: _) = in.split("C").toList
     ReturnPeriod(2000 + y.toInt, q.toInt - 1)
   }
 

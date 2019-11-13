@@ -26,12 +26,11 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.stm.{TMap, atomic}
 import scala.language.higherKinds
 
-
 object Memoized {
 
-  def memoized[F[_] : Monad,A,B](
-    cacheRead: A => F[Option[(B,LocalDateTime)]],
-    cacheWrite: (A, (B,LocalDateTime)) => F[Unit],
+  def memoized[F[_]: Monad, A, B](
+    cacheRead: A => F[Option[(B, LocalDateTime)]],
+    cacheWrite: (A, (B, LocalDateTime)) => F[Unit],
     ttlSeconds: Long
   )(
     f: A => F[B]
@@ -39,7 +38,7 @@ object Memoized {
     val now = LocalDateTime.now
     val ttl = LocalDateTime.now.plusSeconds(ttlSeconds)
     cacheRead(args).flatMap {
-      case Some((v,d)) if d.isAfter(now) =>
+      case Some((v, d)) if d.isAfter(now) =>
         v.pure[F]
       case _ =>
         f(args).flatMap { z =>
@@ -47,7 +46,6 @@ object Memoized {
         }
     }
   }
-
 
   /**
     *  There's something odd about ScalaStm that means if you define the cache in the functinon call like this..
@@ -60,7 +58,7 @@ object Memoized {
     *  val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](cache, 60 * 60)(_,_)
     *
     */
-  def memoizedCache[F[_] : Monad,A,B](
+  def memoizedCache[F[_]: Monad, A, B](
     underlyingCache: TMap[A, (B, LocalDateTime)],
     secondsToCache: Long
   )(
@@ -68,7 +66,9 @@ object Memoized {
   ): A => F[B] = {
 
     def read(k: A): F[Option[(B, LocalDateTime)]] =
-      atomic {implicit t => underlyingCache.get(k)}.pure[F]
+      atomic { implicit t =>
+        underlyingCache.get(k)
+      }.pure[F]
 
     def write(key: A, value: (B, LocalDateTime)): F[Unit] =
       atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
@@ -81,6 +81,3 @@ object Memoized {
   }
 
 }
-
-
-

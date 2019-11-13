@@ -23,9 +23,7 @@ import org.scalatest.prop.PropertyChecks
 class RosmResponseAddressSpec extends FunSuite with Matchers with PropertyChecks {
 
   test("Remove invalid characters from address lines") {
-    forAll{
-      (line1: String, line2: Option[String], line3: Option[String], line4: Option[String]) =>
-
+    forAll { (line1: String, line2: Option[String], line3: Option[String], line4: Option[String]) =>
       val address = RosmResponseAddress(line1, line2, line3, line4, "GB", "AB12 3CD")
       val pattern = "^[A-Za-z0-9 \\-,.&'\\/]*$"
 
@@ -35,14 +33,14 @@ class RosmResponseAddressSpec extends FunSuite with Matchers with PropertyChecks
         address.addressLine3,
         address.addressLine4
       ).flatten.foreach {
-        _.matches(pattern) should be (true)
-      } 
+        _.matches(pattern) should be(true)
+      }
     }
   }
 
   test("Convert extended latin characters to their base form") {
     val addr = RosmResponseAddress("12 T́ḣè Stréët", None, None, None, "GB", "AB12 3CD")
-    addr.addressLine1 should be ("12 The Street")
+    addr.addressLine1 should be("12 The Street")
   }
 
 }

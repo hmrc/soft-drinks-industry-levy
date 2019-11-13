@@ -33,16 +33,16 @@ class VariationsSpec extends FakeApplicationSpec {
   "The variations HTML" when {
     "the trading name has changed" should {
       "contain the updated trading name" in {
-        val page = variations_pdf(VariationsRequest(
-          tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address), sdilNumber
-        )
+        val page = variations_pdf(
+          VariationsRequest(tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address),
+          sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text())
 
         val subheading = "Organisation Details"
 
-        rows must contain (subheading)
-        rows must contain (s"Trading Name $tradingName")
+        rows must contain(subheading)
+        rows must contain(s"Trading Name $tradingName")
       }
     }
 
@@ -56,9 +56,12 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(
-          displayOrgName = tradingName, ppobAddress = address, businessContact = Some(contactDetails)), sdilNumber
-        )
+        val page = variations_pdf(
+          VariationsRequest(
+            displayOrgName = tradingName,
+            ppobAddress = address,
+            businessContact = Some(contactDetails)),
+          sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -73,7 +76,7 @@ class VariationsSpec extends FakeApplicationSpec {
           s"Email Address ${contactDetails.emailAddress.get}"
         )
 
-        rows must contain (subheading)
+        rows must contain(subheading)
         rows must contain allElementsOf expectedRows
       }
     }
@@ -88,9 +91,12 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(
-          displayOrgName = tradingName, ppobAddress = address, correspondenceContact = Some(contactDetails)), sdilNumber
-        )
+        val page = variations_pdf(
+          VariationsRequest(
+            displayOrgName = tradingName,
+            ppobAddress = address,
+            correspondenceContact = Some(contactDetails)),
+          sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -105,7 +111,7 @@ class VariationsSpec extends FakeApplicationSpec {
           s"Email Address ${contactDetails.emailAddress.get}"
         )
 
-        rows must contain (subheading)
+        rows must contain(subheading)
         rows must contain allElementsOf expectedRows
       }
     }
@@ -119,9 +125,12 @@ class VariationsSpec extends FakeApplicationSpec {
           emailAddress = Some("aa@bb.cc")
         )
 
-        val page = variations_pdf(VariationsRequest(
-          displayOrgName = tradingName, ppobAddress = address, primaryPersonContact = Some(personalDetails)), sdilNumber
-        )
+        val page = variations_pdf(
+          VariationsRequest(
+            displayOrgName = tradingName,
+            ppobAddress = address,
+            primaryPersonContact = Some(personalDetails)),
+          sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -135,7 +144,7 @@ class VariationsSpec extends FakeApplicationSpec {
           s"Email Address ${personalDetails.emailAddress.get}"
         )
 
-        rows must contain (subheading)
+        rows must contain(subheading)
         rows must contain allElementsOf expectedRows
       }
     }
@@ -152,9 +161,9 @@ class VariationsSpec extends FakeApplicationSpec {
           taxObligationStartDate = Some(LocalDate.now)
         )
 
-        val page = variations_pdf(VariationsRequest(
-          displayOrgName = tradingName, ppobAddress = address, sdilActivity = Some(activity)), sdilNumber
-        )
+        val page = variations_pdf(
+          VariationsRequest(displayOrgName = tradingName, ppobAddress = address, sdilActivity = Some(activity)),
+          sdilNumber)
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -173,7 +182,7 @@ class VariationsSpec extends FakeApplicationSpec {
           "Estimated amount of tax in the next 12 months £0.00"
         )
 
-        rows must contain (subheading)
+        rows must contain(subheading)
         rows must contain allElementsOf expectedRows
       }
     }

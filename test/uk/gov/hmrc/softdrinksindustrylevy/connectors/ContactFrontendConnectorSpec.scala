@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.Instant
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlPathEqualTo, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo, urlPathEqualTo}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors._
 import scala.util.{Failure, Success, Try}
@@ -31,8 +31,9 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "attempted contact form should fail if contact service is not available" in {
-    stubFor(post(urlPathEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
-      .willReturn(aResponse().withStatus(500)))
+    stubFor(
+      post(urlPathEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
+        .willReturn(aResponse().withStatus(500)))
 
     Try(TestContactConnector.raiseTicket(sub, "safeid1", Instant.now()).futureValue) match {
       case Success(_) => fail
@@ -41,8 +42,9 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
   }
 
   "attempted contact form should succeed if contact service is available" in {
-    stubFor(post(urlEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
-      .willReturn(aResponse().withStatus(200).withBody("")))
+    stubFor(
+      post(urlEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
+        .willReturn(aResponse().withStatus(200).withBody("")))
     Try(TestContactConnector.raiseTicket(sub, "test1", Instant.now()).futureValue) match {
       case Success(_) =>
       case Failure(_) => fail

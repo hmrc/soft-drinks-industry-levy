@@ -30,15 +30,18 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionForma
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContactFrontendConnector(http: HttpClient,
-                               val mode: Mode,
-                               val runModeConfiguration: Configuration,
-                               val runMode: RunMode) extends ServicesConfig(runModeConfiguration, runMode) {
+class ContactFrontendConnector(
+  http: HttpClient,
+  val mode: Mode,
+  val runModeConfiguration: Configuration,
+  val runMode: RunMode)
+    extends ServicesConfig(runModeConfiguration, runMode) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] = {
 
     val headers = hc.withExtraHeaders("Csrf-Token" -> "nocheck")
 
@@ -46,7 +49,7 @@ class ContactFrontendConnector(http: HttpClient,
     val resubmitUrl = "/"
 
     val payload = Map(
-      "contact-name" -> Seq("SDIL service"),
+      "contact-name"  -> Seq("SDIL service"),
       "contact-email" -> Seq("sdil.service.email@somewhere.com"),
       "contact-comments" ->
         Seq(
@@ -61,13 +64,15 @@ class ContactFrontendConnector(http: HttpClient,
            """.stripMargin
         ),
       "isJavascript" -> Seq("false"),
-      "referer" -> Seq("soft-drinks-industry-levy"),
-      "csrfToken" -> Seq("nocheck"),
-      "service" -> Seq("soft-drinks-industry-levy")
+      "referer"      -> Seq("soft-drinks-industry-levy"),
+      "csrfToken"    -> Seq("nocheck"),
+      "service"      -> Seq("soft-drinks-industry-levy")
     )
 
     val submitUrl = s"$contactFrontendUrl/contact/contact-hmrc/form?resubmitUrl=$resubmitUrl"
 
-    http.POSTForm[HttpResponse](submitUrl, payload)(implicitly, headers, ec) map { _ => () }
+    http.POSTForm[HttpResponse](submitUrl, payload)(implicitly, headers, ec) map { _ =>
+      ()
+    }
   }
 }

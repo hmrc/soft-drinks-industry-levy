@@ -42,10 +42,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Small producer and copackee conversion includes all producer details") {
-    val copackeeSmallProd = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((100L, 100L)),
-      Copackee -> ((100L, 100L))
-    ), isLarge = false))
+    val copackeeSmallProd = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((100L, 100L)),
+          Copackee         -> ((100L, 100L))
+        ),
+        isLarge = false))
 
     val transformedJson = Json.toJson(copackeeSmallProd)
     val details = (transformedJson \\ "details").head
@@ -62,9 +65,12 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Large producer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducer = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1000000L, 1000000L))
-    ), isLarge = true))
+    val largeProducer = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1000000L, 1000000L))
+        ),
+        isLarge = true))
 
     val transformedJson = Json.toJson(largeProducer)
     val details = (transformedJson \\ "details").head
@@ -81,10 +87,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Large producer and importer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1000000L, 1000000L)),
-      Imported -> ((1L, 1L))
-    ), isLarge = true))
+    val largeProducerImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1000000L, 1000000L)),
+          Imported         -> ((1L, 1L))
+        ),
+        isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerImport)
     val details = (transformedJson \\ "details").head
@@ -101,10 +110,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Large producer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopacker = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1000000L, 1000000L)),
-      CopackerAll -> ((1L, 1L))
-    ), isLarge = true))
+    val largeProducerCopacker = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1000000L, 1000000L)),
+          CopackerAll      -> ((1L, 1L))
+        ),
+        isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopacker)
     val details = (transformedJson \\ "details").head
@@ -120,12 +132,16 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
   }
 
-  test("Large producer, importer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopackerImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1000000L, 1000000L)),
-      CopackerAll -> ((1L, 1L)),
-      Imported -> ((1L, 1L))
-    ), isLarge = true))
+  test(
+    "Large producer, importer and contract packer conversion includes only produceMillionLitres and producerClassification") {
+    val largeProducerCopackerImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1000000L, 1000000L)),
+          CopackerAll      -> ((1L, 1L)),
+          Imported         -> ((1L, 1L))
+        ),
+        isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -142,10 +158,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Large producer and copackee conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopackerImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1000000L, 1000000L)),
-      Copackee -> ((1L, 1L))
-    ), isLarge = true))
+    val largeProducerCopackerImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1000000L, 1000000L)),
+          Copackee         -> ((1L, 1L))
+        ),
+        isLarge = true))
 
     val transformedJson = Json.toJson(largeProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -162,10 +181,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Small producer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopacker = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1L, 1L)),
-      CopackerAll -> ((1L, 1L))
-    ), isLarge = false))
+    val smallProducerCopacker = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1L, 1L)),
+          CopackerAll      -> ((1L, 1L))
+        ),
+        isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopacker)
     val details = (transformedJson \\ "details").head
@@ -182,10 +204,13 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Small producer and importer conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1L, 1L)),
-      Imported -> ((1L, 1L))
-    ), isLarge = false))
+    val smallProducerImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1L, 1L)),
+          Imported         -> ((1L, 1L))
+        ),
+        isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerImport)
     val details = (transformedJson \\ "details").head
@@ -202,11 +227,14 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Small producer, importer and copacker conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopackerImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1L, 1L)),
-      Imported -> ((1L, 1L)),
-      CopackerAll -> ((1L, 1L))
-    ), isLarge = false))
+    val smallProducerCopackerImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1L, 1L)),
+          Imported         -> ((1L, 1L)),
+          CopackerAll      -> ((1L, 1L))
+        ),
+        isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopackerImport)
     val details = (transformedJson \\ "details").head
@@ -223,11 +251,14 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
   }
 
   test("Small producer, importer and copackee conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopackeeImport = baseSubscription.copy(activity = InternalActivity(Map(
-      ProducedOwnBrand -> ((1L, 1L)),
-      Imported -> ((1L, 1L)),
-      Copackee -> ((1L, 1L))
-    ), isLarge = false))
+    val smallProducerCopackeeImport = baseSubscription.copy(
+      activity = InternalActivity(
+        Map(
+          ProducedOwnBrand -> ((1L, 1L)),
+          Imported         -> ((1L, 1L)),
+          Copackee         -> ((1L, 1L))
+        ),
+        isLarge = false))
 
     val transformedJson = Json.toJson(smallProducerCopackeeImport)
     val details = (transformedJson \\ "details").head
@@ -251,7 +282,8 @@ class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
     address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
     activity = InternalActivity(Map.empty, isLarge = false),
     liabilityDate = LocalDate.parse("2018-04-06"),
-    productionSites = List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None, None, None)),
+    productionSites =
+      List(Site(UkAddress(List("99 Burntscarthgreen", "North West London"), "NW33 9CV"), None, None, None)),
     warehouseSites = List(
       Site(UkAddress(List("128 Willowbank Close", "Bristol"), "BS78 5CB"), None, None, None),
       Site(UkAddress(List("17 Trebarthen Terrace", "Northampton"), "NN08 2CC"), None, None, None)

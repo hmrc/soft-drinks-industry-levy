@@ -23,13 +23,10 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TestConnector(http: HttpClient,
-                    val mode: Mode,
-                    servicesConfig: ServicesConfig) {
+class TestConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val resetURL: String = servicesConfig.baseUrl("des")
 
-  def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+  def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
     http.GET(s"$resetURL/$url")
-  }
 }

@@ -26,7 +26,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VariationSubmissionServiceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+class VariationSubmissionServiceSpec
+    extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
 
   private val service = new VariationSubmissionService
 
@@ -36,8 +37,8 @@ class VariationSubmissionServiceSpec extends UnitSpec with BeforeAndAfterAll wit
 
   val address = UkAddress(List("My House", "My Lane"), "AA111A")
   val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
-  val variationsRequest = VariationsRequest(
-    tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address)
+  val variationsRequest =
+    VariationsRequest(tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address)
   val sdilRef = "XCSDIL000000000"
 
   "save" should {
