@@ -32,31 +32,33 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "should get successful response back" in {
-    stubFor(get(urlPathEqualTo("/tax-enrolments/subscriptions/1234567890"))
-      .willReturn(aResponse()
-        .withStatus(200)
-        .withBody(Json.toJson(req).toString())
-      ))
+    stubFor(
+      get(urlPathEqualTo("/tax-enrolments/subscriptions/1234567890"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(Json.toJson(req).toString())))
 
     val response: TaxEnrolmentsSubscription = TestConnector.getSubscription("1234567890").futureValue
     response mustBe req
   }
 
   "should subscribe successfully" in {
-    stubFor(put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
-      .willReturn(aResponse()
-        .withStatus(200)
-        .withBody(Json.toJson(req).toString())
-      ))
+    stubFor(
+      put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
+        .willReturn(
+          aResponse()
+            .withStatus(200)
+            .withBody(Json.toJson(req).toString())))
     val res = TestConnector.subscribe("safe1", "1234").futureValue
     res.status mustBe 200
   }
 
   "should handle errors for create subscribtion" in {
-    stubFor(put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
-      .willReturn(aResponse()
-        .withStatus(400)
-      ))
+    stubFor(
+      put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
+        .willReturn(aResponse()
+          .withStatus(400)))
     val res = TestConnector.subscribe("safe1", "1234").futureValue
     res.status mustBe 400
   }

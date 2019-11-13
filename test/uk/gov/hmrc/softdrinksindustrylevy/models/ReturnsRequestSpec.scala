@@ -20,7 +20,7 @@ import org.scalatest.mockito.MockitoSugar
 import sdil.models.{SdilReturn, SmallProducer}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar{
+class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
   "ReturnsPackaging" should {
     "totalSmallProdVolumes" in {
       val testSmallProdLitre1 = (109L, 110L)
@@ -28,7 +28,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar{
       val testSmallProd1 = SmallProducerVolume("", testSmallProdLitre1)
       val testSmallProd2 = SmallProducerVolume("", testSmallProdLitre2)
 
-      val result = ReturnsPackaging(Seq(testSmallProd1, testSmallProd2), (0,0)).totalSmallProdVolumes
+      val result = ReturnsPackaging(Seq(testSmallProd1, testSmallProd2), (0, 0)).totalSmallProdVolumes
 
       result._1 mustBe testSmallProdLitre1._1 + testSmallProdLitre2._1
       result._2 mustBe testSmallProdLitre1._2 + testSmallProdLitre2._2
@@ -40,25 +40,26 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar{
       val testSdilRef = "someSdilRef"
       val testPackSmallLitre = (109L, 110L)
       val testPackSmall = SmallProducer(Some("Small producer co"), testSdilRef, testPackSmallLitre)
-      val testImportSmall = (111L,112L)
-      val testImportLarge = (113L,114L)
-      val testPackLarge=(115L,116L)
-      val testOwnBrand=(117L,118L)
-      val testExport=(119L,120L)
-      val testWastage=(121L,122L)
+      val testImportSmall = (111L, 112L)
+      val testImportLarge = (113L, 114L)
+      val testPackLarge = (115L, 116L)
+      val testOwnBrand = (117L, 118L)
+      val testExport = (119L, 120L)
+      val testWastage = (121L, 122L)
 
-      val testSdilReturn = SdilReturn(importSmall=testImportSmall,
-        importLarge=testImportLarge,
-        packLarge=testPackLarge,
-        ownBrand=testOwnBrand,
-        export=testExport,
-        wastage=testWastage,
-        packSmall=List(testPackSmall),
+      val testSdilReturn = SdilReturn(
+        importSmall = testImportSmall,
+        importLarge = testImportLarge,
+        packLarge = testPackLarge,
+        ownBrand = testOwnBrand,
+        export = testExport,
+        wastage = testWastage,
+        packSmall = List(testPackSmall),
         submittedOn = None
       )
 
       val result = ReturnsRequest(testSdilReturn)
-      
+
       val resultSmallProducer = result.packaged.get.smallProducerVolumes.head
       resultSmallProducer.producerRef mustBe testSdilRef
       resultSmallProducer.volumes._1 mustBe testPackSmallLitre._1

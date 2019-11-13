@@ -59,7 +59,8 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
   when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
     .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any())).thenReturn(Future.successful(()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+    .thenReturn(Future.successful(()))
 
   when(mockEmailConnector.sendSubmissionReceivedEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
@@ -74,8 +75,9 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
       when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
         .thenReturn(Future.successful(HttpResponse(418)))
 
-      val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(FakeRequest()
-        .withBody(validCreateSubscriptionRequest))
+      val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(
+        FakeRequest()
+          .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any())
@@ -83,13 +85,15 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
     }
 
     "return Status: BAD_REQUEST for invalid request" in {
-      val result = testSdilController.submitRegistration("UTR", "00002222", "barfoo")(FakeRequest()
-        .withBody(Json.parse(
-          """{
-            |"test": "bad"
-            |}
+      val result = testSdilController.submitRegistration("UTR", "00002222", "barfoo")(
+        FakeRequest()
+          .withBody(
+            Json.parse(
+              """{
+                |"test": "bad"
+                |}
           """.stripMargin
-        )))
+            )))
 
       status(result) mustBe BAD_REQUEST
     }
@@ -110,15 +114,16 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         wnote = None,
         wtimeout = false,
         waited = None,
-        wtime = None)))
+        wtime = None
+      )))
 
-      val response = testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
-        .withBody(validCreateSubscriptionRequest))
+      val response = testSdilController.submitRegistration("UTR", "00002222", "foo")(
+        FakeRequest()
+          .withBody(validCreateSubscriptionRequest))
 
       status(response) mustBe CONFLICT
       contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
     }
-
 
     "return Status: Exception rethrown for error code other than 11000" in {
       when(mockDesConnector.createSubscription(any(), any(), any())(any()))
@@ -136,12 +141,14 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
         wnote = None,
         wtimeout = false,
         waited = None,
-        wtime = None)
+        wtime = None
+      )
 
       when(mockBuffer.insert(any())(any())).thenReturn(Future.failed(testLastError))
 
-        the [LastError] thrownBy contentAsString(testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
-        .withBody(validCreateSubscriptionRequest)))
+      the[LastError] thrownBy contentAsString(
+        testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
+          .withBody(validCreateSubscriptionRequest)))
 
     }
 
@@ -293,7 +300,8 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
 
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
       when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
-      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
+      val deregisteredSubscription =
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 
@@ -333,7 +341,8 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
     }
 
     "retrieveSubscriptionDetails returning Some of non-small producer" in {
-      val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
+      val deregisteredSubscription =
+        Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 

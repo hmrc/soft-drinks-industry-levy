@@ -24,14 +24,15 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilPers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TestingController(override val messagesApi: MessagesApi,
-                        testConnector: TestConnector,
-                        buffer: MongoBufferService,
-                        fileUpload: FileUploadConnector,
-                        variationSubmissions: VariationSubmissionService,
-                        cc: ControllerComponents,
-                        persistence: SdilPersistence)
-  extends BackendController(cc) with I18nSupport {
+class TestingController(
+  override val messagesApi: MessagesApi,
+  testConnector: TestConnector,
+  buffer: MongoBufferService,
+  fileUpload: FileUploadConnector,
+  variationSubmissions: VariationSubmissionService,
+  cc: ControllerComponents,
+  persistence: SdilPersistence)
+    extends BackendController(cc) with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
     testConnector.reset(url) map (r => Status(r.status))
@@ -42,19 +43,21 @@ class TestingController(override val messagesApi: MessagesApi,
   }
 
   def getFile(envelopeId: String, fileName: String) = Action.async { implicit request =>
-    fileUpload.getFile(envelopeId, fileName) map { file => Ok(file) }
+    fileUpload.getFile(envelopeId, fileName) map { file =>
+      Ok(file)
+    }
   }
 
   def getVariationHtml(sdilNumber: String): Action[AnyContent] = Action.async { implicit request =>
     variationSubmissions.get(sdilNumber) map {
       case Some(v) => Ok(views.html.variations_pdf(v, sdilNumber))
-      case None => NotFound
+      case None    => NotFound
     }
   }
 
   def getSdilReturnsMongoDrop: Action[AnyContent] = Action.async { implicit request =>
-    persistence.returns.dropCollection.map{
-      case true => Ok
+    persistence.returns.dropCollection.map {
+      case true  => Ok
       case false => NoContent
     }
   }

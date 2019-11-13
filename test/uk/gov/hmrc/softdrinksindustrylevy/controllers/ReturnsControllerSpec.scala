@@ -38,7 +38,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Su
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach{
+class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockSdilConfig = mock[SdilConfig]
@@ -57,7 +57,8 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
     .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any())).thenReturn(Future.successful(()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+    .thenReturn(Future.successful(()))
 
   "variable method" should {
     "return list of variables" in {
@@ -85,9 +86,11 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testYear = 2018
       val testQuarter = 1
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(None)
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+        None)
 
-      val response = testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+      val response =
+        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
@@ -99,21 +102,25 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testUtr = "testUtr"
       val testSdilRef = "someSdilRef"
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(Some(Subscription(testUtr,
-        Some(testSdilRef),
-        "someOrgName",
-        None,
-        mock[Address],
-        mock[Activity],
-        LocalDate.now,
-        Nil,
-        Nil,
-        mock[Contact],
-        None,
-        None)))
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+        Some(
+          Subscription(
+            testUtr,
+            Some(testSdilRef),
+            "someOrgName",
+            None,
+            mock[Address],
+            mock[Activity],
+            LocalDate.now,
+            Nil,
+            Nil,
+            mock[Contact],
+            None,
+            None)))
 
       testPersistence.returns.update(testUtr, ReturnPeriod(2018, 1), SdilReturn(submittedOn = None))
-      val response = testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+      val response =
+        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
@@ -123,7 +130,10 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "RichLong" should {
     "asMilliseconds" in {
       val testDate = LocalDateTime.now()
-      testReturnsContoller.RichLong(testDate.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli).asMilliseconds.toString mustBe testDate.toString
+      testReturnsContoller
+        .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli)
+        .asMilliseconds
+        .toString mustBe testDate.toString
     }
   }
 

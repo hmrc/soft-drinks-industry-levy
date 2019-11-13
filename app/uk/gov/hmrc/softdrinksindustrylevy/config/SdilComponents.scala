@@ -33,18 +33,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.services._
 import scala.concurrent.ExecutionContext
 
 class SdilComponents(context: Context)
-  extends BuiltInComponentsFromContext(context)
-    with I18nComponents
-    with RoutesWiring
-    with ControllerWiring
-    with ConnectorWiring
-    with ServicesWiring
-    with PlayWiring
-    with Base64ConfigDecoder
-    with AhcWSComponents
-    with FiltersWiring
-    with ConfigWiring
-    with HttpFiltersComponents {
+    extends BuiltInComponentsFromContext(context) with I18nComponents with RoutesWiring with ControllerWiring
+    with ConnectorWiring with ServicesWiring with PlayWiring with Base64ConfigDecoder with AhcWSComponents
+    with FiltersWiring with ConfigWiring with HttpFiltersComponents {
 
   override lazy val configuration: Configuration = DefaultBase64ConfigDecoder.decodeConfig(context.initialConfiguration)
   override def errorHandler: HttpErrorHandler = wire[JsonErrorHandler]

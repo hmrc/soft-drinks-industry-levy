@@ -35,13 +35,13 @@ import cats.implicits._
 
 trait SdilPersistence {
 
-  protected trait DAO[U,K,V] {
+  protected trait DAO[U, K, V] {
     def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
     def get(user: U, key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
     def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-      get(user, key).map{_.get._1}
-    def list(user: U)(implicit ec: EC): Future[Map[K,V]]
-    def listVariable(user: U)(implicit ec: EC): Future[Map[K,V]]
+      get(user, key).map { _.get._1 }
+    def list(user: U)(implicit ec: EC): Future[Map[K, V]]
+    def listVariable(user: U)(implicit ec: EC): Future[Map[K, V]]
     def dropCollection(implicit ec: EC): Future[Boolean]
   }
 
@@ -69,45 +69,48 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
     import json.internal._
     implicit val formatWrapper = Json.format[Wrapper]
 
-    override def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
+    override def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] =
       subscriptionsMongo.insert(Wrapper(utr, value)).map(_ => ())
-    }
 
-    override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] = {
-      subscriptionsMongo.find(
-        "utr" -> utr
-      ).map(_.map(_.subscription))
-    }
+    override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] =
+      subscriptionsMongo
+        .find(
+          "utr" -> utr
+        )
+        .map(_.map(_.subscription))
 
     def dropDb(implicit ec: EC) = subscriptionsMongo.drop
 
-    val subscriptionsMongo = new
-      ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
-      override def indexes: Seq[Index] = Seq(
-        Index(
-          key = Seq(
-            "utr" -> IndexType.Ascending
-          ),
-          unique = false
+    val subscriptionsMongo =
+      new ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
+        override def indexes: Seq[Index] = Seq(
+          Index(
+            key = Seq(
+              "utr" -> IndexType.Ascending
+            ),
+            unique = false
+          )
         )
-      )
-    }
+      }
   }
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
-    protected case class Wrapper(utr: String, period: ReturnPeriod, sdilReturn: SdilReturn, _id: Option[BSONObjectID] = None)
+    protected case class Wrapper(
+      utr: String,
+      period: ReturnPeriod,
+      sdilReturn: SdilReturn,
+      _id: Option[BSONObjectID] = None)
 
     implicit val formatWrapper = Json.format[Wrapper]
 
-    val returnsMongo = new
-      ReactiveRepository[Wrapper, BSONObjectID]("sdilreturns", mc.db, formatWrapper, implicitly) {
+    val returnsMongo = new ReactiveRepository[Wrapper, BSONObjectID]("sdilreturns", mc.db, formatWrapper, implicitly) {
 
       override def indexes: Seq[Index] = Seq(
         Index(
           key = Seq(
-            "utr" -> IndexType.Ascending,
-            "period.year" -> IndexType.Descending,
+            "utr"            -> IndexType.Ascending,
+            "period.year"    -> IndexType.Descending,
             "period.quarter" -> IndexType.Descending
           ),
           unique = true
@@ -124,47 +127,59 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
       domainFormatImplicit.writes(data) match {
         case d @ JsObject(_) =>
-          val selector = Json.obj(
-            "utr" -> utr,
-            "period.year" -> period.year,
-            "period.quarter" -> period.quarter)
-          collection.update(
-          selector, data, upsert=true)
+          val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
+          collection.update(selector, data, upsert = true)
         case _ =>
           Future.failed[WriteResult](new Exception("cannot write object"))
       }
-    }.map{_ => ()}
-
-    def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
-      returnsMongo.find(
-        "utr" -> utr,
-        "period.year" -> period.year,
-        "period.quarter" -> period.quarter
-      ).map{_.headOption.map{x =>
-        (x.sdilReturn, x._id)
-      }
+    }.map { _ =>
+      ()
     }
 
-    def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod,SdilReturn]] =
-      returnsMongo.find(
-        "utr" -> utr
-      ).map{_.map{x => (x.period, x.sdilReturn)}.toMap}
+    def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
+      returnsMongo
+        .find(
+          "utr"            -> utr,
+          "period.year"    -> period.year,
+          "period.quarter" -> period.quarter
+        )
+        .map {
+          _.headOption.map { x =>
+            (x.sdilReturn, x._id)
+          }
+        }
+
+    def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+      returnsMongo
+        .find(
+          "utr" -> utr
+        )
+        .map {
+          _.map { x =>
+            (x.period, x.sdilReturn)
+          }.toMap
+        }
 
     def listVariable(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
       val since = LocalDate.now.minusYears(4)
 
-      returnsMongo.find(
-        "utr" -> utr,
-        "$or" -> BSONArray(
-          BSONDocument("period.year" -> BSONDocument("$gt" -> since.getYear)),
-          BSONDocument("$and" -> BSONArray(
-            BSONDocument("period.year" -> BSONDocument("$eq" -> since.getYear)),
-            BSONDocument("period.quarter" -> BSONDocument("$gte" -> (since.getMonthValue - 1) / 3))
-          ))
+      returnsMongo
+        .find(
+          "utr" -> utr,
+          "$or" -> BSONArray(
+            BSONDocument("period.year" -> BSONDocument("$gt" -> since.getYear)),
+            BSONDocument(
+              "$and" -> BSONArray(
+                BSONDocument("period.year"    -> BSONDocument("$eq"  -> since.getYear)),
+                BSONDocument("period.quarter" -> BSONDocument("$gte" -> (since.getMonthValue - 1) / 3))
+              ))
+          )
         )
-      ).map {
-        _.map { x => (x.period, x.sdilReturn) }.toMap
-      }
+        .map {
+          _.map { x =>
+            (x.period, x.sdilReturn)
+          }.toMap
+        }
     }
 
   }

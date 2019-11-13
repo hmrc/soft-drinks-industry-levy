@@ -35,15 +35,18 @@ class BalanceController(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val cc: ControllerComponents
-)(implicit ec: ExecutionContext) extends BackendController(cc) with AuthorisedFunctions {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with AuthorisedFunctions {
 
   import BalanceController._
 
   def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector.retrieveFinancialData(sdilRef, None)
-        .map{r =>
-          val lineItems = r.fold(List.empty[FinancialLineItem])(if(withAssessment) convert else convertWithoutAssessment)
+      desConnector
+        .retrieveFinancialData(sdilRef, None)
+        .map { r =>
+          val lineItems =
+            r.fold(List.empty[FinancialLineItem])(if (withAssessment) convert else convertWithoutAssessment)
           Ok(JsNumber(lineItems.balance))
         }
     }
@@ -51,27 +54,31 @@ class BalanceController(
   def balanceHistoryAll(sdilRef: String, withAssessment: Boolean): Action[AnyContent] =
     Action.async { implicit request =>
       val r: Future[List[FinancialLineItem]] = for {
-        subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map{_.get}
-        years        =  (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
-        responses    <- years.map{y => desConnector.retrieveFinancialData(sdilRef, y.some)}.sequence
+        subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map { _.get }
+        years = (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
+        responses <- years.map { y =>
+                      desConnector.retrieveFinancialData(sdilRef, y.some)
+                    }.sequence
       } yield {
-          deduplicatePayments(
-            if(withAssessment)
-              convert(responses.flatten)
-            else
-              convertWithoutAssessment(responses.flatten)
-          ).sortBy(_.date.toString)
+        deduplicatePayments(
+          if (withAssessment)
+            convert(responses.flatten)
+          else
+            convertWithoutAssessment(responses.flatten)
+        ).sortBy(_.date.toString)
 
       }
 
-      r.map{x => Ok(JsArray(x.map{Json.toJson(_)}))}
+      r.map { x =>
+        Ok(JsArray(x.map { Json.toJson(_) }))
+      }
     }
 
   def balanceHistory(sdilRef: String, year: Int): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector.retrieveFinancialData(sdilRef, Some(year)).map{ r =>
+      desConnector.retrieveFinancialData(sdilRef, Some(year)).map { r =>
         val data: List[FinancialLineItem] = r.fold(List.empty[FinancialLineItem])(convert)
-        Ok(JsArray(data.map{Json.toJson(_)}))
+        Ok(JsArray(data.map { Json.toJson(_) }))
       }
     }
 }
@@ -80,7 +87,7 @@ object BalanceController {
 
   type Payment = (String, LocalDate, BigDecimal)
   def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
-    val (payments,other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
+    val (payments, other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
     other ++ payments.distinct
   }
 
@@ -90,9 +97,13 @@ object BalanceController {
   def interest(
     f: (LocalDate, BigDecimal) => FinancialLineItem,
     amount: Option[BigDecimal]
-  ): List[FinancialLineItem] = amount.filter{_ != 0}.map { x =>
-    f(LocalDate.now, -x)
-  }.toList
+  ): List[FinancialLineItem] =
+    amount
+      .filter { _ != 0 }
+      .map { x =>
+        f(LocalDate.now, -x)
+      }
+      .toList
 
   def deep(base: FinancialLineItem, in: FinancialTransaction): List[FinancialLineItem] =
     base :: {
@@ -108,19 +119,16 @@ object BalanceController {
       }
     }
 
-  def amount(in: FinancialTransaction): BigDecimal = -in.items.map{_.amount}.sum
+  def amount(in: FinancialTransaction): BigDecimal = -in.items.map { _.amount }.sum
 
   def dueDate(in: FinancialTransaction): LocalDate = in.items.head.dueDate
 
   def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
-    deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convert)})
-      .sortBy{_.date.toString}
+    deduplicatePayments(in.flatMap { _.financialTransactions.flatMap(convert) })
+      .sortBy { _.date.toString }
 
-  def convert(in: FinancialTransactionResponse): List[FinancialLineItem] = {
-    deduplicatePayments(in.financialTransactions.flatMap(convert))
-      .sortBy{_.date.toString}
-      .reverse
-  }
+  def convert(in: FinancialTransactionResponse): List[FinancialLineItem] =
+    deduplicatePayments(in.financialTransactions.flatMap(convert)).sortBy { _.date.toString }.reverse
 
   private def randomNumbers(stringLength: Int, id: String): String = {
     val n = Seq.fill(stringLength)(Random.nextInt(9)).mkString("")
@@ -133,59 +141,63 @@ object BalanceController {
     default
   }
 
-  def convert(in: FinancialTransaction): List[FinancialLineItem] = {
-
+  def convert(in: FinancialTransaction): List[FinancialLineItem] =
     (
       in.mainTransaction >>= parseIntOpt,
       in.subTransaction >>= parseIntOpt
     ) match {
-      case (Some(main), Some(sub)) => (main,sub) match {
-        case (4810,1540) => deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(ReturnChargeInterest, in.accruedInterest)
-        case (4815,2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
-        case (4820,1540) => deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest, in.accruedInterest)
-        case (4825,2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
-        case (4830,1540) => deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
-        case (4835,2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
-        case (60,100) if in.contractAccountCategory == "32".some => PaymentOnAccount(dueDate(in),
-          in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
-          in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
-          in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
-          in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))).pure[List]
-        case (a, b) if in.contractAccountCategory == "32".some =>
-          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
-          Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-        case _           =>
-          Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
-          List.empty
-      }
+      case (Some(main), Some(sub)) =>
+        (main, sub) match {
+          case (4810, 1540) =>
+            deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(
+              ReturnChargeInterest,
+              in.accruedInterest)
+          case (4815, 2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
+          case (4820, 1540) =>
+            deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest, in.accruedInterest)
+          case (4825, 2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
+          case (4830, 1540) =>
+            deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
+          case (4835, 2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
+          case (60, 100) if in.contractAccountCategory == "32".some =>
+            PaymentOnAccount(
+              dueDate(in),
+              in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+              in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
+              in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+              in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))
+            ).pure[List]
+          case (a, b) if in.contractAccountCategory == "32".some =>
+            Logger.warn(
+              s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
+            Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
+          case _ =>
+            Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+            List.empty
+        }
       case _ if in.contractAccountCategory == "32".some =>
         Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-      case _             =>
+      case _ =>
         Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
         List.empty
     }
-  }
 
   def convertWithoutAssessment(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
-    deduplicatePayments(in.flatMap{_.financialTransactions.flatMap(convertWithoutAssessment)})
-      .sortBy{_.date.toString}
+    deduplicatePayments(in.flatMap { _.financialTransactions.flatMap(convertWithoutAssessment) })
+      .sortBy { _.date.toString }
 
-  def convertWithoutAssessment(in: FinancialTransactionResponse): List[FinancialLineItem] = {
-    deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment))
-      .sortBy{_.date.toString}
-      .reverse
-  }
+  def convertWithoutAssessment(in: FinancialTransactionResponse): List[FinancialLineItem] =
+    deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment)).sortBy { _.date.toString }.reverse
 
-  def convertWithoutAssessment(in: FinancialTransaction): List[FinancialLineItem] = {
+  def convertWithoutAssessment(in: FinancialTransaction): List[FinancialLineItem] =
     convert(in).filterNot {
-      case _: CentralAssessment => true
+      case _: CentralAssessment   => true
       case _: CentralAsstInterest => true
-      case _: OfficerAssessment => true
+      case _: OfficerAssessment   => true
       case _: OfficerAsstInterest => true
-      case _ => false
+      case _                      => false
     }
-  }
 
   implicit class RichLineItems(lineItems: List[FinancialLineItem]) {
     def balance: BigDecimal = lineItems.map(_.amount).sum

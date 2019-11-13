@@ -69,7 +69,9 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
   "generateVariations" should {
     val variationRequest = VariationsRequest(
-      displayOrgName = tradingName, ppobAddress = address, correspondenceContact = Some(contactDetails))
+      displayOrgName = tradingName,
+      ppobAddress = address,
+      correspondenceContact = Some(contactDetails))
     val page = variations_pdf(variationRequest, sdilNumber).toString()
 
     "204 successfully generate Variations" in {
@@ -113,13 +115,22 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       val result = controller.generateVariations(sdilNumber)(requestInput)
 
       whenReady(result.failed)(e => {
-        e mustBe a [RuntimeException]
+        e mustBe a[RuntimeException]
       })
     }
   }
 
   "returnsVariation" should {
-    val returnsVariationRequest = ReturnsVariationRequest(tradingName, address, (false, (0, 0)), (false, (0, 0)), Nil, Nil, "", "email", BigDecimal("1.1"))
+    val returnsVariationRequest = ReturnsVariationRequest(
+      tradingName,
+      address,
+      (false, (0, 0)),
+      (false, (0, 0)),
+      Nil,
+      Nil,
+      "",
+      "email",
+      BigDecimal("1.1"))
     val page = returns_variation_pdf(returnsVariationRequest, sdilNumber).toString()
 
     "204 when successfully" in {
@@ -160,24 +171,23 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       when(mockReturnsVariationSubmissionService.save(any(), any()))
         .thenThrow(new RuntimeException)
 
-
       val result = controller.returnsVariation(sdilNumber)(requestInput)
 
       whenReady(result.failed)(e => {
-        e mustBe a [RuntimeException]
+        e mustBe a[RuntimeException]
       })
     }
   }
 
   "varyReturn" should {
-    val commonSmallPack = SmallProducer(Some("common"), "1", (100,100))
-    val removedSmallPack = SmallProducer(Some("removed"), "2", (100,100))
-    val addedSmallPack = SmallProducer(Some("added"), "3", (100,100))
+    val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
+    val removedSmallPack = SmallProducer(Some("removed"), "2", (100, 100))
+    val addedSmallPack = SmallProducer(Some("added"), "3", (100, 100))
 
     val testOriginal = SdilReturn(submittedOn = None)
     val testRevised = SdilReturn((3, 3), (3, 3), Nil, (3, 3), (3, 3), (3, 3), (3, 3), None)
-    val returnVariationData = ReturnVariationData(testOriginal, testRevised,
-      ReturnPeriod(2018, 1), "testOrg", address, "", None)
+    val returnVariationData =
+      ReturnVariationData(testOriginal, testRevised, ReturnPeriod(2018, 1), "testOrg", address, "", None)
 
     val page = views.html.return_variation_pdf(returnVariationData, sdilNumber).toString()
     "204 when successfully" in {
@@ -221,7 +231,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       val result = controller.varyReturn(sdilNumber)(requestInput)
 
       whenReady(result.failed)(e => {
-        e mustBe a [RuntimeException]
+        e mustBe a[RuntimeException]
       })
     }
   }

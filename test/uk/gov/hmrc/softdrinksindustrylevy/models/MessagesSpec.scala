@@ -25,7 +25,7 @@ import play.mvc.Http
 import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, PaymentOnAccount, ReturnCharge, ReturnChargeInterest, ReturnPeriod}
 import uk.gov.hmrc.play.test.UnitSpec
 
-class MessagesSpec extends UnitSpec with MockitoSugar{
+class MessagesSpec extends UnitSpec with MockitoSugar {
 
   class MessagesApiStub(messagesMap: Map[String, Map[String, String]]) extends MessagesApi {
     override def messages: Map[String, Map[String, String]] = messagesMap
@@ -45,7 +45,7 @@ class MessagesSpec extends UnitSpec with MockitoSugar{
       val secondKey = key.split("""\.""")(1)
 
       messages.get(firstKey) match {
-        case None => ""
+        case None    => ""
         case Some(x) => x.getOrElse(secondKey, "")
       }
     }
@@ -73,13 +73,13 @@ class MessagesSpec extends UnitSpec with MockitoSugar{
 
   val messagesMap: Map[String, Map[String, String]] = Map(
     "financiallineitem" -> Map(
-      "returncharge" -> returnchargeTestVal,
+      "returncharge"         -> returnchargeTestVal,
       "returnchargeinterest" -> returnchargeinterestTestVal,
-      "centralassessment" -> centralassessmentTestVal,
-      "centralasstinterest" -> centralasstinterestTestVal,
-      "officerassessment" -> officerassessmentTestVal,
-      "officerasstinterest" -> officerasstinterestTestVal,
-      "paymentonaccount" -> paymentonaccountTestVal
+      "centralassessment"    -> centralassessmentTestVal,
+      "centralasstinterest"  -> centralasstinterestTestVal,
+      "officerassessment"    -> officerassessmentTestVal,
+      "officerasstinterest"  -> officerasstinterestTestVal,
+      "paymentonaccount"     -> paymentonaccountTestVal
     )
   )
 

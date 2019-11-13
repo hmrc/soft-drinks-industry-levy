@@ -30,16 +30,19 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class ReturnsVariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
-  extends ReactiveRepository[ReturnsVariationWrapper, String]("returns-variations", mc.db, ReturnsVariationWrapper.format, implicitly) {
+    extends ReactiveRepository[ReturnsVariationWrapper, String](
+      "returns-variations",
+      mc.db,
+      ReturnsVariationWrapper.format,
+      implicitly) {
 
+  def save(v: ReturnsVariationRequest, sdilRef: String): Future[Unit] =
+    insert(ReturnsVariationWrapper(v, sdilRef)) map { _ =>
+      ()
+    }
 
-  def save(v: ReturnsVariationRequest, sdilRef: String): Future[Unit] = {
-    insert(ReturnsVariationWrapper(v, sdilRef)) map { _ => () }
-  }
-
-  def get(sdilRef: String): Future[Option[ReturnsVariationRequest]] = {
+  def get(sdilRef: String): Future[Option[ReturnsVariationRequest]] =
     find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
-  }
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -58,13 +61,13 @@ case class ReturnsVariationWrapper(
 
 object ReturnsVariationWrapper {
   implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue = {
+    override def writes(o: Instant): JsValue =
       Json.toJson(BSONDateTime(o.toEpochMilli))
-    }
 
-    override def reads(json: JsValue): JsResult[Instant] = {
-      json.validate[BSONDateTime] map { dt => Instant.ofEpochMilli(dt.value) }
-    }
+    override def reads(json: JsValue): JsResult[Instant] =
+      json.validate[BSONDateTime] map { dt =>
+        Instant.ofEpochMilli(dt.value)
+      }
   }
 
   val format: Format[ReturnsVariationWrapper] = Json.format[ReturnsVariationWrapper]

@@ -31,14 +31,19 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class MongoBufferService(implicit mc: MongoConnector)
-  extends ReactiveRepository[SubscriptionWrapper, String]("sdil-subscription", mc.db, SubscriptionWrapper.format, implicitly) {
+    extends ReactiveRepository[SubscriptionWrapper, String](
+      "sdil-subscription",
+      mc.db,
+      SubscriptionWrapper.format,
+      implicitly) {
 
-  def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] = {
+  def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] =
     collection.findAndUpdate(
-      BSONDocument("_id" -> BSONString(id)),
+      BSONDocument("_id"  -> BSONString(id)),
       BSONDocument("$set" -> BSONDocument("status" -> BSONString(newStatus)))
-    ) map { _ => () }
-  }
+    ) map { _ =>
+      ()
+    }
 
   def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
     val bsonDt = BSONDateTime(createdBefore.toEpochMilli)
@@ -54,23 +59,24 @@ class MongoBufferService(implicit mc: MongoConnector)
   )
 }
 
-case class SubscriptionWrapper(_id: String,
-                               subscription: Subscription,
-                               formBundleNumber: String,
-                               timestamp: Instant = Instant.now,
-                               status: String = "PENDING")
+case class SubscriptionWrapper(
+  _id: String,
+  subscription: Subscription,
+  formBundleNumber: String,
+  timestamp: Instant = Instant.now,
+  status: String = "PENDING")
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
 
   implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue = {
+    override def writes(o: Instant): JsValue =
       Json.toJson(BSONDateTime(o.toEpochMilli))
-    }
 
-    override def reads(json: JsValue): JsResult[Instant] = {
-      json.validate[BSONDateTime] map { dt => Instant.ofEpochMilli(dt.value) }
-    }
+    override def reads(json: JsValue): JsResult[Instant] =
+      json.validate[BSONDateTime] map { dt =>
+        Instant.ofEpochMilli(dt.value)
+      }
   }
 
   val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]

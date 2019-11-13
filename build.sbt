@@ -116,10 +116,14 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // Testing
 // ================================================================================
   import scoverage.ScoverageKeys._
+  import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
+
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
   coverageMinimum := 80
   coverageFailOnMinimum := false
   coverageHighlighting := true
+  scalafmtOnCompile in Compile := true
+  scalafmtOnCompile in Test := true
   ScoverageKeys.coverageExcludedFiles :=
     """<empty>;.*javascript;.*Routes.*;.*testonly.*;
       |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin

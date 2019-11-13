@@ -16,7 +16,7 @@
 
 package sdil.models.des
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 

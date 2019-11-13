@@ -22,30 +22,28 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
-
 // Reads the DES retrieve subscription JSON to create a Subscription.
 
 package object get {
 
   implicit val contactFormat: Format[Contact] = new Format[Contact] {
 
-    override def reads(json: JsValue): JsSuccess[Contact] = {
-      JsSuccess(Contact(
-        name = (json \ "subscriptionDetails" \ "primaryContactName").asOpt[String],
-        positionInCompany = (json \ "subscriptionDetails" \ "primaryPositionInCompany").asOpt[String],
-        phoneNumber = (json \ "subscriptionDetails" \ "primaryTelephone").as[String],
-        email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
-      ))
-    }
+    override def reads(json: JsValue): JsSuccess[Contact] =
+      JsSuccess(
+        Contact(
+          name = (json \ "subscriptionDetails" \ "primaryContactName").asOpt[String],
+          positionInCompany = (json \ "subscriptionDetails" \ "primaryPositionInCompany").asOpt[String],
+          phoneNumber = (json \ "subscriptionDetails" \ "primaryTelephone").as[String],
+          email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
+        ))
 
-    override def writes(o: Contact): JsObject = {
+    override def writes(o: Contact): JsObject =
       Json.obj(
-        "name" -> o.name,
+        "name"              -> o.name,
         "positionInCompany" -> o.positionInCompany,
-        "telephone" -> o.phoneNumber,
-        "email" -> o.email
+        "telephone"         -> o.phoneNumber,
+        "email"             -> o.email
       )
-    }
 
   }
 
@@ -64,29 +62,34 @@ package object get {
       val post = (json \ "postCode").asOpt[String]
       (country, post) match {
         case (Some("GB") | None, Some(p)) => JsSuccess(UkAddress(lines, p))
-        case (Some(c), _) => JsSuccess(ForeignAddress(lines, c))
-        case (None, None) => JsError("Neither country code nor postcode supplied")
+        case (Some(c), _)                 => JsSuccess(ForeignAddress(lines, c))
+        case (None, None)                 => JsError("Neither country code nor postcode supplied")
       }
 
     }
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
-        s"line${i + 1}" -> JsString(v)
+      val jsLines = address.lines.zipWithIndex.map {
+        case (v, i) =>
+          s"line${i + 1}" -> JsString(v)
       }
 
       JsObject(
-        { address match {
-          case UkAddress(_, postCode) => List(
-            "notUKAddress" -> JsBoolean(false),
-            "postCode" -> JsString(postCode)
-          )
-          case ForeignAddress(_, country) => List(
-            "notUKAddress" -> JsBoolean(true),
-            "country" -> JsString(country)
-          )
-        } } ::: jsLines
+        {
+          address match {
+            case UkAddress(_, postCode) =>
+              List(
+                "notUKAddress" -> JsBoolean(false),
+                "postCode"     -> JsString(postCode)
+              )
+            case ForeignAddress(_, country) =>
+              List(
+                "notUKAddress" -> JsBoolean(true),
+                "country"      -> JsString(country)
+              )
+          }
+        } ::: jsLines
       )
     }
 
@@ -97,51 +100,49 @@ package object get {
       (JsPath \ "siteReference").formatNullable[String] and
       (JsPath \ "tradingName").formatNullable[String] and
       (__ \ "closureDate").formatNullable[LocalDate]
-    ) (Site.apply, unlift(Site.unapply))
-
+  )(Site.apply, unlift(Site.unapply))
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
 
     override def writes(o: Subscription): JsValue = {
 
-      def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] = {
+      def siteList(sites: List[Site], isWarehouse: Boolean): List[JsObject] =
         sites map { site =>
           Json.obj(
-            "tradingName" -> site.tradingName,
+            "tradingName"   -> site.tradingName,
             "siteReference" -> site.ref,
-            "siteAddress" -> site.address,
+            "siteAddress"   -> site.address,
             "siteContact" -> Json.obj(
               "telephone" -> o.contact.phoneNumber,
-              "email" -> o.contact.email
+              "email"     -> o.contact.email
             ),
-            "siteType" -> (if (isWarehouse) "1" else "2"))
+            "siteType" -> (if (isWarehouse) "1" else "2")
+          )
         }
-      }
 
       Json.obj(
         "utr" -> o.utr,
         "subscriptionDetails" -> Json.obj(
-          "sdilRegistrationNumber" -> o.sdilRef,
-          "taxObligationStartDate" -> o.liabilityDate.toString,
-          "taxObligationEndDate" -> o.liabilityDate.plusYears(1).toString,
-          "tradingName" -> o.orgName,
-          "voluntaryRegistration" -> o.activity.isVoluntaryRegistration,
-          "smallProducer" -> o.activity.isSmallProducer,
-          "largeProducer" -> o.activity.isLarge,
-          "contractPacker" -> o.activity.isContractPacker,
-          "importer" -> o.activity.isImporter,
-          "primaryContactName" -> o.contact.name,
+          "sdilRegistrationNumber"   -> o.sdilRef,
+          "taxObligationStartDate"   -> o.liabilityDate.toString,
+          "taxObligationEndDate"     -> o.liabilityDate.plusYears(1).toString,
+          "tradingName"              -> o.orgName,
+          "voluntaryRegistration"    -> o.activity.isVoluntaryRegistration,
+          "smallProducer"            -> o.activity.isSmallProducer,
+          "largeProducer"            -> o.activity.isLarge,
+          "contractPacker"           -> o.activity.isContractPacker,
+          "importer"                 -> o.activity.isImporter,
+          "primaryContactName"       -> o.contact.name,
           "primaryPositionInCompany" -> o.contact.positionInCompany,
-          "primaryTelephone" -> o.contact.phoneNumber,
-          "primaryEmail" -> o.contact.email
+          "primaryTelephone"         -> o.contact.phoneNumber,
+          "primaryEmail"             -> o.contact.email
         ),
         "businessAddress" -> addressFormat.writes(o.address),
         "businessContact" -> Json.obj(
           "telephone" -> o.contact.phoneNumber,
-          "email" -> o.contact.email
+          "email"     -> o.contact.email
         ),
         "sites" -> (siteList(o.warehouseSites, true) ++ siteList(o.productionSites, false))
-
       )
     }
 
@@ -161,28 +162,31 @@ package object get {
 
       def getSites(siteType: String): List[Site] =
         json \ "sites" match {
-          case JsDefined(JsArray(arr)) => arr.toList.collect {
-            case obj: JsObject if {
-              obj \ "siteType"
-            }.as[String] == siteType => obj.as[Site]
-          }
+          case JsDefined(JsArray(arr)) =>
+            arr.toList.collect {
+              case obj: JsObject if {
+                    obj \ "siteType"
+                  }.as[String] == siteType =>
+                obj.as[Site]
+            }
           case _ => List.empty[Site]
         }
 
-      JsSuccess(Subscription(
-        utr = (json \ "utr").as[String],
-        sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").asOpt[String],
-        orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
-        orgType = None,
-        address = (json \ "businessAddress").as[Address],
-        activity = activityType,
-        liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
-        productionSites = getSites("2"),
-        warehouseSites = getSites("1"),
-        contact = json.as[Contact],
-        endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate],
-        deregDate = (json \ "subscriptionDetails" \ "deregistrationDate").asOpt[LocalDate]
-      ))
+      JsSuccess(
+        Subscription(
+          utr = (json \ "utr").as[String],
+          sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").asOpt[String],
+          orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
+          orgType = None,
+          address = (json \ "businessAddress").as[Address],
+          activity = activityType,
+          liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
+          productionSites = getSites("2"),
+          warehouseSites = getSites("1"),
+          contact = json.as[Contact],
+          endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate],
+          deregDate = (json \ "subscriptionDetails" \ "deregistrationDate").asOpt[LocalDate]
+        ))
     }
 
   }

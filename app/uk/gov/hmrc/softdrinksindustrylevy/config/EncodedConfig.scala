@@ -32,17 +32,17 @@ object EncodedConfig {
   def b64encode(in: String): String =
     Base64.getEncoder.encodeToString(in.getBytes("UTF-8"))
 
-  def apply(in: Config): Config = {
-    in.entrySet.asScala.foldLeft(in){case (config, entry) =>
-      val key = entry.getKey
-      if (key.endsWith("-b64encoded")) {
-        val value = new String(decoder.decode(in.getString(key)), "UTF-8")
-        val newVal = Parseable.newString(value, ConfigParseOptions.defaults).parse()
-        config.withValue(key.replace("-b64encoded",""), newVal)
-      } else
-        config
+  def apply(in: Config): Config =
+    in.entrySet.asScala.foldLeft(in) {
+      case (config, entry) =>
+        val key = entry.getKey
+        if (key.endsWith("-b64encoded")) {
+          val value = new String(decoder.decode(in.getString(key)), "UTF-8")
+          val newVal = Parseable.newString(value, ConfigParseOptions.defaults).parse()
+          config.withValue(key.replace("-b64encoded", ""), newVal)
+        } else
+          config
     }
-  }
 }
 
 object DefaultBase64ConfigDecoder extends Base64ConfigDecoder {

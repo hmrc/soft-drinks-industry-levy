@@ -44,7 +44,7 @@ class ReturnsController(
   auditing: AuditConnector,
   val cc: ControllerComponents
 )(implicit ec: ExecutionContext, clock: Clock)
-  extends BackendController(cc) with AuthorisedFunctions {
+    extends BackendController(cc) with AuthorisedFunctions {
 
   def checkSmallProducerStatus(
     idType: String,
@@ -55,13 +55,12 @@ class ReturnsController(
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub         <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
-        subs        <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
-        byRef       = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
+        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
           b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
-            y.isAfter(period.end) && b.activity.isSmallProducer)
-        )
+            y.isAfter(period.end) && b.activity.isSmallProducer))
       } yield Ok(Json.toJson(isSmallProd))
     }
   }
@@ -75,21 +74,23 @@ class ReturnsController(
     utr: String,
     outcome: String
   ): JsValue = {
-    val sdilNo: String = subscription.flatMap {
-      _.sdilRef
-    }.fold("unknown") {
-      identity
-    }
+    val sdilNo: String = subscription
+      .flatMap {
+        _.sdilRef
+      }
+      .fold("unknown") {
+        identity
+      }
     Json.obj(
       "sdilNumber" -> sdilNo,
       "orgName" -> subscription.fold("unknown") {
         _.orgName
       },
-      "utr" -> utr,
-      "outcome" -> outcome,
+      "utr"              -> utr,
+      "outcome"          -> outcome,
       "authProviderType" -> "GovernmentGateway",
-      "authProviderId" -> providerId,
-      "return" -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
+      "authProviderId"   -> providerId,
+      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
     )
   }
 
@@ -106,11 +107,18 @@ class ReturnsController(
             ref = subscription.get.sdilRef.get
             _ <- desConnector.submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
-              new SdilReturnEvent(
-                 request.uri,
-                buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, subscription, utr, "SUCCESS")
-              )
-            )
+                  new SdilReturnEvent(
+                    request.uri,
+                    buildReturnAuditDetail(
+                      sdilReturn,
+                      returnsReq,
+                      creds.providerId,
+                      period,
+                      subscription,
+                      utr,
+                      "SUCCESS")
+                  )
+                )
             _ <- persistence.returns(utr, period) = sdilReturn
           } yield {
             Ok(Json.toJson(returnsReq))
@@ -132,38 +140,39 @@ class ReturnsController(
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async { implicit request =>
       persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
-        case Some((record, objectID)) => Ok(Json.toJson(record.copy(submittedOn = objectID.map {
-          _.time.asMilliseconds
-        })))
+        case Some((record, objectID)) =>
+          Ok(Json.toJson(record.copy(submittedOn = objectID.map {
+            _.time.asMilliseconds
+          })))
         case None => NotFound
       }
     }
 
   implicit class RichLong(i: Long) {
-    def asMilliseconds: LocalDateTime = Instant.ofEpochMilli(i)
-      .atZone(ZoneId.systemDefault)
-      .toLocalDateTime
+    def asMilliseconds: LocalDateTime =
+      Instant
+        .ofEpochMilli(i)
+        .atZone(ZoneId.systemDefault)
+        .toLocalDateTime
   }
 
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap {
-        subscription =>
-          import sdilConfig.today
-          val start = subscription.get.liabilityDate
+      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
+        import sdilConfig.today
+        val start = subscription.get.liabilityDate
 
-          val all = {
-            ReturnPeriod(start).count to ReturnPeriod(today).count
+        val all = {
+          ReturnPeriod(start).count to ReturnPeriod(today).count
+        }.map {
+            ReturnPeriod.apply
           }
-            .map {
-              ReturnPeriod.apply
-            }
-            .filter {
-              _.end.isBefore(today)
-            }
-          persistence.returns.list(utr).map { posted =>
-            Ok(Json.toJson(all.toList diff posted.keys.toList))
+          .filter {
+            _.end.isBefore(today)
           }
+        persistence.returns.list(utr).map { posted =>
+          Ok(Json.toJson(all.toList diff posted.keys.toList))
+        }
       }
     }
 

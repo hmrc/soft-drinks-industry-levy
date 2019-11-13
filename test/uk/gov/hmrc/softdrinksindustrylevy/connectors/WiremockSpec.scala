@@ -28,15 +28,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.ExecutionContext
 
-trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll
-  with ScalaFutures {
+trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll with ScalaFutures {
   val port = WireMockSupport.port
   val mockServer = new WireMockServer(port)
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mockServerUrl = s"http://localhost:$port"
-
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()

@@ -16,7 +16,7 @@
 
 package sdil.models
 
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import java.time.LocalDate
@@ -28,7 +28,7 @@ class FinancialLineItemSpec extends FlatSpec with Matchers with PropertyChecks {
 
   "A FinancialLineItem" should "be serialisable" in {
 
-    val returnCharge = new ReturnCharge(ReturnPeriod(date),  bigDecimal)
+    val returnCharge = new ReturnCharge(ReturnPeriod(date), bigDecimal)
     val returnChargeInterest = new ReturnChargeInterest(date, bigDecimal)
     val centralAssessment = new CentralAssessment(date, bigDecimal)
     val centralAsstInterest = new CentralAsstInterest(date, bigDecimal)
@@ -37,13 +37,13 @@ class FinancialLineItemSpec extends FlatSpec with Matchers with PropertyChecks {
     val paymentOnAccount = new PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
     val unknown = new Unknown(date, "someTitle", bigDecimal)
 
-    Json.toJson(returnCharge).as[FinancialLineItem] should be (returnCharge)
-    Json.toJson(returnChargeInterest).as[FinancialLineItem] should be (returnChargeInterest)
-    Json.toJson(centralAssessment).as[FinancialLineItem] should be (centralAssessment)
-    Json.toJson(centralAsstInterest).as[FinancialLineItem] should be (centralAsstInterest)
-    Json.toJson(officerAssessment).as[FinancialLineItem] should be (officerAssessment)
-    Json.toJson(officerAsstInterest).as[FinancialLineItem] should be (officerAsstInterest)
-    Json.toJson(paymentOnAccount).as[FinancialLineItem] should be (paymentOnAccount)
-    Json.toJson(unknown).as[FinancialLineItem] should be (unknown)
+    Json.toJson(returnCharge).as[FinancialLineItem] should be(returnCharge)
+    Json.toJson(returnChargeInterest).as[FinancialLineItem] should be(returnChargeInterest)
+    Json.toJson(centralAssessment).as[FinancialLineItem] should be(centralAssessment)
+    Json.toJson(centralAsstInterest).as[FinancialLineItem] should be(centralAsstInterest)
+    Json.toJson(officerAssessment).as[FinancialLineItem] should be(officerAssessment)
+    Json.toJson(officerAsstInterest).as[FinancialLineItem] should be(officerAsstInterest)
+    Json.toJson(paymentOnAccount).as[FinancialLineItem] should be(paymentOnAccount)
+    Json.toJson(unknown).as[FinancialLineItem] should be(unknown)
   }
 }

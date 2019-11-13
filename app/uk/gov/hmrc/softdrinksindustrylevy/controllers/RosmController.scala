@@ -30,25 +30,28 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RosmController(val authConnector: AuthConnector,
-                     rosmConnector: RosmConnector,
-                     taxEnrolmentConnector: TaxEnrolmentConnector,
-                     val mode: Mode,
-                     val cc: ControllerComponents,
-                     val runModeConfiguration: Configuration,
-                     val runMode: RunMode)
-  extends BackendController(cc) with AuthorisedFunctions {
+class RosmController(
+  val authConnector: AuthConnector,
+  rosmConnector: RosmConnector,
+  taxEnrolmentConnector: TaxEnrolmentConnector,
+  val mode: Mode,
+  val cc: ControllerComponents,
+  val runModeConfiguration: Configuration,
+  val runMode: RunMode)
+    extends BackendController(cc) with AuthorisedFunctions {
 
   val serviceConfig = new ServicesConfig(runModeConfiguration, runMode)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
-      rosmConnector.retrieveROSMDetails(utr, RosmRegisterRequest(regime = serviceConfig.getString("etmp.sdil.regime"))).map {
-        case Some(r) if r.organisation.isDefined || r.individual.isDefined =>
-          JsonSchemaChecker[RosmRegisterResponse](r, "rosm-response")
-          Ok(Json.toJson(r))
-        case _ => NotFound
-      }
+      rosmConnector
+        .retrieveROSMDetails(utr, RosmRegisterRequest(regime = serviceConfig.getString("etmp.sdil.regime")))
+        .map {
+          case Some(r) if r.organisation.isDefined || r.individual.isDefined =>
+            JsonSchemaChecker[RosmRegisterResponse](r, "rosm-response")
+            Ok(Json.toJson(r))
+          case _ => NotFound
+        }
     }
   }
 }

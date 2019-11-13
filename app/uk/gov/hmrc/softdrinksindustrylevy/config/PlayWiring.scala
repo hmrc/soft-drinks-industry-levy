@@ -44,10 +44,13 @@ trait PlayWiring {
 
   lazy val config: SdilConfig = {
     implicit val localDateInstance: ConfigConvert[LocalDate] = localDateConfigConvert(DateTimeFormatter.ISO_DATE)
-    implicit val localDateTimeInstance: ConfigConvert[LocalDateTime] = localDateTimeConfigConvert(DateTimeFormatter.ISO_DATE)
-    implicit val litreageConfigReader: ConfigReader[(Long, Long)] = ConfigReader[List[Long]].map {case (l::h::_) => (l,h)}
+    implicit val localDateTimeInstance: ConfigConvert[LocalDateTime] = localDateTimeConfigConvert(
+      DateTimeFormatter.ISO_DATE)
+    implicit val litreageConfigReader: ConfigReader[(Long, Long)] = ConfigReader[List[Long]].map {
+      case (l :: h :: _) => (l, h)
+    }
     implicit val hint: ProductHint[SdilReturn] = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
-    
+
     pureconfig.loadConfig[SdilConfig](EncodedConfig(configuration.underlying)) match {
       case Left(error) => throw new IllegalStateException(error.toString)
       case Right(conf) => conf

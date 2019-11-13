@@ -30,15 +30,19 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class ReturnsAdjustmentSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
-  extends ReactiveRepository[ReturnVariationWrapper, String]("returnadjustments", mc.db, ReturnVariationWrapper.format, implicitly) {
+    extends ReactiveRepository[ReturnVariationWrapper, String](
+      "returnadjustments",
+      mc.db,
+      ReturnVariationWrapper.format,
+      implicitly) {
 
-  def save(variation: ReturnVariationData, sdilRef: String): Future[Unit] = {
-    insert(ReturnVariationWrapper(variation, sdilRef)) map { _ => () }
-  }
+  def save(variation: ReturnVariationData, sdilRef: String): Future[Unit] =
+    insert(ReturnVariationWrapper(variation, sdilRef)) map { _ =>
+      ()
+    }
 
-  def get(sdilRef: String): Future[Option[ReturnVariationData]] = {
+  def get(sdilRef: String): Future[Option[ReturnVariationData]] =
     find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
-  }
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -49,20 +53,21 @@ class ReturnsAdjustmentSubmissionService(implicit mc: MongoConnector, ec: Execut
   )
 }
 
-case class ReturnVariationWrapper(submission: ReturnVariationData,
+case class ReturnVariationWrapper(
+  submission: ReturnVariationData,
   sdilRef: String,
   _id: BSONObjectID = BSONObjectID.generate(),
   timestamp: Instant = Instant.now)
 
 object ReturnVariationWrapper {
   implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue = {
+    override def writes(o: Instant): JsValue =
       Json.toJson(BSONDateTime(o.toEpochMilli))
-    }
 
-    override def reads(json: JsValue): JsResult[Instant] = {
-      json.validate[BSONDateTime] map { dt => Instant.ofEpochMilli(dt.value) }
-    }
+    override def reads(json: JsValue): JsResult[Instant] =
+      json.validate[BSONDateTime] map { dt =>
+        Instant.ofEpochMilli(dt.value)
+      }
   }
 
   val format: Format[ReturnVariationWrapper] = Json.format[ReturnVariationWrapper]

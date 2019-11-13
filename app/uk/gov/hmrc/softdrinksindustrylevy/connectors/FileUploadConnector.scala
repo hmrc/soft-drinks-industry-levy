@@ -23,14 +23,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FileUploadConnector(ws: WSClient,
-                          val mode: Mode,
-                          servicesConfig: ServicesConfig)
-                         (implicit ec: ExecutionContext) {
+class FileUploadConnector(ws: WSClient, val mode: Mode, servicesConfig: ServicesConfig)(implicit ec: ExecutionContext) {
 
   val url: String = servicesConfig.baseUrl("file-upload")
 
-  def getFile(envelopeId: String, fileName: String): Future[ByteString] = {
+  def getFile(envelopeId: String, fileName: String): Future[ByteString] =
     ws.url(s"$url/file-upload/envelopes/$envelopeId/files/$fileName/content").get().map(_.bodyAsBytes)
-  }
 }

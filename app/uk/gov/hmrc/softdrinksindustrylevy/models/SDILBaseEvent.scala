@@ -21,41 +21,39 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
-abstract class SDILBaseEvent(auditType: String,
-                             transactionName: String,
-                             path: String,
-                             detailJson: JsValue)(implicit hc: HeaderCarrier)
-  extends ExtendedDataEvent(
-    auditSource = "soft-drinks-industry-levy",
-    auditType = auditType,
-    detail = detailJson,
-    tags = hc.toAuditTags(transactionName, path)
-  )
+abstract class SDILBaseEvent(auditType: String, transactionName: String, path: String, detailJson: JsValue)(
+  implicit hc: HeaderCarrier)
+    extends ExtendedDataEvent(
+      auditSource = "soft-drinks-industry-levy",
+      auditType = auditType,
+      detail = detailJson,
+      tags = hc.toAuditTags(transactionName, path)
+    )
 
 class SdilSubscriptionEvent(path: String, detailJson: JsValue)(implicit hc: HeaderCarrier)
-  extends SDILBaseEvent(
-    auditType = "SDILRegistrationSubmitted",
-    transactionName = "Soft Drinks Industry Levy subscription submitted",
-    path = path,
-    detailJson = detailJson)
+    extends SDILBaseEvent(
+      auditType = "SDILRegistrationSubmitted",
+      transactionName = "Soft Drinks Industry Levy subscription submitted",
+      path = path,
+      detailJson = detailJson)
 
 class TaxEnrolmentEvent(enrolmentStatus: String, path: String, detailJson: JsValue)(implicit hc: HeaderCarrier)
-  extends SDILBaseEvent(
-    auditType = "SDILEnrolment",
-    transactionName = s"Soft Drinks Industry Levy subscription ${enrolmentStatus.toLowerCase}",
-    path = path,
-    detailJson = detailJson)
+    extends SDILBaseEvent(
+      auditType = "SDILEnrolment",
+      transactionName = s"Soft Drinks Industry Levy subscription ${enrolmentStatus.toLowerCase}",
+      path = path,
+      detailJson = detailJson)
 
 class SdilReturnEvent(path: String, detailJson: JsValue)(implicit hc: HeaderCarrier)
-  extends SDILBaseEvent(
+    extends SDILBaseEvent(
       auditType = "SDILReturnSubmitted",
       transactionName = "Soft Drinks Industry Levy return submitted",
       path = path,
       detailJson = detailJson)
 
 class BalanceQueryEvent(path: String, detail: JsValue)(implicit headerCarrier: HeaderCarrier)
-  extends SDILBaseEvent(
-    auditType = "SDILBalanceQuery",
-    transactionName = "Soft Drinks Industry Levy balance requested",
-    path = path,
-    detailJson = detail)
+    extends SDILBaseEvent(
+      auditType = "SDILBalanceQuery",
+      transactionName = "Soft Drinks Industry Levy balance requested",
+      path = path,
+      detailJson = detail)

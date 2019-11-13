@@ -24,30 +24,34 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailConnector(http: HttpClient,
-                     val mode: Mode,
-                     servicesConfig: ServicesConfig){
+class EmailConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val emailUrl: String = servicesConfig.baseUrl("email")
 
-  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
-      "to" -> Seq(email),
+      "to"         -> Seq(email),
       "templateId" -> "sdil_registration_accepted",
       "parameters" -> Json.obj(
-        "sdilNumber" -> sdilNumber,
+        "sdilNumber"  -> sdilNumber,
         "companyName" -> orgName
-       ),
+      ),
       "force" -> false
     )
 
-    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
+    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ =>
+      ()
+    }
   }
 
   // TODO find out if we need to verify...
-  def sendSubmissionReceivedEmail(email: String, orgName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def sendSubmissionReceivedEmail(email: String, orgName: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[Unit] = {
     val params = Json.obj(
-      "to" -> Seq(email),
+      "to"         -> Seq(email),
       "templateId" -> "sdil_registration_received",
       "parameters" -> Json.obj(
         "companyName" -> orgName
@@ -55,6 +59,8 @@ class EmailConnector(http: HttpClient,
       "force" -> false
     )
 
-    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ => () }
+    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ =>
+      ()
+    }
   }
 }

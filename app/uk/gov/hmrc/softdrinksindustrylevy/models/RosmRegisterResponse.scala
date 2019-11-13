@@ -20,8 +20,8 @@ import play.api.libs.json.Json
 import java.text.Normalizer
 
 case class OrganisationResponse(
-                                 organisationName: String
-                               )
+  organisationName: String
+)
 
 object OrganisationResponse {
   implicit val organisationResponseFormat = Json.format[OrganisationResponse]
@@ -36,7 +36,7 @@ object IndividualResponse {
   implicit val format: Format[IndividualResponse] = Json.format[IndividualResponse]
 }
 
-abstract case class RosmResponseAddress private[models](
+abstract case class RosmResponseAddress private[models] (
   addressLine1: String,
   addressLine2: Option[String],
   addressLine3: Option[String],
@@ -53,9 +53,11 @@ object RosmResponseAddress {
     * equivalent (e.g. 'é' becomes 'e') and remove any non-permitted symbols
     * such as parenthesis */
   implicit class RichStr(i: String) {
-    def clean = Normalizer.normalize(i, Normalizer.Form.NFD)
-      .replaceAll("\\p{M}", "")
-      .replaceAll("[^A-Za-z0-9 \\-,.&'\\/]", "")
+    def clean =
+      Normalizer
+        .normalize(i, Normalizer.Form.NFD)
+        .replaceAll("\\p{M}", "")
+        .replaceAll("[^A-Za-z0-9 \\-,.&'\\/]", "")
   }
 
   def apply(
@@ -65,38 +67,39 @@ object RosmResponseAddress {
     addressLine4: Option[String],
     countryCode: String,
     postalCode: String
-  ): RosmResponseAddress = new RosmResponseAddress(
-    addressLine1.clean,
-    addressLine2.map(_.clean),
-    addressLine3.map(_.clean),
-    addressLine4.map(_.clean),
-    countryCode,
-    postalCode
-  ) {}
+  ): RosmResponseAddress =
+    new RosmResponseAddress(
+      addressLine1.clean,
+      addressLine2.map(_.clean),
+      addressLine3.map(_.clean),
+      addressLine4.map(_.clean),
+      countryCode,
+      postalCode
+    ) {}
 }
 
 case class RosmResponseContactDetails(
-                                       primaryPhoneNumber: Option[String],
-                                       secondaryPhoneNumber: Option[String],
-                                       faxNumber: Option[String],
-                                       emailAddress: Option[String]
-                                     )
+  primaryPhoneNumber: Option[String],
+  secondaryPhoneNumber: Option[String],
+  faxNumber: Option[String],
+  emailAddress: Option[String]
+)
 
 object RosmResponseContactDetails {
   implicit val rosmResponseContactDetailsFormat = Json.format[RosmResponseContactDetails]
 }
 
 case class RosmRegisterResponse(
-                                 safeId: String,
-                                 agentReferenceNumber: Option[String],
-                                 isEditable: Boolean,
-                                 isAnAgent: Boolean,
-                                 isAnIndividual: Boolean,
-                                 organisation: Option[OrganisationResponse],
-                                 individual: Option[IndividualResponse],
-                                 address: RosmResponseAddress,
-                                 contactDetails: RosmResponseContactDetails
-                               )
+  safeId: String,
+  agentReferenceNumber: Option[String],
+  isEditable: Boolean,
+  isAnAgent: Boolean,
+  isAnIndividual: Boolean,
+  organisation: Option[OrganisationResponse],
+  individual: Option[IndividualResponse],
+  address: RosmResponseAddress,
+  contactDetails: RosmResponseContactDetails
+)
 
 object RosmRegisterResponse {
   implicit val rosmRegisterResponseFormat = Json.format[RosmRegisterResponse]

@@ -25,26 +25,26 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TaxEnrolmentConnector(http: HttpClient,
-                            val mode: Mode,
-                            servicesConfig: ServicesConfig) {
+class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
   val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
   lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
 
-  def subscribe(safeId: String, formBundleNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+  def subscribe(safeId: String, formBundleNumber: String)(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[HttpResponse] =
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
-      Result => Result
+      Result =>
+        Result
     } recover {
       case e: UnauthorizedException => handleError(e, formBundleNumber)
-      case e: BadRequestException => handleError(e, formBundleNumber)
+      case e: BadRequestException   => handleError(e, formBundleNumber)
     }
-  }
 
-  def getSubscription(subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] = {
+  def getSubscription(
+    subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] =
     http.GET[TaxEnrolmentsSubscription](s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId")
-  }
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
     Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
@@ -54,17 +54,20 @@ class TaxEnrolmentConnector(http: HttpClient,
   private def subscribeUrl(subscriptionId: String) =
     s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId/subscriber"
 
-  private def requestBody(safeId: String, formBundleNumber: String): JsObject = {
+  private def requestBody(safeId: String, formBundleNumber: String): JsObject =
     Json.obj(
       "serviceName" -> serviceName,
-      "callback" -> s"$callbackUrl?subscriptionId=$formBundleNumber",
-      "etmpId" -> safeId
+      "callback"    -> s"$callbackUrl?subscriptionId=$formBundleNumber",
+      "etmpId"      -> safeId
     )
-  }
 
 }
 
-case class TaxEnrolmentsSubscription(identifiers: Option[Seq[Identifier]], etmpId: String, state: String, errorResponse: Option[String])
+case class TaxEnrolmentsSubscription(
+  identifiers: Option[Seq[Identifier]],
+  etmpId: String,
+  state: String,
+  errorResponse: Option[String])
 
 object TaxEnrolmentsSubscription {
   implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]

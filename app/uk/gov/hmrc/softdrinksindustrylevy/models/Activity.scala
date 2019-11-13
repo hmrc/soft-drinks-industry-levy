@@ -40,8 +40,9 @@ sealed trait Activity {
 }
 
 case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPacker: Boolean, isImporter: Boolean)
-  extends Activity {
-  override def taxEstimation: BigDecimal = 0 // lost in translation - we should either hide or say something like unknown but it is
+    extends Activity {
+  override def taxEstimation: BigDecimal =
+    0 // lost in translation - we should either hide or say something like unknown but it is
   // not optional
 }
 
@@ -49,20 +50,20 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   import ActivityType._
 
-  def totalLiableLitres: LitreBands = {
-    Monoid.combineAll(Seq(
-      activity.get(ProducedOwnBrand),
-      activity.get(Imported),
-      activity.get(CopackerAll)
-    ).flatten)
-  }
+  def totalLiableLitres: LitreBands =
+    Monoid.combineAll(
+      Seq(
+        activity.get(ProducedOwnBrand),
+        activity.get(Imported),
+        activity.get(CopackerAll)
+      ).flatten)
 
   lazy val totalProduced: Option[LitreBands] = {
     (activity.get(ProducedOwnBrand), activity.get(Copackee)) match {
       case (Some(p), Some(c)) => Some(p |+| c)
-      case (Some(pob), None) => Some(pob)
-      case (None, Some(c)) => Some(c)
-      case (None, None) => None
+      case (Some(pob), None)  => Some(pob)
+      case (None, Some(c))    => Some(c)
+      case (None, None)       => None
     }
   }
 
@@ -72,11 +73,10 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
-  override def taxEstimation: BigDecimal = {
-    if (isSmallProducer && !isContractPacker && !isImporter) 0 else {
+  override def taxEstimation: BigDecimal =
+    if (isSmallProducer && !isContractPacker && !isImporter) 0
+    else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
       totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
-  }
 }
-

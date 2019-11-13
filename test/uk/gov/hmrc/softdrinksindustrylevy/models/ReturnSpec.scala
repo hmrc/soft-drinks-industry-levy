@@ -25,54 +25,50 @@ import org.scalatest.prop.PropertyChecks
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 
-class ReturnSpec extends UnitSpec with Matchers with PropertyChecks with MockitoSugar
-{
-
+class ReturnSpec extends UnitSpec with Matchers with PropertyChecks with MockitoSugar {
 
   "A ReturnPeriod" should {
     val lowPosInts = Gen.choose(0, 1000)
 
     "be indexed correctly" in {
-      forAll (lowPosInts) {
-        i =>  ReturnPeriod(i).count should be (i)
+      forAll(lowPosInts) { i =>
+        ReturnPeriod(i).count should be(i)
       }
     }
 
     "contain its start date" in {
-      forAll (lowPosInts) { i =>
+      forAll(lowPosInts) { i =>
         val period = ReturnPeriod(i)
-        ReturnPeriod(period.start) should be (period)
+        ReturnPeriod(period.start) should be(period)
       }
     }
 
     "contain its end date" in {
-      forAll (lowPosInts) { i =>
+      forAll(lowPosInts) { i =>
         val period = ReturnPeriod(i)
-        ReturnPeriod(period.end) should be (period)
+        ReturnPeriod(period.end) should be(period)
       }
     }
 
     "give the correct quarter for predefined dates" in {
-      ReturnPeriod(LocalDate.of(2018, 4, 15)).quarter should be (1)
-      ReturnPeriod(LocalDate.of(2018, 8, 15)).quarter should be (2)
-      ReturnPeriod(LocalDate.of(2018, 12, 15)).quarter should be (3)
-      ReturnPeriod(LocalDate.of(2019, 2, 15)).quarter should be (0)
+      ReturnPeriod(LocalDate.of(2018, 4, 15)).quarter should be(1)
+      ReturnPeriod(LocalDate.of(2018, 8, 15)).quarter should be(2)
+      ReturnPeriod(LocalDate.of(2018, 12, 15)).quarter should be(3)
+      ReturnPeriod(LocalDate.of(2019, 2, 15)).quarter should be(0)
     }
 
-
     "start on the 5th April 2018 if it is the first" in {
-      ReturnPeriod(0).start should be (LocalDate.of(2018, 4, 5))
-      ReturnPeriod(LocalDate.of(2018, 4, 8)) should be (ReturnPeriod(0))
+      ReturnPeriod(0).start should be(LocalDate.of(2018, 4, 5))
+      ReturnPeriod(LocalDate.of(2018, 4, 8)) should be(ReturnPeriod(0))
     }
 
     "increment correctly" in {
-      ReturnPeriod(0).next should be (ReturnPeriod(1))
-      ReturnPeriod(0).end.plusDays(1) should be (ReturnPeriod(1).start)
+      ReturnPeriod(0).next should be(ReturnPeriod(1))
+      ReturnPeriod(0).end.plusDays(1) should be(ReturnPeriod(1).start)
     }
 
-
     "decrement correctly" in {
-      ReturnPeriod(1).previous should be (ReturnPeriod(0))
+      ReturnPeriod(1).previous should be(ReturnPeriod(0))
     }
 
     "give correct pretty output" in {
@@ -95,40 +91,61 @@ class ReturnSpec extends UnitSpec with Matchers with PropertyChecks with Mockito
   }
 
   "ReturnVariationData" should {
-    val commonSmallPack = SmallProducer(Some("common"), "1", (100,100))
-    val removedSmallPack = SmallProducer(Some("removed"), "2", (100,100))
-    val addedSmallPack = SmallProducer(Some("added"), "3", (100,100))
-    val testOriginalPackers = SdilReturn(packSmall= List(commonSmallPack, removedSmallPack), submittedOn = None)
-    val testRevisedPackers = SdilReturn(packSmall= List(commonSmallPack, addedSmallPack), submittedOn = None)
+    val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
+    val removedSmallPack = SmallProducer(Some("removed"), "2", (100, 100))
+    val addedSmallPack = SmallProducer(Some("added"), "3", (100, 100))
+    val testOriginalPackers = SdilReturn(packSmall = List(commonSmallPack, removedSmallPack), submittedOn = None)
+    val testRevisedPackers = SdilReturn(packSmall = List(commonSmallPack, addedSmallPack), submittedOn = None)
 
     "changedLitreages" in {
       val testOriginal = SdilReturn(submittedOn = None)
       val testRevised = SdilReturn((3, 3), (3, 3), Nil, (3, 3), (3, 3), (3, 3), (3, 3), None)
-      val result = ReturnVariationData(testOriginal, testRevised, ReturnPeriod(2018, 1), "testOrg", UkAddress(Nil, ""), "", None).changedLitreages
+      val result = ReturnVariationData(
+        testOriginal,
+        testRevised,
+        ReturnPeriod(2018, 1),
+        "testOrg",
+        UkAddress(Nil, ""),
+        "",
+        None).changedLitreages
 
-      for ((_, (x,y)) <- result)
-      {
+      for ((_, (x, y)) <- result) {
         x shouldBe 3
         y shouldBe 3
       }
     }
 
     "removedSmallProducers" in {
-      val result = ReturnVariationData(testOriginalPackers, testRevisedPackers, ReturnPeriod(2018, 1), "testOrg", UkAddress(Nil, ""), "", None).removedSmallProducers
+      val result = ReturnVariationData(
+        testOriginalPackers,
+        testRevisedPackers,
+        ReturnPeriod(2018, 1),
+        "testOrg",
+        UkAddress(Nil, ""),
+        "",
+        None).removedSmallProducers
 
       result.length shouldBe 1
       result.head shouldBe removedSmallPack
     }
 
     "addedSmallProducers" in {
-      val result = ReturnVariationData(testOriginalPackers, testRevisedPackers, ReturnPeriod(2018, 1), "testOrg", UkAddress(Nil, ""), "", None).addedSmallProducers
+      val result = ReturnVariationData(
+        testOriginalPackers,
+        testRevisedPackers,
+        ReturnPeriod(2018, 1),
+        "testOrg",
+        UkAddress(Nil, ""),
+        "",
+        None).addedSmallProducers
 
       result.length shouldBe 1
       result.head shouldBe addedSmallPack
     }
 
     "total" in {
-      val testSdilReturn = SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
+      val testSdilReturn =
+        SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
       val result = testSdilReturn.total
 
       result shouldBe 630.00
