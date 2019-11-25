@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Configuration, Logger}

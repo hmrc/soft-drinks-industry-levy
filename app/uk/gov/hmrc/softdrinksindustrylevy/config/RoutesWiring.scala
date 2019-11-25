@@ -34,7 +34,7 @@ trait RoutesWiring {
 
   def router: Router =
     if (configuration.underlying.hasPath("play.http.router")) {
-      configuration.getString("play.http.router") match {
+      configuration.getOptional[String]("play.http.router") match {
         case Some("testOnlyDoNotUseInAppConf.Routes") => testOnlyDoNotUseInAppConfRoutes
         case Some("prod.Routes")                      => prodRoutes
         case Some(other)                              => Logger.warn(s"Unrecognised router $other; using prod.Routes"); prodRoutes
