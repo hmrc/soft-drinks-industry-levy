@@ -20,7 +20,7 @@ import java.net.URLEncoder.encode
 import java.time.{Clock, LocalDate, LocalDateTime}
 
 import cats.implicits._
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.json.{Json, OWrites}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse

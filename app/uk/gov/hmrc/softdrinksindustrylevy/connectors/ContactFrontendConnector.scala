@@ -19,7 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import java.time.{Instant, LocalDateTime, ZoneId}
 
 import play.api.Configuration
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.RunMode

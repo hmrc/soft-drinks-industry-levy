@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.util.Base64
 
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig

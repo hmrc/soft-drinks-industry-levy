@@ -42,7 +42,7 @@ trait ConnectorWiring {
   lazy val emailConnector: EmailConnector = wire[EmailConnector]
   lazy val fileUploadConnector: FileUploadConnector = wire[FileUploadConnector]
   lazy val gformConnector: GformConnector = wire[GformConnector]
-  implicit lazy val mongoConnector: MongoConnector = MongoConnector(configuration.getString("mongodb.uri").get)
+  implicit lazy val mongoConnector: MongoConnector = MongoConnector(configuration.get[String]("mongodb.uri"))
   lazy val rosmConnector: RosmConnector = wire[RosmConnector]
   lazy val taxEnrolmentConnector: TaxEnrolmentConnector = wire[TaxEnrolmentConnector]
   lazy val testConnector: TestConnector = wire[TestConnector]

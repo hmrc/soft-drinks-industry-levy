@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import play.api.Logger
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig

@@ -128,7 +128,7 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       domainFormatImplicit.writes(data) match {
         case d @ JsObject(_) =>
           val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
-          collection.update(selector, data, upsert = true)
+          collection.update(ordered = false).one(selector, data, upsert = true)
         case _ =>
           Future.failed[WriteResult](new Exception("cannot write object"))
       }

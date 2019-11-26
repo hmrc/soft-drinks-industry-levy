@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import akka.util.ByteString
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 

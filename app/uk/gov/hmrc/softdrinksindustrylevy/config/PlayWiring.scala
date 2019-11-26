@@ -20,7 +20,7 @@ import java.time.format._
 import java.time.{Clock, LocalDate, LocalDateTime}
 
 import akka.stream.Materializer
-import play.api.Mode.Mode
+import play.api.Mode
 import play.api.i18n.MessagesApi
 import play.api.inject.ApplicationLifecycle
 import play.api.{Configuration, Environment}
