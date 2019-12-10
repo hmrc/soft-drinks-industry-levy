@@ -82,6 +82,16 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       }
     }
 
+    "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
+
+      stubFor(
+        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
+          .willReturn(aResponse().withStatus(429)))
+
+      val ex = the[Exception] thrownBy (TestDesConnector.retrieveSubscriptionDetails("utr", "11111111119").futureValue)
+      ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+    }
+
     "return : None financial data when nothing is returned" in {
 
       stubFor(
@@ -95,11 +105,36 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       }
     }
 
+    "return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
+
+      stubFor(
+        get(urlEqualTo(
+          "/enterprise/financial-data/ZSDL/utr/ZSDL?onlyOpenItems=true&includeLocks=false&calculateAccruedInterest=true&customerPaymentInformation=true"))
+          .willReturn(aResponse().withStatus(429)))
+
+      val ex = the[Exception] thrownBy (TestDesConnector.retrieveFinancialData("utr", None).futureValue)
+      ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+
+    }
+
     "create subscription should throw an exception if des is unavailable" in {
 
       stubFor(
         post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
           .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
+
+      val response = the[Exception] thrownBy (TestDesConnector
+        .createSubscription(sub, "utr", "11111111119")
+        .futureValue)
+      response.getMessage must startWith(
+        "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+    }
+
+    "create subscription should throw an exception if des is returning 429" in {
+
+      stubFor(
+        post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
+          .willReturn(aResponse().withStatus(429)))
 
       val response = the[Exception] thrownBy (TestDesConnector
         .createSubscription(sub, "utr", "11111111119")

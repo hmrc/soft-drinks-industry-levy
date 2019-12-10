@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import play.api.Mode
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.{Logger, Mode}
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -33,5 +33,9 @@ class RosmConnector(val http: HttpClient, val mode: Mode, servicesConfig: Servic
   def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[RosmRegisterResponse]] =
-    desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request)
+    desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request).recover {
+      case Upstream4xxResponse(_, 429, _, _) =>
+        Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw new Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
+    }
 }
