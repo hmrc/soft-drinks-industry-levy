@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlPathEqualTo}
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
 
 import scala.concurrent.Future
@@ -53,6 +53,15 @@ class RosmConnectorSpec extends WiremockSpec {
     response.map { x =>
       x mustBe None
     }
+  }
+
+  "should get an upstream5xx response if des is returning 429" in {
+    stubFor(
+      post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
+        .willReturn(aResponse().withStatus(429)))
+
+    val ex = the[Exception] thrownBy (TestConnector.retrieveROSMDetails("1234567890", req).futureValue)
+    ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
   }
 
   "should get a response back if des available" in {
