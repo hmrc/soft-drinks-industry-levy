@@ -85,11 +85,11 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
     "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
 
       stubFor(
-        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
+        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111120"))
           .willReturn(aResponse().withStatus(429)))
 
       lazy val ex = the[Exception] thrownBy (TestDesConnector
-        .retrieveSubscriptionDetails("utr", "11111111119")
+        .retrieveSubscriptionDetails("utr", "11111111120")
         .futureValue)
       ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
     }
