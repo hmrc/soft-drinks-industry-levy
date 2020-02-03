@@ -1,3 +1,4 @@
+import sbt.Tests.{Group, SubProcess}
 import scoverage.ScoverageKeys
 // ================================================================================
 // Plugins
@@ -15,20 +16,33 @@ enablePlugins(
 // ================================================================================
 PlayKeys.playDefaultPort := 8701
 
+val akkaVersion     = "2.5.23"
+
+val akkaHttpVersion = "10.0.15"
+
+dependencyOverrides += "com.typesafe.akka" %% "akka-stream"    % akkaVersion
+
+dependencyOverrides += "com.typesafe.akka" %% "akka-protobuf"  % akkaVersion
+
+dependencyOverrides += "com.typesafe.akka" %% "akka-slf4j"     % akkaVersion
+
+dependencyOverrides += "com.typesafe.akka" %% "akka-actor"     % akkaVersion
+
+dependencyOverrides += "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 // ================================================================================
 // Testing
 // ================================================================================
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.9.9",
-  "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.9.9",
-  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.23.2",
+  "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.10.2",
+  "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.10.2",
+  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.26.0",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
   "org.jsoup"                   %  "jsoup"               % "1.12.1",
-  "org.mockito"                 %  "mockito-core"        % "3.0.0", 
+  "org.mockito"                 %  "mockito-core"        % "3.2.4",
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
-  "org.scalacheck"              %% "scalacheck"          % "1.14.0",
+  "org.scalacheck"              %% "scalacheck"          % "1.14.3",
   "org.scalatest"               %% "scalatest"           % "3.0.8",
-  "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.2",
+  "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.3",
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.9.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.23",
@@ -43,7 +57,7 @@ scalaVersion := "2.11.12"
 libraryDependencies ++= Seq(
   ws,
   "com.github.fge"            %  "json-schema-validator" % "2.2.6",
-  "com.github.pureconfig"     %% "pureconfig"            % "0.11.1",
+  "com.github.pureconfig"     %% "pureconfig"            % "0.12.2",
   "com.softwaremill.macwire"  %% "macros"                % "2.3.3" % "provided",
   "com.softwaremill.macwire"  %% "macrosakka"            % "2.3.3" % "provided",
   "com.softwaremill.macwire"  %% "proxy"                 % "2.3.3",
@@ -52,7 +66,7 @@ libraryDependencies ++= Seq(
   "uk.gov.hmrc"               %% "auth-client"           % "2.32.0-play-26",
   "uk.gov.hmrc"               %% "bootstrap-play-26"     % "1.3.0",
   "uk.gov.hmrc"               %% "mongo-lock"            % "6.18.0-play-26",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.22.0-play-26",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.23.0-play-26",
   "org.scala-stm"             %% "scala-stm"             % "0.9.1"
 )
 
