@@ -21,7 +21,7 @@ import java.time.LocalDate
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main._
 import org.scalatest._
-import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -29,7 +29,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
-class DesConversionSpec extends FunSuite with PropertyChecks with Matchers {
+class DesConversionSpec extends FunSuite with ScalaCheckPropertyChecks with Matchers {
 
   test("∀ Subscription: toJson(x) is valid") {
     val validator = JsonSchemaFactory.byDefault.getValidator

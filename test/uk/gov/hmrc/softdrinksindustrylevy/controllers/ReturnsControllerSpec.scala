@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
 
-import org.scalatest.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.softdrinksindustrylevy.config.{SdilComponents, SdilConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
@@ -27,6 +26,7 @@ import com.softwaremill.macwire._
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsNull
 import play.api.test.FakeRequest
 import play.api.test.Helpers._

@@ -18,14 +18,14 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
-import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbSubRequest, sub}
 
-class DesConnectorSpecPropertyBased extends FunSuite with PropertyChecks with Matchers {
+class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChecks with Matchers {
 
   import json.internal._
 

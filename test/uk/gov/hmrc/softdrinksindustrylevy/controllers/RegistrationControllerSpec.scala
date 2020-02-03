@@ -21,7 +21,6 @@ import java.time.LocalDate
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -35,8 +34,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
-
 import scala.concurrent.Future
 
 class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {

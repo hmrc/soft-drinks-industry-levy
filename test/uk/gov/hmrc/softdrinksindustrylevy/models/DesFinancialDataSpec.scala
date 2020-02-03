@@ -17,10 +17,10 @@
 package sdil.models.des
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 
-class DesFinancialDataSpec extends FlatSpec with Matchers with PropertyChecks {
+class DesFinancialDataSpec extends FlatSpec with Matchers with ScalaCheckPropertyChecks {
 
   "A FinancialDataResponse" should "be readable from DES's sample record" in {
     val stream = getClass.getResourceAsStream("/des-financial-data.sample.json")

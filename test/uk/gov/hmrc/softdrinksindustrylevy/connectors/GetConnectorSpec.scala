@@ -17,12 +17,12 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import org.scalatest._
-import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbAddress, arbSite, arbSubGet}
 
-class GetConnectorSpec extends FunSuite with PropertyChecks with Matchers {
+class GetConnectorSpec extends FunSuite with ScalaCheckPropertyChecks with Matchers {
 
   import json.des.get._
 

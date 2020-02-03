@@ -18,9 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalatest._
 import org.scalacheck.Arbitrary._
-import org.scalatest.prop.PropertyChecks
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class RosmResponseAddressSpec extends FunSuite with Matchers with PropertyChecks {
+class RosmResponseAddressSpec extends FunSuite with Matchers with ScalaCheckPropertyChecks {
 
   test("Remove invalid characters from address lines") {
     forAll { (line1: String, line2: Option[String], line3: Option[String], line4: Option[String]) =>
