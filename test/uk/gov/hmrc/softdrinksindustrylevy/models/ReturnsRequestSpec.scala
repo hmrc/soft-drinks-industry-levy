@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import sdil.models.{SdilReturn, SmallProducer}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 

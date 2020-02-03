@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -29,6 +28,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 
 import scala.concurrent.Future

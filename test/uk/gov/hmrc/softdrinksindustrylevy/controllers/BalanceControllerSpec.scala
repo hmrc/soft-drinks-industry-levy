@@ -17,12 +17,11 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.{LocalDate, LocalDateTime}
-
 import com.softwaremill.macwire.wire
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
@@ -34,7 +33,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

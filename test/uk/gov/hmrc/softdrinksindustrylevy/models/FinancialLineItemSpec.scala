@@ -17,11 +17,12 @@
 package sdil.models
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.scalatest.prop.PropertyChecks
 import play.api.libs.json._
 import java.time.LocalDate
 
-class FinancialLineItemSpec extends FlatSpec with Matchers with PropertyChecks {
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+
+class FinancialLineItemSpec extends FlatSpec with Matchers with ScalaCheckPropertyChecks {
 
   val date: LocalDate = LocalDate.now
   val bigDecimal: BigDecimal = 1000

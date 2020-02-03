@@ -23,10 +23,10 @@ import akka.testkit.TestActorRef
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach}
-import org.scalatest.mockito.MockitoSugar
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.test.Helpers.contentAsString
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
 

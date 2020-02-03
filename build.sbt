@@ -35,7 +35,7 @@ dependencyOverrides += "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.9.9",
   "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.9.9",
-  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.26.0",
+  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.25.1",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
   "org.jsoup"                   %  "jsoup"               % "1.12.1",
   "org.mockito"                 %  "mockito-core"        % "3.2.4",
