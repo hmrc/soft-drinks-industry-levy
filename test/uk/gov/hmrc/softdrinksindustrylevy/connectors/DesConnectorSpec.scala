@@ -18,6 +18,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
+import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import sdil.models.des
@@ -82,18 +84,6 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       }
     }
 
-    "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
-
-      stubFor(
-        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111120"))
-          .willReturn(aResponse().withStatus(429)))
-
-      lazy val ex = the[Exception] thrownBy (TestDesConnector
-        .retrieveSubscriptionDetails("utr", "11111111120")
-        .futureValue)
-      ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
-    }
-
     "return : None financial data when nothing is returned" in {
 
       stubFor(
@@ -143,6 +133,20 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         .futureValue)
       response.getMessage must startWith(
         "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+    }
+  }
+
+  "429 response" should {
+    "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
+
+      stubFor(
+        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111120"))
+          .willReturn(aResponse().withStatus(429)))
+
+      lazy val ex = the[Exception] thrownBy (TestDesConnector
+        .retrieveSubscriptionDetails("utr", "11111111120")
+        .futureValue)
+      ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
     }
   }
 
