@@ -37,7 +37,7 @@ class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwai
 
       verify(
         postRequestedFor(urlEqualTo("/gform/dms/submit"))
-          .withRequestBody(containing(s""""html":"$encodedHtml""""))
+          .withRequestBody(containing(s""""b64html":"$encodedHtml""""))
       )
     }
 

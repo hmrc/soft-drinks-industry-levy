@@ -41,7 +41,7 @@ class GformConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesC
   private val encode = (s: String) => new String(Base64.getEncoder.encode(s.getBytes))
 }
 
-case class DmsHtmlSubmission(html: String, metadata: DmsMetadata)
+case class DmsHtmlSubmission(b64html: String, metadata: DmsMetadata)
 
 object DmsHtmlSubmission {
   implicit val format: Format[DmsHtmlSubmission] = Json.format[DmsHtmlSubmission]
