@@ -141,3 +141,5 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   ScoverageKeys.coverageExcludedFiles :=
     """<empty>;.*javascript;.*Routes.*;.*testonly.*;
       |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin
+
+disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
