@@ -35,7 +35,7 @@ dependencyOverrides += "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
 libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.9.9",
   "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.9.9",
-  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.25.1",
+  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.26.3",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
   "org.jsoup"                   %  "jsoup"               % "1.12.1",
   "org.mockito"                 %  "mockito-core"        % "3.2.4",
@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.9.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.23",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.16.0-play-26"
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.19.0-play-26"
 ).map(_ % "test")
 
 // ================================================================================
@@ -63,10 +63,10 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "proxy"                 % "2.3.3",
   "com.softwaremill.macwire"  %% "util"                  % "2.3.3",
   "org.typelevel"             %% "cats-core"             % "1.6.1",
-  "uk.gov.hmrc"               %% "auth-client"           % "2.32.0-play-26",
-  "uk.gov.hmrc"               %% "bootstrap-play-26"     % "1.3.0",
-  "uk.gov.hmrc"               %% "mongo-lock"            % "6.18.0-play-26",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.23.0-play-26",
+  "uk.gov.hmrc"               %% "auth-client"           % "3.0.0-play-26",
+  "uk.gov.hmrc"               %% "bootstrap-play-26"     % "1.7.0",
+  "uk.gov.hmrc"               %% "mongo-lock"            % "6.21.0-play-26",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"  % "7.26.0-play-26",
   "org.scala-stm"             %% "scala-stm"             % "0.9.1"
 )
 
