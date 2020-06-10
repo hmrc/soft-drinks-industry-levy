@@ -42,6 +42,7 @@ class DesConnector(
     extends DesHelpers(servicesConfig) with OptionHttpReads {
 
   val desURL: String = servicesConfig.baseUrl("des")
+  val desDisplayDirectDebitUrl: String = servicesConfig.baseUrl("desDisplayDD")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 
@@ -151,6 +152,13 @@ class DesConnector(
       }
       Future(x)
     }
+  }
+
+  def displayDirectDebit( sdilRef: String)(
+    implicit hc: HeaderCarrier
+  ):Future[DisplayDirectDebitResponse]={
+    val uri = s"$desURL/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
+    http.GET[DisplayDirectDebitResponse](uri)(implicitly, addHeaders, implicitly)
   }
 
   private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(

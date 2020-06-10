@@ -22,3 +22,5 @@ POST        /returns/vary/:sdilRef                                           uk.
 GET         /balance/:sdil/history/:year                                     uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistory(sdil: String, year: Int)
 GET         /balance/:sdil/history/all/:withAssessment                       uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balanceHistoryAll(sdil: String, withAssessment: Boolean)
 GET         /balance/:sdil/:withAssessment                                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String, withAssessment: Boolean)
+
+GET         /direct-debit-status/:sdilRef                                    uk.gov.hmrc.softdrinksindustrylevy.controllers.DirectDebitsController.checkDdStatus(sdilRef: String)
