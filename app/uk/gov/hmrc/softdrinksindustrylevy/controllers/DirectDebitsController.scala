@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext
 class DirectDebitsController(desConnector: DesConnector, val cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def checkDdStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
+  def checkDirectDebitStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
     desConnector.displayDirectDebit(sdilRef).map(response => Ok(Json.toJson(response)))
   }
 }
