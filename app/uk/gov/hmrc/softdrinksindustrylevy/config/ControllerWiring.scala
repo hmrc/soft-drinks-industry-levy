@@ -40,6 +40,6 @@ trait ControllerWiring {
   lazy val variationsController: VariationsController = wire[VariationsController]
   lazy val returnsController: ReturnsController = wire[ReturnsController]
   lazy val balanceController: BalanceController = wire[BalanceController]
-  lazy val directDebitsController: DirectDebitsController = wire[DirectDebitsController]
+  lazy val directDebitsController: DirectDebitController = wire[DirectDebitController]
   val cc: ControllerComponents
 }

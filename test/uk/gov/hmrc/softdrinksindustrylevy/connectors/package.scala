@@ -36,7 +36,7 @@ package object connectors {
   val genEmail: Gen[String] = for {
     prefix <- nonEmptyString.map(_.take(10))
     domain <- nonEmptyString.map(_.take(10))
-    tld    <- Gen.oneOf("com", "co.uk")
+    tld <- Gen.oneOf("com", "co.uk")
   } yield {
     s"$prefix@$domain.$tld"
   }
@@ -73,14 +73,14 @@ package object connectors {
 
   val genActivity: Gen[Activity] = for {
     types <- genActivityTypes flatMap (s =>
-              s map { t =>
-                t.flatten
-              })
+      s map { t =>
+        t.flatten
+      })
     typeTuples <- Gen.sequence(types.map { typeL =>
-                   genLitreBands.flatMap {
-                     typeL -> _
-                   }
-                 })
+      genLitreBands.flatMap {
+        typeL -> _
+      }
+    })
     isLarge <- Gen.boolean
   } yield {
     InternalActivity(typeTuples.asScala.toMap, isLarge)
@@ -93,10 +93,10 @@ package object connectors {
 
   val genRetrievedActivity: Gen[Activity] =
     for {
-      isLarge          <- Gen.boolean
-      isProducer       <- genIsProducer(isLarge)
+      isLarge <- Gen.boolean
+      isProducer <- genIsProducer(isLarge)
       isContractPacker <- Gen.boolean
-      isImporter       <- Gen.boolean
+      isImporter <- Gen.boolean
     } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
 
   val genName: Gen[String] = for {
@@ -105,23 +105,23 @@ package object connectors {
   } yield s"$fname $sname"
 
   val genContact: Gen[Contact] = for {
-    fname             <- Gen.forename
-    sname             <- Gen.surname
+    fname <- Gen.forename
+    sname <- Gen.surname
     positionInCompany <- nonEmptyString
-    phoneNumber       <- Gen.ukPhoneNumber
-    email             <- genEmail
+    phoneNumber <- Gen.ukPhoneNumber
+    email <- genEmail
   } yield Contact(Some(s"$fname $sname"), Some(positionInCompany), phoneNumber, email)
 
   val genSubscription: Gen[Subscription] = for {
-    utr             <- Enumerable.instances.utrEnum.gen
-    orgName         <- nonEmptyString
-    orgType         <- Gen.oneOf("1", "2", "3", "5", "7")
-    address         <- genUkAddress
-    activity        <- genActivity
-    liabilityDate   <- Gen.date
+    utr <- Enumerable.instances.utrEnum.gen
+    orgName <- nonEmptyString
+    orgType <- Gen.oneOf("1", "2", "3", "5", "7")
+    address <- genUkAddress
+    activity <- genActivity
+    liabilityDate <- Gen.date
     productionSites <- Gen.listOf(genSite)
-    warehouseSites  <- Gen.listOf(genSite)
-    contact         <- genContact
+    warehouseSites <- Gen.listOf(genSite)
+    contact <- genContact
   } yield
     Subscription(
       utr,
@@ -137,21 +137,21 @@ package object connectors {
       None)
 
   val genSite: Gen[Site] = for {
-    ref         <- Gen.oneOf("a", "b")
-    address     <- genUkAddress
+    ref <- Gen.oneOf("a", "b")
+    address <- genUkAddress
     tradingName <- genName
   } yield Site(address, Some(ref), Some(tradingName), None)
 
   def genRetrievedSubscription: Gen[Subscription] =
     for {
-      utr             <- Enumerable.instances.utrEnum.gen
-      orgName         <- nonEmptyString
-      address         <- genUkAddress
-      activity        <- genRetrievedActivity
-      liabilityDate   <- Gen.date
+      utr <- Enumerable.instances.utrEnum.gen
+      orgName <- nonEmptyString
+      address <- genUkAddress
+      activity <- genRetrievedActivity
+      liabilityDate <- Gen.date
       productionSites <- Gen.listOf(genUkAddress map addressToSite)
-      warehouseSites  <- Gen.listOf(genUkAddress map addressToSite)
-      contact         <- genContact
+      warehouseSites <- Gen.listOf(genUkAddress map addressToSite)
+      contact <- genContact
     } yield
       Subscription(
         utr,
@@ -168,14 +168,14 @@ package object connectors {
 
   val genSdil: Gen[String] = {
     for {
-      char   <- Gen.alphaUpperChar
+      char <- Gen.alphaUpperChar
       suffix <- pattern"999999"
     } yield s"X${char}SDIL000$suffix"
   }
 
   val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] = {
     for {
-      ref    <- genSdil
+      ref <- genSdil
       litres <- genLitreBands
     } yield SmallProducerVolume(ref, litres)
   }
@@ -183,7 +183,7 @@ package object connectors {
   val genReturnsPackaging: Gen[ReturnsPackaging] = {
     for {
       smallProds <- Gen.listOf(genReturnsSmallProducerVolume)
-      litres     <- genLitreBands
+      litres <- genLitreBands
     } yield ReturnsPackaging(smallProds, litres)
   }
 
@@ -199,8 +199,15 @@ package object connectors {
       packaged <- genReturnsPackaging.sometimes
       imported <- genReturnsImporting.sometimes
       exported <- genLitreBands.sometimes
-      wastage  <- genLitreBands.sometimes
+      wastage <- genLitreBands.sometimes
     } yield ReturnsRequest(packaged, imported, exported, wastage)
+  }
+
+  val genDisplayDirectDebitResponse: Gen[DisplayDirectDebitResponse] = {
+    for {
+      directDebitMandateFound <- Gen.boolean
+    } yield DisplayDirectDebitResponse(directDebitMandateFound)
+
   }
 
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
@@ -210,6 +217,7 @@ package object connectors {
   implicit val arbSite = Arbitrary(genSite)
   implicit val arbSubRequest = Arbitrary(genSubscription)
   implicit val arbReturnReq = Arbitrary(genReturnsRequest)
+  implicit val arbDisplayDirectDebitResponse = Arbitrary(genDisplayDirectDebitResponse)
 
   val sub = Subscription(
     "1234567890",
@@ -227,16 +235,16 @@ package object connectors {
   )
 
   def internalActivity(
-    produced: LitreBands = zero,
-    copackedAll: LitreBands = zero,
-    imported: LitreBands = zero,
-    copackedByOthers: LitreBands = zero) =
+                        produced: LitreBands = zero,
+                        copackedAll: LitreBands = zero,
+                        imported: LitreBands = zero,
+                        copackedByOthers: LitreBands = zero) =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,
-        CopackerAll      -> copackedAll,
-        Imported         -> imported,
-        Copackee         -> copackedByOthers
+        CopackerAll -> copackedAll,
+        Imported -> imported,
+        Copackee -> copackedByOthers
       ),
       false
     )

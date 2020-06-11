@@ -23,7 +23,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 
 import scala.concurrent.ExecutionContext
 
-class DirectDebitsController(desConnector: DesConnector, val cc: ControllerComponents)(implicit ec: ExecutionContext)
+class DirectDebitController(desConnector: DesConnector, val cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   def checkDirectDebitStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
