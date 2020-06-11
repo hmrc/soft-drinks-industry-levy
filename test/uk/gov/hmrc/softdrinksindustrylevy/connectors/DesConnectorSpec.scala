@@ -25,7 +25,7 @@ import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbSubRequest, sub, arbDisplayDirectDebitResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest, sub}
 
 class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChecks with Matchers {
 
@@ -55,9 +55,9 @@ class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChec
     }
   }
 
-  test("∀ DisplayDirectDebitResponse: parse(toJson(x)) = x"){
+  test("∀ DisplayDirectDebitResponse: parse(toJson(x)) = x") {
     forAll { r: DisplayDirectDebitResponse =>
-      Json.toJson(r).as[DisplayDirectDebitResponse] should be (r)
+      Json.toJson(r).as[DisplayDirectDebitResponse] should be(r)
     }
   }
 
@@ -145,7 +145,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
     "displayDirectDebit should return Future true when des returns directDebitMandateResponse set to true" in {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
-          .willReturn(aResponse().withBody( """{ "directDebitMandateFound" : true }""").withStatus(200)))
+          .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : true }""").withStatus(200)))
       val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
       response.directDebitMandateFound mustBe true
     }
@@ -153,7 +153,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
     "displayDirectDebit should return Future false when des returns directDebitMandateResponse set to false" in {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
-          .willReturn(aResponse().withBody( """{ "directDebitMandateFound" : false }""").withStatus(200)))
+          .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : false }""").withStatus(200)))
       val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
       response.directDebitMandateFound mustBe false
     }
@@ -162,11 +162,10 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
           .willReturn(aResponse().withStatus(404)))
-      val response =  the[Exception] thrownBy (TestDesConnector
+      val response = the[Exception] thrownBy (TestDesConnector
         .displayDirectDebit("XMSDIL000000001")
         .futureValue)
-      response.getMessage must startWith(
-        "The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
+      response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
     }
   }
 
