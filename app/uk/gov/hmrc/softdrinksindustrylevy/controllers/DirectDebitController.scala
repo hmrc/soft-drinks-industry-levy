@@ -18,15 +18,20 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 
 import scala.concurrent.ExecutionContext
 
-class DirectDebitController(desConnector: DesConnector, val cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+class DirectDebitController(desConnector: DesConnector, val cc: ControllerComponents, val authConnector: AuthConnector)(
+  implicit ec: ExecutionContext)
+    extends BackendController(cc) with AuthorisedFunctions {
 
   def checkDirectDebitStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
-    desConnector.displayDirectDebit(sdilRef).map(response => Ok(Json.toJson(response)))
+    authorised(AuthProviders(GovernmentGateway)) {
+      desConnector.displayDirectDebit(sdilRef).map(response => Ok(Json.toJson(response)))
+    }
   }
 }

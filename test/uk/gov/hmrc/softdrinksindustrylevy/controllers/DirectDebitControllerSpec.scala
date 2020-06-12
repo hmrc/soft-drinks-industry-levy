@@ -26,6 +26,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.FakeRequest
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
@@ -41,6 +42,7 @@ class DirectDebitControllerSpec
 
   val mockDesConnector: DesConnector = mock[DesConnector]
   lazy val cc = new SdilComponents(context).cc
+  val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val testDirectDebitController = wire[DirectDebitController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
@@ -48,6 +50,8 @@ class DirectDebitControllerSpec
   override def beforeEach() {
     reset(mockDesConnector)
   }
+
+  when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
 
   "DirectDebitController" should {
     "return an OK with a DirectDebitResponse" in {
