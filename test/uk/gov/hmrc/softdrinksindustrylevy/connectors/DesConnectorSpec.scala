@@ -25,7 +25,7 @@ import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbSubRequest, sub}
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest, sub}
 
 class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChecks with Matchers {
 
@@ -55,6 +55,12 @@ class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChec
     }
   }
 
+  test("∀ DisplayDirectDebitResponse: parse(toJson(x)) = x") {
+    forAll { r: DisplayDirectDebitResponse =>
+      Json.toJson(r).as[DisplayDirectDebitResponse] should be(r)
+    }
+  }
+
 }
 
 class DesConnectorSpecBehavioural extends WiremockSpec {
@@ -69,6 +75,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
   object TestDesConnector
       extends DesConnector(httpClient, environment.mode, servicesConfig, testPersistence, auditConnector) {
     override val desURL: String = mockServerUrl
+    override val desDirectDebitUrl: String = mockServerUrl
   }
 
   "DesConnector" should {
@@ -133,6 +140,32 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         .futureValue)
       response.getMessage must startWith(
         "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+    }
+
+    "displayDirectDebit should return Future true when des returns directDebitMandateResponse set to true" in {
+      stubFor(
+        get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
+          .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : true }""").withStatus(200)))
+      val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
+      response.directDebitMandateFound mustBe true
+    }
+
+    "displayDirectDebit should return Future false when des returns directDebitMandateResponse set to false" in {
+      stubFor(
+        get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
+          .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : false }""").withStatus(200)))
+      val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
+      response.directDebitMandateFound mustBe false
+    }
+
+    "displayDirectDebit should return Failed future when Des returns a 404" in {
+      stubFor(
+        get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
+          .willReturn(aResponse().withStatus(404)))
+      val response = the[Exception] thrownBy (TestDesConnector
+        .displayDirectDebit("XMSDIL000000001")
+        .futureValue)
+      response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
     }
   }
 

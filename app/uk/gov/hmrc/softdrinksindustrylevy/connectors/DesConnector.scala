@@ -42,6 +42,7 @@ class DesConnector(
     extends DesHelpers(servicesConfig) with OptionHttpReads {
 
   val desURL: String = servicesConfig.baseUrl("des")
+  val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 
@@ -143,7 +144,11 @@ class DesConnector(
       s"${encode(in._1, "UTF-8")}=${encode(in._2.toString, "UTF-8")}"
 
     val uri = s"$desURL/enterprise/financial-data/ZSDL/$sdilRef/ZSDL?" ++
-      args.map { encodePair }.mkString("&")
+      args
+        .map {
+          encodePair
+        }
+        .mkString("&")
 
     http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, implicitly).flatMap { x =>
       x.map { y =>
@@ -151,6 +156,11 @@ class DesConnector(
       }
       Future(x)
     }
+  }
+
+  def displayDirectDebit(sdilRef: String)(implicit hc: HeaderCarrier): Future[DisplayDirectDebitResponse] = {
+    val uri = s"$desDirectDebitUrl/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
+    http.GET[DisplayDirectDebitResponse](uri)(implicitly, addHeaders, implicitly)
   }
 
   private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(

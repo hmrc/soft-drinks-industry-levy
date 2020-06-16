@@ -37,6 +37,15 @@ Handles the callback from tax enrolments when the subscription is activated.
 
 See [here](https://github.com/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidissuer) and [here](https://github.com/HMRC/tax-enrolments#put-tax-enrolmentssubscriptionssubscriptionidsubscriber) for details
 
+#### GET        /check-direct-debit-status/:sdilRef
+Looks for an existing active direct debit in ETMP.
+
+Returns 404 if the SDIL reference is not known.
+If the SDIL reference is known then and a has an active SDIL direct debit then a 200 response with a JSON response body is returned like:
+```{ "directDebitMandateFound" : true }```  
+If the SDIL reference is known then and does not have an active SDIL direct debit then a 200 response with a JSON response body is returned like:
+```{ "directDebitMandateFound" : false }```
+
 ## Running from source
 Clone the repository using SSH:
 

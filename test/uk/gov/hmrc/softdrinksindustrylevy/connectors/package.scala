@@ -203,6 +203,13 @@ package object connectors {
     } yield ReturnsRequest(packaged, imported, exported, wastage)
   }
 
+  val genDisplayDirectDebitResponse: Gen[DisplayDirectDebitResponse] = {
+    for {
+      directDebitMandateFound <- Gen.boolean
+    } yield DisplayDirectDebitResponse(directDebitMandateFound)
+
+  }
+
   implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity = Arbitrary(genActivity)
   implicit val arbAddress = Arbitrary(genUkAddress)
@@ -210,6 +217,7 @@ package object connectors {
   implicit val arbSite = Arbitrary(genSite)
   implicit val arbSubRequest = Arbitrary(genSubscription)
   implicit val arbReturnReq = Arbitrary(genReturnsRequest)
+  implicit val arbDisplayDirectDebitResponse = Arbitrary(genDisplayDirectDebitResponse)
 
   val sub = Subscription(
     "1234567890",
