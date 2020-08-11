@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
@@ -36,11 +36,10 @@ class RosmController(
   taxEnrolmentConnector: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val runModeConfiguration: Configuration,
-  val runMode: RunMode)
-    extends BackendController(cc) with AuthorisedFunctions {
+  val runModeConfiguration: Configuration
+) extends BackendController(cc) with AuthorisedFunctions {
 
-  val serviceConfig = new ServicesConfig(runModeConfiguration, runMode)
+  val serviceConfig = new ServicesConfig(runModeConfiguration)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {

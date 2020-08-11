@@ -22,7 +22,6 @@ import play.api.Configuration
 import play.api.Mode
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.RunMode
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
@@ -30,12 +29,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionForma
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContactFrontendConnector(
-  http: HttpClient,
-  val mode: Mode,
-  val runModeConfiguration: Configuration,
-  val runMode: RunMode)
-    extends ServicesConfig(runModeConfiguration, runMode) {
+class ContactFrontendConnector(http: HttpClient, val mode: Mode, val runModeConfiguration: Configuration)
+    extends ServicesConfig(runModeConfiguration) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 

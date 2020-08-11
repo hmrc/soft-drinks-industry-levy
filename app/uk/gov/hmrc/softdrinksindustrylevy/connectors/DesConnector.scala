@@ -15,7 +15,6 @@
  */
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
-
 import java.net.URLEncoder.encode
 import java.time.{Clock, LocalDate, LocalDateTime}
 import cats.implicits._
