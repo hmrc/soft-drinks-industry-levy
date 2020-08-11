@@ -25,9 +25,11 @@ import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc.ControllerComponents
 import play.api.{Application, BuiltInComponentsFromContext, Configuration, DefaultApplication}
 import play.filters.HttpFiltersComponents
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.audit.http.HttpAuditing
+import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.Base64ConfigDecoder
-import uk.gov.hmrc.play.bootstrap.http._
+import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpAuditing, DefaultHttpClient, RequestHandler}
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
 import scala.concurrent.ExecutionContext

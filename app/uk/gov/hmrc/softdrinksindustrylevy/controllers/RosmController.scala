@@ -22,8 +22,8 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker

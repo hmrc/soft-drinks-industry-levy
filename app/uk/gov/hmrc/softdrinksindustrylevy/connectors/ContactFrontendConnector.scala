@@ -21,8 +21,7 @@ import java.time.{Instant, LocalDateTime, ZoneId}
 import play.api.Configuration
 import play.api.Mode
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionFormat

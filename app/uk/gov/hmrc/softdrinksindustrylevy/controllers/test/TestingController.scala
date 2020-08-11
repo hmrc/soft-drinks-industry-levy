@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers.test
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilPersistence, VariationSubmissionService}
 

@@ -17,9 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import play.api.{Logger, Mode}
-import uk.gov.hmrc.http.{HeaderCarrier, Upstream4xxResponse, Upstream5xxResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 import scala.concurrent.{ExecutionContext, Future}

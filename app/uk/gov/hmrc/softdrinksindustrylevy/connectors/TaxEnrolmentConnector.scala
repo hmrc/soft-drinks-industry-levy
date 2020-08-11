@@ -21,7 +21,6 @@ import play.api.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 

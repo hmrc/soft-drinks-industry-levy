@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.11.2",
   "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.27.1",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
-  "org.jsoup"                   %  "jsoup"               % "1.12.1",
+  "org.jsoup"                   %  "jsoup"               % "1.13.1",
   "org.mockito"                 %  "mockito-core"        % "3.4.6",
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
   "org.scalacheck"              %% "scalacheck"          % "1.14.3",
