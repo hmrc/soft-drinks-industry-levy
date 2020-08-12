@@ -35,7 +35,6 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {

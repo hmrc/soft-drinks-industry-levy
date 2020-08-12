@@ -23,7 +23,6 @@ import cats.Monad
 import cats.implicits._
 
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.stm.TMap
 
 class MemoizedWithSTMSpec extends AsyncFlatSpec {
