@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.play.test.UnitSpec
