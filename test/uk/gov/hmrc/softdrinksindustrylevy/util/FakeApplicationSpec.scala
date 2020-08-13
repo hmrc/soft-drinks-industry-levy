@@ -38,7 +38,7 @@ import scala.concurrent.{Future, ExecutionContext => EC}
 
 trait FakeApplicationSpec
     extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar
-with MongoConnectorCustom {
+    with MongoConnectorCustom {
   protected val context = ApplicationLoader.Context(
     environment,
     sourceMapper = None,
@@ -79,10 +79,10 @@ with MongoConnectorCustom {
         Future.successful {
           data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
         }
-      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] ={
+      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
         Future.successful {
           data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
-        }}
+        }
       override def returnsMongo: ReactiveRepository[ReturnsWrapper, BSONObjectID] = ???
     }
 

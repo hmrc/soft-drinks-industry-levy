@@ -34,15 +34,14 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockSdilConfig = mock[SdilConfig]
 
-  implicit val mockExecutionContext = mock[ExecutionContext]
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
