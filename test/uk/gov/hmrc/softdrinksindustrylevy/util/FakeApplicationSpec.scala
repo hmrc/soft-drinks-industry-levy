@@ -25,16 +25,20 @@ import play.api.{Application, ApplicationLoader}
 import play.core.DefaultWebCommands
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.play.bootstrap.http.{DefaultHttpClient, HttpClient}
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilApplicationLoader
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
+import uk.gov.hmrc.softdrinksindustrylevy.services
+import uk.gov.hmrc.softdrinksindustrylevy.services.{SdilMongoPersistence, SdilPersistence}
 
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
 
 trait FakeApplicationSpec
-    extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar {
+    extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar
+with MongoConnectorCustom {
   protected val context = ApplicationLoader.Context(
     environment,
     sourceMapper = None,
@@ -75,10 +79,11 @@ trait FakeApplicationSpec
         Future.successful {
           data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
         }
-      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+      def listVariable(user: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] ={
         Future.successful {
           data.toList.collect { case ((`user`, period), ret) => (period, ret) }.toMap
-        }
+        }}
+      override def returnsMongo: ReactiveRepository[ReturnsWrapper, BSONObjectID] = ???
     }
 
     val subscriptions: SubsDAO[String, Subscription] = new SubsDAO[String, Subscription] {
@@ -96,6 +101,8 @@ trait FakeApplicationSpec
 
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =
         Future(data.getOrElse(key, List.empty[Subscription]))
+      override def subscriptionsMongo: ReactiveRepository[SubscriptionWrapper, BSONObjectID] =
+        ???
     }
   }
 }
