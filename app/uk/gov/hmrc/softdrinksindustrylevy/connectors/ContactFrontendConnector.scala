@@ -28,8 +28,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionForma
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContactFrontendConnector(http: HttpClient, val mode: Mode, val runModeConfiguration: Configuration)
-    extends ServicesConfig(runModeConfiguration) {
+class ContactFrontendConnector(http: HttpClient, val mode: Mode, val configuration: Configuration)
+    extends ServicesConfig(configuration) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
