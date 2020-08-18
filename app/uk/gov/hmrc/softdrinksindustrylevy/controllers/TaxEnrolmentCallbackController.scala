@@ -37,11 +37,11 @@ class TaxEnrolmentCallbackController(
   taxEnrolments: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val runModeConfiguration: Configuration,
+  val configuration: Configuration,
   auditing: AuditConnector)
     extends BackendController(cc) {
 
-  val serviceConfig = new ServicesConfig(runModeConfiguration)
+  val serviceConfig = new ServicesConfig(configuration)
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>

@@ -36,10 +36,10 @@ class RosmController(
   taxEnrolmentConnector: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val runModeConfiguration: Configuration
+  val configuration: Configuration
 ) extends BackendController(cc) with AuthorisedFunctions {
 
-  val serviceConfig = new ServicesConfig(runModeConfiguration)
+  val serviceConfig = new ServicesConfig(configuration)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
