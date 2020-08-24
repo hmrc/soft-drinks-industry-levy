@@ -43,6 +43,16 @@ trait SdilPersistence {
     def list(user: U)(implicit ec: EC): Future[Map[K, V]]
     def listVariable(user: U)(implicit ec: EC): Future[Map[K, V]]
     def dropCollection(implicit ec: EC): Future[Boolean]
+
+    protected case class ReturnsWrapper(
+      utr: String,
+      period: ReturnPeriod,
+      sdilReturn: SdilReturn,
+      _id: Option[BSONObjectID] = None)
+
+    implicit val returnsFormatWrapper = Json.format[ReturnsWrapper]
+
+    def returnsMongo: ReactiveRepository[ReturnsWrapper, BSONObjectID]
   }
 
   def returns: DAO[String, ReturnPeriod, SdilReturn]
@@ -50,6 +60,18 @@ trait SdilPersistence {
   protected trait SubsDAO[K, V] {
     def insert(key: K, value: V)(implicit ec: EC): Future[Unit]
     def list(key: K)(implicit ec: EC): Future[List[V]]
+
+    protected case class SubscriptionWrapper(
+      utr: String,
+      subscription: Subscription,
+      retrievalTime: LocalDateTime = LocalDateTime.now(),
+      _id: Option[BSONObjectID] = None
+    )
+
+    import json.internal._
+    implicit val subscriptionsFormatWrapper = Json.format[SubscriptionWrapper]
+
+    def subscriptionsMongo: ReactiveRepository[SubscriptionWrapper, BSONObjectID]
   }
 
   def subscriptions: SubsDAO[String, Subscription]
@@ -59,18 +81,8 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
   val subscriptions = new SubsDAO[String, Subscription] {
 
-    protected case class Wrapper(
-      utr: String,
-      subscription: Subscription,
-      retrievalTime: LocalDateTime = LocalDateTime.now(),
-      _id: Option[BSONObjectID] = None
-    )
-
-    import json.internal._
-    implicit val formatWrapper = Json.format[Wrapper]
-
     override def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] =
-      subscriptionsMongo.insert(Wrapper(utr, value)).map(_ => ())
+      subscriptionsMongo.insert(SubscriptionWrapper(utr, value)).map(_ => ())
 
     override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] =
       subscriptionsMongo
@@ -82,7 +94,11 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
     def dropDb(implicit ec: EC) = subscriptionsMongo.drop
 
     val subscriptionsMongo =
-      new ReactiveRepository[Wrapper, BSONObjectID]("sdilsubscriptions", mc.db, formatWrapper, implicitly) {
+      new ReactiveRepository[SubscriptionWrapper, BSONObjectID](
+        "sdilsubscriptions",
+        mc.db,
+        subscriptionsFormatWrapper,
+        implicitly) {
         override def indexes: Seq[Index] = Seq(
           Index(
             key = Seq(
@@ -96,34 +112,27 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
 
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
-    protected case class Wrapper(
-      utr: String,
-      period: ReturnPeriod,
-      sdilReturn: SdilReturn,
-      _id: Option[BSONObjectID] = None)
+    val returnsMongo =
+      new ReactiveRepository[ReturnsWrapper, BSONObjectID]("sdilreturns", mc.db, returnsFormatWrapper, implicitly) {
 
-    implicit val formatWrapper = Json.format[Wrapper]
-
-    val returnsMongo = new ReactiveRepository[Wrapper, BSONObjectID]("sdilreturns", mc.db, formatWrapper, implicitly) {
-
-      override def indexes: Seq[Index] = Seq(
-        Index(
-          key = Seq(
-            "utr"            -> IndexType.Ascending,
-            "period.year"    -> IndexType.Descending,
-            "period.quarter" -> IndexType.Descending
-          ),
-          unique = true
+        override def indexes: Seq[Index] = Seq(
+          Index(
+            key = Seq(
+              "utr"            -> IndexType.Ascending,
+              "period.year"    -> IndexType.Descending,
+              "period.quarter" -> IndexType.Descending
+            ),
+            unique = true
+          )
         )
-      )
-    }
+      }
 
     def dropCollection(implicit ec: EC) = returnsMongo.drop
 
     def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
       import returnsMongo._
 
-      val data = Wrapper(utr, period, value)
+      val data = ReturnsWrapper(utr, period, value)
 
       domainFormatImplicit.writes(data) match {
         case d @ JsObject(_) =>

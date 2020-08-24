@@ -67,7 +67,6 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
 
   import play.api.test.Helpers.SERVICE_UNAVAILABLE
 
-  import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
 
   implicit val hc: HeaderCarrier = new HeaderCarrier

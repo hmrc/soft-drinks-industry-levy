@@ -19,13 +19,13 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 import com.softwaremill.macwire._
 import play.api.libs.ws.WSClient
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
-import uk.gov.hmrc.play.bootstrap.config.{AuditingConfigProvider, RunMode, ServicesConfig}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.play.bootstrap.config.{AuditingConfigProvider, ServicesConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{SdilMongoPersistence, SdilPersistence}
 
@@ -50,6 +50,5 @@ trait ConnectorWiring {
 
   val appName = configuration.get[String]("appName")
   lazy val auditingConfigProvider: AuditingConfigProvider = wire[AuditingConfigProvider]
-  lazy val runMode: RunMode = wire[RunMode]
   lazy val auditingConfig: AuditingConfig = auditingConfigProvider.get()
 }

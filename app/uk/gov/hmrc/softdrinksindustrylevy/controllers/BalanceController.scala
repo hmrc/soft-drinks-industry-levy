@@ -25,7 +25,7 @@ import play.api.mvc._
 import sdil.models._
 import sdil.models.des._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 
 import scala.concurrent._

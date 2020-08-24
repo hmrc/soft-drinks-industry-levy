@@ -15,7 +15,6 @@
  */
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
-
 import java.net.URLEncoder.encode
 import java.time.{Clock, LocalDate, LocalDateTime}
 import cats.implicits._
@@ -26,7 +25,6 @@ import sdil.models.des.FinancialTransactionResponse
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
@@ -39,7 +37,7 @@ class DesConnector(
   servicesConfig: ServicesConfig,
   persistence: SdilPersistence,
   auditing: AuditConnector)(implicit clock: Clock, executionContext: ExecutionContext)
-    extends DesHelpers(servicesConfig) with OptionHttpReads {
+    extends DesHelpers(servicesConfig) {
 
   val desURL: String = servicesConfig.baseUrl("des")
   val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
@@ -47,8 +45,8 @@ class DesConnector(
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
-  implicit override def readOptionOf[P](implicit rds: HttpReads[P]): HttpReads[Option[P]] = new HttpReads[Option[P]] {
-    def read(method: String, url: String, response: HttpResponse): Option[P] = response.status match {
+  implicit def HttpReads[A](implicit rds: HttpReads[A]): HttpReads[Option[A]] = new HttpReads[Option[A]] {
+    def read(method: String, url: String, response: HttpResponse): Option[A] = response.status match {
       case 204 | 404 | 503 | 403 => None
       case 429 =>
         Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")

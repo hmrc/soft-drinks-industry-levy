@@ -22,8 +22,8 @@ import play.api.mvc.{Action, ControllerComponents}
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
@@ -37,12 +37,11 @@ class TaxEnrolmentCallbackController(
   taxEnrolments: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val runModeConfiguration: Configuration,
-  val runMode: RunMode,
+  val configuration: Configuration,
   auditing: AuditConnector)
     extends BackendController(cc) {
 
-  val serviceConfig = new ServicesConfig(runModeConfiguration, runMode)
+  val serviceConfig = new ServicesConfig(configuration)
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>
