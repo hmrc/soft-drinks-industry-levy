@@ -160,7 +160,13 @@ class ReturnsController(
     Action.async { implicit request =>
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
         import sdilConfig.today
-        val start = subscription.get.liabilityDate
+        val start = subscription match {
+          case Some(x) => x.liabilityDate
+          case None => {
+            Logger.error(s"Error occurred while retrieving subscriptionDetails for utr =  $utr")
+            throw new NoSuchElementException(s"No subscription details found for the user utr= $utr")
+          }
+        }
 
         val all = {
           ReturnPeriod(start).count to ReturnPeriod(today).count
