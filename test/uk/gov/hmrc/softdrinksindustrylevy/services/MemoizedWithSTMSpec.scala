@@ -19,7 +19,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 import java.time.LocalDateTime
 
 import org.scalatest._
-import cats.Monad
 import cats.implicits._
 
 import scala.concurrent.Future

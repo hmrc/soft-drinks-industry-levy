@@ -16,13 +16,10 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time._
-
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import reactivemongo.bson.BSONObjectID
-import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
+import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
@@ -33,7 +30,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
-
+import java.time._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnsController(
@@ -43,7 +40,7 @@ class ReturnsController(
   val sdilConfig: SdilConfig,
   auditing: AuditConnector,
   val cc: ControllerComponents
-)(implicit ec: ExecutionContext, clock: Clock)
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
   def checkSmallProducerStatus(
@@ -138,7 +135,7 @@ class ReturnsController(
     }
 
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async {
       persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
         case Some((record, objectID)) =>
           Ok(Json.toJson(record.copy(submittedOn = objectID.map {
@@ -183,7 +180,7 @@ class ReturnsController(
     }
 
   def variable(utr: String): Action[AnyContent] =
-    Action.async { implicit request =>
+    Action.async {
       persistence.returns.listVariable(utr).map { posted =>
         Ok(Json.toJson(posted.keys.toList))
       }

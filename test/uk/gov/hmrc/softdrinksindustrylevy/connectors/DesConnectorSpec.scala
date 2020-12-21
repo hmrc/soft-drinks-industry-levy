@@ -18,8 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
-import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import sdil.models.des

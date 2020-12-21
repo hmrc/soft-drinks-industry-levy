@@ -17,16 +17,15 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import akka.actor.ActorSystem
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
-import org.mockito.Mockito.when
-import org.mockito.ArgumentMatchers.any
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSugar {
   val minutesTestVal: Long = 59

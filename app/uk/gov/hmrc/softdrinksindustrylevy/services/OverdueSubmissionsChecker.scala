@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.temporal.{ChronoUnit, TemporalUnit}
-import java.time.{Instant, LocalDateTime}
-import javax.inject.Inject
-
 import akka.actor.{ActorSystem, Cancellable}
 import org.joda.time.Duration
 import play.api.{Configuration, Logger}
@@ -28,6 +24,8 @@ import uk.gov.hmrc.lock.{ExclusiveTimePeriodLock, LockMongoRepository, LockRepos
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 

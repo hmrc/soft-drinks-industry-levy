@@ -16,24 +16,21 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.LocalDate
-
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach}
-import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.test.Helpers.contentAsString
+import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import uk.gov.hmrc.softdrinksindustrylevy.services.DataCorrector.ReturnsCorrection
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
+import java.time.LocalDate
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with ScalaFutures with BeforeAndAfterEach {

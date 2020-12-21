@@ -18,8 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.{LocalDate, LocalDateTime}
 
-import play.api.libs.json.Json
-
 case class Site(address: Address, ref: Option[String], tradingName: Option[String], closureDate: Option[LocalDate])
 
 case class Contact(

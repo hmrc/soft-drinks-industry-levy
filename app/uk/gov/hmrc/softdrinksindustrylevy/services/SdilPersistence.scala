@@ -17,21 +17,16 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import play.api.libs.functional.syntax.unlift
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONArray, BSONDateTime, BSONDocument, BSONObjectID, BSONString}
+import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
+import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
-
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext => EC, _}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import java.time._
 
-import cats.implicits._
+import java.time._
+import scala.concurrent.{ExecutionContext => EC, _}
 
 trait SdilPersistence {
 
@@ -135,7 +130,7 @@ class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
       val data = ReturnsWrapper(utr, period, value)
 
       domainFormatImplicit.writes(data) match {
-        case d @ JsObject(_) =>
+        case _ @JsObject(_) =>
           val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
           collection.update(ordered = false).one(selector, data, upsert = true)
         case _ =>

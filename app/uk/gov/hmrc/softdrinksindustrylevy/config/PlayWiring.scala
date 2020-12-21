@@ -16,19 +16,17 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import java.time.format._
-import java.time.{Clock, LocalDate, LocalDateTime}
-
 import akka.stream.Materializer
-import play.api.Mode
 import play.api.i18n.MessagesApi
 import play.api.inject.ApplicationLifecycle
-import play.api.{Configuration, Environment}
+import play.api.{Configuration, Environment, Mode}
 import pureconfig._
 import pureconfig.configurable._
 import pureconfig.generic.ProductHint
 import sdil.models.SdilReturn
 import pureconfig.generic.auto._
+import java.time.format._
+import java.time.{Clock, LocalDate, LocalDateTime}
 import scala.concurrent.ExecutionContext
 
 trait PlayWiring {

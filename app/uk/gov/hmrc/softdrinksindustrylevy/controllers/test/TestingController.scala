@@ -38,11 +38,11 @@ class TestingController(
     testConnector.reset(url) map (r => Status(r.status))
   }
 
-  def resetDb: Action[AnyContent] = Action.async { implicit request =>
+  def resetDb: Action[AnyContent] = Action.async {
     buffer.drop.map(_ => Ok)
   }
 
-  def getFile(envelopeId: String, fileName: String) = Action.async { implicit request =>
+  def getFile(envelopeId: String, fileName: String) = Action.async {
     fileUpload.getFile(envelopeId, fileName) map { file =>
       Ok(file)
     }
@@ -55,7 +55,7 @@ class TestingController(
     }
   }
 
-  def getSdilReturnsMongoDrop: Action[AnyContent] = Action.async { implicit request =>
+  def getSdilReturnsMongoDrop: Action[AnyContent] = Action.async {
     persistence.returns.dropCollection.map {
       case true  => Ok
       case false => NoContent

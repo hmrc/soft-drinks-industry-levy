@@ -24,10 +24,10 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
-import play.api.mvc.{ControllerComponents, Request}
+import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn, SmallProducer}
+import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
@@ -180,10 +180,6 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   }
 
   "varyReturn" should {
-    val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
-    val removedSmallPack = SmallProducer(Some("removed"), "2", (100, 100))
-    val addedSmallPack = SmallProducer(Some("added"), "3", (100, 100))
-
     val testOriginal = SdilReturn(submittedOn = None)
     val testRevised = SdilReturn((3, 3), (3, 3), Nil, (3, 3), (3, 3), (3, 3), (3, 3), None)
     val returnVariationData =

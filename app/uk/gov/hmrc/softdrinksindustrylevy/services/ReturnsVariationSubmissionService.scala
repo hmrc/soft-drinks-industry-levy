@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.Instant
-
 import play.api.libs.json.{Format, JsResult, JsValue, Json}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.ReturnsVariationRequest
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.time.Instant
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 class ReturnsVariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)

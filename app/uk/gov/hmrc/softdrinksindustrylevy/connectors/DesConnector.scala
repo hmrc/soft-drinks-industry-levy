@@ -15,8 +15,9 @@
  */
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
+
 import java.net.URLEncoder.encode
-import java.time.{Clock, LocalDate, LocalDateTime}
+import java.time.{LocalDate, LocalDateTime}
 import cats.implicits._
 import play.api.{Logger, Mode}
 import play.api.libs.json.{Json, OWrites}
@@ -36,7 +37,7 @@ class DesConnector(
   val mode: Mode,
   servicesConfig: ServicesConfig,
   persistence: SdilPersistence,
-  auditing: AuditConnector)(implicit clock: Clock, executionContext: ExecutionContext)
+  auditing: AuditConnector)(implicit executionContext: ExecutionContext)
     extends DesHelpers(servicesConfig) {
 
   val desURL: String = servicesConfig.baseUrl("des")
@@ -71,7 +72,7 @@ class DesConnector(
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
     desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
       .recover {
-        case Upstream4xxResponse(msg, 429, _, _) =>
+        case Upstream4xxResponse(_, 429, _, _) =>
           Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
           throw Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
       }
@@ -103,7 +104,7 @@ class DesConnector(
     implicit hc: HeaderCarrier,
     period: ReturnPeriod): Future[HttpResponse] =
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest).recover {
-      case Upstream4xxResponse(msg, 429, _, _) =>
+      case Upstream4xxResponse(_, 429, _, _) =>
         Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
         throw Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
     }
