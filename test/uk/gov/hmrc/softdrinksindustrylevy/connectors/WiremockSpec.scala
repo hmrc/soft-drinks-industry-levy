@@ -19,11 +19,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.scalatest._
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.play.it.Port
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.ExecutionContext

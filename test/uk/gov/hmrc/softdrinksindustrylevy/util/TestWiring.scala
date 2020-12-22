@@ -23,7 +23,7 @@ import akka.stream.Materializer
 import com.softwaremill.macwire._
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Mode.Mode
-import play.api.inject.{ApplicationLifecycle, DefaultApplicationLifecycle}
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.{Configuration, Environment, Play}
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector

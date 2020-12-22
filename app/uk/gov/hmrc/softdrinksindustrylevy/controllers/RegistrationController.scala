@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.LocalDate
-
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
@@ -34,7 +32,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

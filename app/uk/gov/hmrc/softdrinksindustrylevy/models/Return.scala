@@ -16,13 +16,9 @@
 
 package sdil.models
 
-import cats.Order
-import cats.implicits._
 import java.time.LocalDateTime
 import java.time.LocalDate
-
-import play.api.libs.json.{Format, Json, OFormat}
-import reactivemongo.bson.BSONObjectID
+import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _, _}
 
 case class ReturnVariationData(

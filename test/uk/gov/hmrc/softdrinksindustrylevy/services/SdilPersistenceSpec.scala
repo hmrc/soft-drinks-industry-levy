@@ -17,18 +17,13 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
-import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.validCreateSubscriptionRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subReads
 import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
-import com.softwaremill.macwire._
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

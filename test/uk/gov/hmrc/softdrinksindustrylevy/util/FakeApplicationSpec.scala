@@ -30,8 +30,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilApplicationLoader
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
-import uk.gov.hmrc.softdrinksindustrylevy.services
-import uk.gov.hmrc.softdrinksindustrylevy.services.{SdilMongoPersistence, SdilPersistence}
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}

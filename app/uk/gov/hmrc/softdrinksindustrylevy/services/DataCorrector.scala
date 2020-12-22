@@ -16,18 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import javax.inject.{Inject, Named}
 import akka.actor._
+import cats.implicits._
 import play.api.Logger
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
-import play.api.libs.concurrent.Akka
-import play.api.Application
+import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import sdil.models._
-import cats.implicits._
+
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 /** Actor which creates/updates missing/erroneous SdilReturns in mongo
   *

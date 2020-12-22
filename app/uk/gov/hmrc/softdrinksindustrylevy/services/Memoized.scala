@@ -17,12 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import java.time.LocalDateTime
-
 import cats.Monad
 import cats.implicits._
-import play.api.Logger
-
-import scala.concurrent.ExecutionContext
 import scala.concurrent.stm.{TMap, atomic}
 import scala.language.higherKinds
 

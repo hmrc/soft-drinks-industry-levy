@@ -1,4 +1,3 @@
-import sbt.Tests.{Group, SubProcess}
 import scoverage.ScoverageKeys
 // ================================================================================
 // Plugins
@@ -104,7 +103,7 @@ scalacOptions ++= Seq(
   "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
   "-Xlint:unsound-match",              // Pattern match may not be typesafe.
   "-Yno-adapted-args",                 // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-  "-Ywarn-dead-code",                  // Warn when dead code is identified.
+//  "-Ywarn-dead-code",                  // Warn when dead code is identified.
   "-Ywarn-inaccessible",               // Warn about inaccessible types in method signatures.
   "-Ywarn-infer-any",                  // Warn when a type argument is inferred to be `Any`.
   "-Ywarn-nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
@@ -129,8 +128,8 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // ================================================================================
 // Testing
 // ================================================================================
-  import scoverage.ScoverageKeys._
   import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
+  import scoverage.ScoverageKeys._
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
   coverageMinimum := 80

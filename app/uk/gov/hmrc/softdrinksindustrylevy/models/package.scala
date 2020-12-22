@@ -21,7 +21,6 @@ import cats.implicits._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
-import reactivemongo.bson.BSONObjectID
 import sdil.models._
 
 package object models {
