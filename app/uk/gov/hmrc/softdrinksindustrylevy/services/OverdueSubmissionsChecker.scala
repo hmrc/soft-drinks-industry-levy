@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,25 +40,25 @@ class OverdueSubmissionsChecker(
   override val jobName: String = "overdueSubmissions"
 
   override val jobEnabled: Boolean = {
-    config.getBoolean(s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
+    config.getOptional[Boolean](s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
   }
 
   override val jobStartDelay: FiniteDuration = {
-    config.getLong(s"$jobName.startDelayMinutes") match {
+    config.getOptional[Long](s"$jobName.startDelayMinutes") match {
       case Some(d) => FiniteDuration(d, MINUTES)
       case None    => throw MissingConfiguration(s"$jobName.startDelayMinutes")
     }
   }
 
   val overduePeriod: Duration = {
-    config.getLong(s"$jobName.overduePeriodMinutes") match {
+    config.getOptional[Long](s"$jobName.overduePeriodMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.overduePeriodMinutes")
     }
   }
 
   override val jobInterval: Duration = {
-    config.getLong(s"$jobName.jobIntervalMinutes") match {
+    config.getOptional[Long](s"$jobName.jobIntervalMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }

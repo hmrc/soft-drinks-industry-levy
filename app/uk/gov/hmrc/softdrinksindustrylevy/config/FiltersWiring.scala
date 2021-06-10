@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import com.kenshoo.play.metrics.{Metrics, MetricsFilter, MetricsFilterImpl}
 import uk.gov.hmrc.play.bootstrap.filters._
+import uk.gov.hmrc.play.bootstrap.backend.filters._
 import com.softwaremill.macwire._
 import play.api.BuiltInComponentsFromContext
 import uk.gov.hmrc.play.bootstrap.config.{DefaultHttpAuditEvent, HttpAuditEvent}
-import uk.gov.hmrc.play.bootstrap.filters.microservice.DefaultMicroserviceAuditFilter
 
 trait FiltersWiring {
   self: PlayWiring with ConfigWiring with ConnectorWiring with BuiltInComponentsFromContext =>
@@ -29,10 +29,10 @@ trait FiltersWiring {
   def metrics: Metrics
 
   lazy val mdcFilter: MDCFilter = wire[MDCFilter]
-  lazy val auditFilter: AuditFilter = wire[DefaultMicroserviceAuditFilter]
+  lazy val auditFilter: AuditFilter = wire[DefaultBackendAuditFilter]
   lazy val cacheControlFilter: CacheControlFilter = wire[CacheControlFilter]
   lazy val loggingFilter: LoggingFilter = wire[DefaultLoggingFilter]
   lazy val metricsFilter: MetricsFilter = wire[MetricsFilterImpl]
-  lazy val filters: MicroserviceFilters = wire[MicroserviceFilters]
+  lazy val filters: BackendFilters = wire[BackendFilters]
   lazy val httpAuditEvent: HttpAuditEvent = wire[DefaultHttpAuditEvent]
 }
