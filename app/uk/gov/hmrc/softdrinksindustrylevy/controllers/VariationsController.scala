@@ -37,6 +37,7 @@ class VariationsController(
   val cc: ControllerComponents
 ) extends BackendController(cc) with I18nSupport {
 
+  lazy val logger = Logger(this.getClass)
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
@@ -60,7 +61,7 @@ class VariationsController(
   def varyReturn(sdilRef: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       withJsonBody[ReturnVariationData] { data =>
-        Logger.info("SDIL return variation sent to DMS queue")
+        logger.info("SDIL return variation sent to DMS queue")
         val page = views.html.return_variation_pdf(data, sdilRef).toString
 
         for {

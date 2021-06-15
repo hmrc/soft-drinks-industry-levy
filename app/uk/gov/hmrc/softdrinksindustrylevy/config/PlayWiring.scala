@@ -49,7 +49,7 @@ trait PlayWiring {
     }
     implicit val hint: ProductHint[SdilReturn] = ProductHint[sdil.models.SdilReturn](allowUnknownKeys = false)
 
-    pureconfig.loadConfig[SdilConfig](EncodedConfig(configuration.underlying)) match {
+    ConfigSource.fromConfig(configuration.underlying).load[SdilConfig] match {
       case Left(error) => throw new IllegalStateException(error.toString)
       case Right(conf) => conf
     }

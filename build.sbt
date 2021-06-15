@@ -39,19 +39,19 @@ libraryDependencies ++= Seq(
   "org.jsoup"                   %  "jsoup"               % "1.13.1",
   "org.mockito"                 %  "mockito-core"        % "3.4.6",
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
-  "org.scalacheck"              %% "scalacheck"          % "1.14.3",
-  "org.scalatest"               %% "scalatest"           % "3.0.8",
+  "org.scalacheck"              %% "scalacheck"          % "1.15.4",
+  "org.scalatest"               %% "scalatest"           % "3.0.9",
   "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.3",
-  "uk.gov.hmrc"                 %% "hmrctest"            % "3.9.0-play-26",
+  "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.5.23",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "4.21.0-play-26"
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-26"
 ).map(_ % "test")
 
 // ================================================================================
 // Dependencies
 // ================================================================================
-scalaVersion := "2.12.11"
+scalaVersion := "2.12.13"
 
 libraryDependencies ++= Seq(
   ws,
@@ -61,12 +61,14 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "macrosakka"                    % "2.3.7" % "provided",
   "com.softwaremill.macwire"  %% "proxy"                         % "2.3.7",
   "com.softwaremill.macwire"  %% "util"                          % "2.3.7",
-  "org.typelevel"             %% "cats-core"                     % "1.6.1",
-  "uk.gov.hmrc"               %% "auth-client"                   % "3.0.0-play-26",
-  "uk.gov.hmrc"               %% "bootstrap-backend-play-26"     % "2.24.0",
-  "uk.gov.hmrc"               %% "mongo-lock"                    % "6.23.0-play-26",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"          % "7.30.0-play-26",
-  "org.scala-stm"             %% "scala-stm"                     % "0.9.1"
+  "org.typelevel"             %% "cats-core"                     % "2.4.0",
+  "uk.gov.hmrc"               %% "auth-client"                   % "4.0.0-play-26",
+  "uk.gov.hmrc"               %% "bootstrap-backend-play-26"     % "4.1.0",
+  "uk.gov.hmrc"               %% "mongo-lock"                    % "7.0.0-play-26",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"          % "8.0.0-play-26",
+  "org.scala-stm"             %% "scala-stm"                     % "0.9.1",
+  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
+  "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
 )
 
 resolvers ++= Seq(
@@ -111,7 +113,9 @@ scalacOptions ++= Seq(
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
   "-Ywarn-unused",                     // Warn if an import selector is not referenced.
   "-Ywarn-value-discard",               // Warn when non-Unit expression results are unused.
-  "-Xmax-classfile-name", "100"
+  "-Xmax-classfile-name", "100",
+  "-P:silencer:pathFilters=routes",
+  "-P:silencer:globalFilters=Unused import"
 )
 
 
@@ -132,7 +136,7 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   import scoverage.ScoverageKeys._
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
-  coverageMinimum := 80
+  coverageMinimumStmtTotal := 80
   coverageFailOnMinimum := false
   coverageHighlighting := true
   scalafmtOnCompile in Compile := true

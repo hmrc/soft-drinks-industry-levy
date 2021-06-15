@@ -31,6 +31,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
 class DesConnector(
   val http: HttpClient,
@@ -40,6 +41,7 @@ class DesConnector(
   auditing: AuditConnector)(implicit executionContext: ExecutionContext)
     extends DesHelpers(servicesConfig) {
 
+  val logger: Logger = Logger(this.getClass)
   val desURL: String = servicesConfig.baseUrl("des")
   val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
   val serviceURL: String = "soft-drinks"
@@ -50,8 +52,8 @@ class DesConnector(
     def read(method: String, url: String, response: HttpResponse): Option[A] = response.status match {
       case 204 | 404 | 503 | 403 => None
       case 429 =>
-        Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
+        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       case _ => Some(rds.read(method, url, response))
     }
   }
@@ -72,9 +74,9 @@ class DesConnector(
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
     desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
       .recover {
-        case Upstream4xxResponse(_, 429, _, _) =>
-          Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-          throw Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
+        case UpstreamErrorResponse(_, 429, _, _) =>
+          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       }
   }
 
@@ -104,9 +106,9 @@ class DesConnector(
     implicit hc: HeaderCarrier,
     period: ReturnPeriod): Future[HttpResponse] =
     desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest).recover {
-      case Upstream4xxResponse(_, 429, _, _) =>
-        Logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw Upstream5xxResponse("429 received from DES - converted to 503", 429, 503)
+      case UpstreamErrorResponse(_, 429, _, _) =>
+        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
     }
 
   /** Calls API#1166: Get Financial Data.

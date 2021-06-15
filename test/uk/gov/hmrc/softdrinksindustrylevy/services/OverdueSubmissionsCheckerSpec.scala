@@ -17,7 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import akka.actor.ActorSystem
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, contains, eq => mEq}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
@@ -32,8 +32,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
   "vals" should {
     val configMock: Configuration = mock[Configuration]
-    when(configMock.getLong(any[String])) thenReturn Option(minutesTestVal)
-    when(configMock.getBoolean(any[String])) thenReturn Option(false)
+    when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
+    when(configMock.getOptional[Long](contains("Minutes"))(any())) thenReturn Option(minutesTestVal)
     val overdueSubmissionsCheckerMock = new OverdueSubmissionsChecker(
       configMock,
       mock[MongoConnector],
@@ -62,7 +62,7 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
     "jobEnabled throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getBoolean(any[String])) thenReturn None
+      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn None
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         configMock,
@@ -74,8 +74,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
     "jobStartDelay throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getLong("overdueSubmissions.startDelayMinutes")) thenReturn None
-      when(configMock.getBoolean(any[String])) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn None
+      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         configMock,
@@ -87,9 +87,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
     "overduePeriod throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getLong("overdueSubmissions.startDelayMinutes")) thenReturn Option(minutesTestVal)
-      when(configMock.getLong("overdueSubmissions.overduePeriodMinutes")) thenReturn None
-      when(configMock.getBoolean(any[String])) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
+        minutesTestVal)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn None
+      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         configMock,
@@ -101,10 +102,12 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
     "jobInterval throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getLong("overdueSubmissions.startDelayMinutes")) thenReturn Option(minutesTestVal)
-      when(configMock.getLong("overdueSubmissions.overduePeriodMinutes")) thenReturn Option(minutesTestVal)
-      when(configMock.getLong("overdueSubmissions.jobIntervalMinutes")) thenReturn None
-      when(configMock.getBoolean(any[String])) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
+        minutesTestVal)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn Option(
+        minutesTestVal)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(any())) thenReturn None
+      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         configMock,

@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.Retrievals.credentials
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -42,6 +42,8 @@ class ReturnsController(
   val cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
+
+  lazy val logger = Logger(this.getClass)
 
   def checkSmallProducerStatus(
     idType: String,
@@ -95,7 +97,7 @@ class ReturnsController(
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[SdilReturn] { sdilReturn =>
-          Logger.info("SDIL return submission sent to DES")
+          logger.info("SDIL return submission sent to DES")
           implicit val period: ReturnPeriod = ReturnPeriod(year, quarter)
 
           val returnsReq = ReturnsRequest(sdilReturn)
@@ -109,7 +111,7 @@ class ReturnsController(
                     buildReturnAuditDetail(
                       sdilReturn,
                       returnsReq,
-                      creds.providerId,
+                      creds.get.providerId,
                       period,
                       subscription,
                       utr,
@@ -124,7 +126,7 @@ class ReturnsController(
               auditing.sendExtendedEvent(
                 new SdilReturnEvent(
                   request.uri,
-                  buildReturnAuditDetail(sdilReturn, returnsReq, creds.providerId, period, None, utr, "ERROR")
+                  buildReturnAuditDetail(sdilReturn, returnsReq, creds.get.providerId, period, None, utr, "ERROR")
                 )
               ) map {
                 throw e
@@ -160,7 +162,7 @@ class ReturnsController(
         val start = subscription match {
           case Some(x) => x.liabilityDate
           case None => {
-            Logger.error(s"Error occurred while retrieving subscriptionDetails for utr =  $utr")
+            logger.error(s"Error occurred while retrieving subscriptionDetails for utr =  $utr")
             throw new NoSuchElementException(s"No subscription details found for the user utr= $utr")
           }
         }

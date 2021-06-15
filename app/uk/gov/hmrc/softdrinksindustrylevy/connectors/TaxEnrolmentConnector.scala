@@ -21,11 +21,13 @@ import play.api.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
+  val logger: Logger = Logger(this.getClass)
   val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
   val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
   lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
@@ -46,7 +48,7 @@ class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: Se
     http.GET[TaxEnrolmentsSubscription](s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId")
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
-    Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
+    logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
     HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
   }
 

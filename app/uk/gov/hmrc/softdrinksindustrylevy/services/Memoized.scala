@@ -67,7 +67,7 @@ object Memoized {
       }.pure[F]
 
     def write(key: A, value: (B, LocalDateTime)): F[Unit] =
-      atomic(implicit t => underlyingCache.put(key, value)).map(x => ()).getOrElse(()).pure[F]
+      atomic(implicit t => underlyingCache.put(key, value)).map(_ => ()).getOrElse(()).pure[F]
 
     memoized(
       read,

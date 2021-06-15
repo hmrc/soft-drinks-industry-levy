@@ -24,8 +24,11 @@ import play.api.Logger
 import play.api.libs.json.{Format, Json}
 
 import scala.collection.JavaConversions._
+import scala.concurrent.JavaConversions
 
 object JsonSchemaChecker {
+
+  lazy val logger = Logger(this.getClass)
 
   def retrieveSchema(file: String): JsonNode = schema(s"/test/$file.schema.json")
 
@@ -42,7 +45,7 @@ object JsonSchemaChecker {
     val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(model)))
     val processingReport: ProcessingReport = validator.validate(schema, json)
     if (!processingReport.isSuccess) processingReport.foreach { x =>
-      Logger.warn(
+      logger.warn(
         s"failed to validate against json schema, schema: ${x.asJson().get("schema")}, " +
           s"instance: ${x.asJson().get("instance")}, problem: ${x.asJson().get("keyword")}"
       )
