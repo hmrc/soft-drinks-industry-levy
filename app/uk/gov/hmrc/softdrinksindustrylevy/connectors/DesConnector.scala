@@ -46,7 +46,6 @@ class DesConnector(
   val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
-  private def desHeaders = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit def HttpReads[A](implicit rds: HttpReads[A]): HttpReads[Option[A]] = new HttpReads[Option[A]] {

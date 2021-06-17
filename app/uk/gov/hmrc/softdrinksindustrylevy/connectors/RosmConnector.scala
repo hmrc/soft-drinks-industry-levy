@@ -37,7 +37,7 @@ class RosmConnector(val http: HttpClient, val mode: Mode, servicesConfig: Servic
       .POST[RosmRegisterRequest, Option[RosmRegisterResponse]](
         s"$desURL/$serviceURL/utr/$utr",
         request,
-        headers = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey))
+        headers = desHeaders)
       .recover {
         case UpstreamErrorResponse(_, 429, _, _) =>
           logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")

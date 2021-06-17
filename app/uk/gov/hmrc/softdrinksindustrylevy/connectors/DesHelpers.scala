@@ -26,4 +26,6 @@ abstract class DesHelpers(servicesConfig: ServicesConfig) {
   val serviceKey: String = s"Bearer ${servicesConfig.getConfString("des.token", "")}"
   val serviceEnvironment: String = servicesConfig.getConfString("des.environment", "")
 
+  def desHeaders = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
+
 }
