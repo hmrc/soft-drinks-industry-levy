@@ -46,6 +46,7 @@ class DesConnector(
   val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
+  private def desHeaders = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit def HttpReads[A](implicit rds: HttpReads[A]): HttpReads[Option[A]] = new HttpReads[Option[A]] {
@@ -72,7 +73,11 @@ class DesConnector(
     val submission = request.copy(address = formattedAddress)
 
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
-    desPost[Subscription, CreateSubscriptionResponse](s"$desURL/$serviceURL/subscription/$idType/$idNumber", submission)
+    http
+      .POST[Subscription, CreateSubscriptionResponse](
+        s"$desURL/$serviceURL/subscription/$idType/$idNumber",
+        submission,
+        headers = desHeaders)
       .recover {
         case UpstreamErrorResponse(_, 429, _, _) =>
           logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
@@ -88,7 +93,7 @@ class DesConnector(
 
     def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
       import json.des.get._
-      http.GET[Option[Subscription]](url)(implicitly, addHeaders, implicitly)
+      http.GET[Option[Subscription]](url, headers = desHeaders)(implicitly, hc, implicitly)
     }
 
     for {
@@ -105,11 +110,13 @@ class DesConnector(
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(
     implicit hc: HeaderCarrier,
     period: ReturnPeriod): Future[HttpResponse] =
-    desPost[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest).recover {
-      case UpstreamErrorResponse(_, 429, _, _) =>
-        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
-    }
+    http
+      .POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest, headers = desHeaders)
+      .recover {
+        case UpstreamErrorResponse(_, 429, _, _) =>
+          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+      }
 
   /** Calls API#1166: Get Financial Data.
     *
@@ -151,17 +158,19 @@ class DesConnector(
         }
         .mkString("&")
 
-    http.GET[Option[des.FinancialTransactionResponse]](uri)(implicitly, addHeaders, implicitly).flatMap { x =>
-      x.map { y =>
-        auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
+    http
+      .GET[Option[des.FinancialTransactionResponse]](uri, headers = desHeaders)(implicitly, hc, implicitly)
+      .flatMap { x =>
+        x.map { y =>
+          auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
+        }
+        Future(x)
       }
-      Future(x)
-    }
   }
 
   def displayDirectDebit(sdilRef: String)(implicit hc: HeaderCarrier): Future[DisplayDirectDebitResponse] = {
     val uri = s"$desDirectDebitUrl/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
-    http.GET[DisplayDirectDebitResponse](uri)(implicitly, addHeaders, implicitly)
+    http.GET[DisplayDirectDebitResponse](uri, headers = desHeaders)(implicitly, hc, implicitly)
   }
 
   private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(

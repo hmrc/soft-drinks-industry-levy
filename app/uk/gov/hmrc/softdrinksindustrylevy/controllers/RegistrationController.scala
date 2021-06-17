@@ -158,7 +158,7 @@ class RegistrationController(
         Ok(Json.toJson(s))
       }
     case a if a.state == "ERROR" =>
-      logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
+      logger.error(a.errorResponse.getOrElse("unknown tax enrolment error"))
       logger.info("TE returned ERROR, returning OK and the subscription json ")
       Future successful Ok(Json.toJson(s))
     case a if a.state == "PENDING" =>

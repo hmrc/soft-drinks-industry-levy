@@ -33,9 +33,14 @@ class RosmConnector(val http: HttpClient, val mode: Mode, servicesConfig: Servic
   def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Option[RosmRegisterResponse]] =
-    desPost[RosmRegisterRequest, Option[RosmRegisterResponse]](s"$desURL/$serviceURL/utr/$utr", request).recover {
-      case UpstreamErrorResponse(_, 429, _, _) =>
-        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
-    }
+    http
+      .POST[RosmRegisterRequest, Option[RosmRegisterResponse]](
+        s"$desURL/$serviceURL/utr/$utr",
+        request,
+        headers = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey))
+      .recover {
+        case UpstreamErrorResponse(_, 429, _, _) =>
+          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+      }
 }

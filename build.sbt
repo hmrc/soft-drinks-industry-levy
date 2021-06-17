@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.27.1",
   "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
   "org.jsoup"                   %  "jsoup"               % "1.13.1",
-  "org.mockito"                 %  "mockito-core"        % "3.4.6",
+  "org.mockito"                 %  "mockito-core"        % "3.11.1",
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
   "org.scalacheck"              %% "scalacheck"          % "1.15.4",
   "org.scalatest"               %% "scalatest"           % "3.0.9",
