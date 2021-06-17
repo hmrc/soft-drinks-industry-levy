@@ -33,6 +33,5 @@ trait FiltersWiring {
   lazy val cacheControlFilter: CacheControlFilter = wire[CacheControlFilter]
   lazy val loggingFilter: LoggingFilter = wire[DefaultLoggingFilter]
   lazy val metricsFilter: MetricsFilter = wire[MetricsFilterImpl]
-  lazy val filters: BackendFilters = wire[BackendFilters]
   lazy val httpAuditEvent: HttpAuditEvent = wire[DefaultHttpAuditEvent]
 }

@@ -21,7 +21,7 @@ import play.api.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,7 +49,7 @@ class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: Se
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
     logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
-    HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
+    HttpResponse(e.responseCode, Json.toJson(e.message), headers = Map.empty[String, Seq[String]])
   }
 
   private def subscribeUrl(subscriptionId: String) =

@@ -55,8 +55,8 @@ class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar w
     reset(mockDesConnector)
   }
 
-  when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
-    .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
+  when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
+    .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
 
   when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
     .thenReturn(Future.successful(()))

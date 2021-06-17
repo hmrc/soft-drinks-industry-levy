@@ -4,10 +4,7 @@ import scoverage.ScoverageKeys
 // ================================================================================
 enablePlugins(
   play.sbt.PlayScala,
-  SbtAutoBuildPlugin,
-  SbtGitVersioning,
-  SbtDistributablesPlugin,
-  SbtArtifactory
+  SbtDistributablesPlugin
 )
 
 // ================================================================================
@@ -62,18 +59,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "proxy"                         % "2.3.7",
   "com.softwaremill.macwire"  %% "util"                          % "2.3.7",
   "org.typelevel"             %% "cats-core"                     % "2.4.0",
-  "uk.gov.hmrc"               %% "auth-client"                   % "4.0.0-play-26",
-  "uk.gov.hmrc"               %% "bootstrap-backend-play-26"     % "4.1.0",
+  "uk.gov.hmrc"               %% "bootstrap-backend-play-26"     % "5.3.0",
   "uk.gov.hmrc"               %% "mongo-lock"                    % "7.0.0-play-26",
   "uk.gov.hmrc"               %% "simple-reactivemongo"          % "8.0.0-play-26",
   "org.scala-stm"             %% "scala-stm"                     % "0.9.1",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
-)
-
-resolvers ++= Seq(
-  Resolver.bintrayRepo("hmrc", "releases"),
-  Resolver.jcenterRepo
 )
 
 // ================================================================================
@@ -123,7 +114,7 @@ scalacOptions ++= Seq(
 // Misc
 // ================================================================================
 
-initialCommands in console := "import cats.implicits._"
+console / initialCommands := "import cats.implicits._"
 
 majorVersion := 0
 
@@ -139,8 +130,8 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   coverageMinimumStmtTotal := 80
   coverageFailOnMinimum := false
   coverageHighlighting := true
-  scalafmtOnCompile in Compile := true
-  scalafmtOnCompile in Test := true
+  Compile / scalafmtOnCompile := true
+  Test / scalafmtOnCompile := true
   ScoverageKeys.coverageExcludedFiles :=
     """<empty>;.*javascript;.*Routes.*;.*testonly.*;
       |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin

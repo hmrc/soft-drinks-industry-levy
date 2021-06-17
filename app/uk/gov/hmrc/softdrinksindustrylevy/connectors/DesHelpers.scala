@@ -27,14 +27,16 @@ abstract class DesHelpers(servicesConfig: ServicesConfig) {
 
   val http: HttpClient
 
+  val serviceKey: String = s"Bearer ${servicesConfig.getConfString("des.token", "")}"
+  val serviceEnvironment: String = servicesConfig.getConfString("des.environment", "")
+
+  private def desHeaders = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
+
   def desPost[I, O](
     url: String,
     body: I)(implicit wts: Writes[I], rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
-    http.POST[I, O](url, body)(wts, rds, addHeaders, ec)
+    http.POST[I, O](url, body, headers = desHeaders)(wts, rds, addHeaders, ec)
 
   def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
-    hc.withExtraHeaders(
-        "Environment" -> servicesConfig.getConfString("des.environment", "")
-      )
-      .copy(authorization = Some(Authorization(s"Bearer ${servicesConfig.getConfString("des.token", "")}")))
+    hc.withExtraHeaders()
 }

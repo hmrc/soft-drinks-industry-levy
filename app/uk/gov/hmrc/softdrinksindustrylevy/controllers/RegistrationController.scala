@@ -22,7 +22,7 @@ import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.Retrievals._
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -61,7 +61,7 @@ class RegistrationController(
             _ <- auditing.sendExtendedEvent(
                   new SdilSubscriptionEvent(
                     request.uri,
-                    buildSubscriptionAudit(data, creds.providerId, Some(res.formBundleNumber), "SUCCESS")
+                    buildSubscriptionAudit(data, creds.get.providerId, Some(res.formBundleNumber), "SUCCESS")
                   )
                 )
           } yield {
@@ -69,14 +69,18 @@ class RegistrationController(
           }) recoverWith {
             case e: LastError if e.code.contains(11000) => {
               auditing.sendExtendedEvent(
-                new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
+                new SdilSubscriptionEvent(
+                  request.uri,
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
               ) map { _ =>
                 Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
               }
             }
             case e =>
               auditing.sendExtendedEvent(
-                new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
+                new SdilSubscriptionEvent(
+                  request.uri,
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
               ) map {
                 throw e
               }

@@ -59,8 +59,9 @@ class ReturnsCorrectorWorker(
       } yield {
         persistence.returns(utr, period) = data
       }
-      job.onSuccess {
-        case _ => logger.info(s"done processing $utrO/$sdilRefO")
+      job.onComplete {
+        case a if (a.isSuccess) => logger.info(s"done processing $utrO/$sdilRefO")
+        case e                  => logger.warn(s"Don't understand $e")
       }
 
     case e => logger.warn(s"Don't understand $e")

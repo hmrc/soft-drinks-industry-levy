@@ -43,7 +43,6 @@ class SdilComponents(context: Context)
   override def errorHandler: HttpErrorHandler = wire[JsonErrorHandler]
   override implicit lazy val executionContext: ExecutionContext = actorSystem.dispatcher
   override def httpClient: HttpClient = wire[DefaultHttpClient]
-  override lazy val httpRequestHandler: HttpRequestHandler = wire[RequestHandler]
   lazy val customInjector: Injector = new SimpleInjector(injector) + healthController + wsClient
   lazy val httpAuditing: HttpAuditing = wire[DefaultHttpAuditing]
   override lazy val application: Application = wire[DefaultApplication]

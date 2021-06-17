@@ -22,8 +22,8 @@ import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.play.audit.http.config.AuditingConfig
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
+import uk.gov.hmrc.play.audit.http.connector.{AuditChannel, AuditConnector, AuditCounter}
+import uk.gov.hmrc.play.bootstrap.audit.{DefaultAuditChannel, DefaultAuditConnector, DefaultAuditCounter}
 import uk.gov.hmrc.play.bootstrap.auth.DefaultAuthConnector
 import uk.gov.hmrc.play.bootstrap.config.{AuditingConfigProvider, ServicesConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors._
@@ -37,6 +37,8 @@ trait ConnectorWiring {
 
   lazy val persistence: SdilPersistence = wire[SdilMongoPersistence]
   lazy val auditConnector: AuditConnector = wire[DefaultAuditConnector]
+  lazy val auditChannel: AuditChannel = wire[DefaultAuditChannel]
+  lazy val auditCounter: AuditCounter = wire[DefaultAuditCounter]
   lazy val authConnector: AuthConnector = wire[DefaultAuthConnector]
   lazy val desConnector: DesConnector = wire[DesConnector]
   lazy val emailConnector: EmailConnector = wire[EmailConnector]
