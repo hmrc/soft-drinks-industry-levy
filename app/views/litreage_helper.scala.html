@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.softdrinksindustrylevy.models.LitreBands
 @import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType
 
-@(internalActivity: Map[ActivityType.Value, LitreBands], activityType: ActivityType.Value)(implicit messages: Messages, request: Request[_])
+@(internalActivity: Map[ActivityType.Value, LitreBands], activityType: ActivityType.Value)(implicit messages: Messages)
 @internalActivity.get(activityType).map { p =>
     <tr>
         <td rowspan="2">
