@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import play.api.libs.json.Writes
-import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads}
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-
-import scala.concurrent.{ExecutionContext, Future}
 
 abstract class DesHelpers(servicesConfig: ServicesConfig) {
 
   val http: HttpClient
 
-  def desPost[I, O](
-    url: String,
-    body: I)(implicit wts: Writes[I], rds: HttpReads[O], hc: HeaderCarrier, ec: ExecutionContext): Future[O] =
-    http.POST[I, O](url, body)(wts, rds, addHeaders, ec)
+  val serviceKey: String = s"Bearer ${servicesConfig.getConfString("des.token", "")}"
+  val serviceEnvironment: String = servicesConfig.getConfString("des.environment", "")
 
-  def addHeaders(implicit hc: HeaderCarrier): HeaderCarrier =
-    hc.withExtraHeaders(
-        "Environment" -> servicesConfig.getConfString("des.environment", "")
-      )
-      .copy(authorization = Some(Authorization(s"Bearer ${servicesConfig.getConfString("des.token", "")}")))
+  def desHeaders = Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
+
 }

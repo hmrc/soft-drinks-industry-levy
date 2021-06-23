@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ class TaxEnrolmentCallbackController(
   auditing: AuditConnector)
     extends BackendController(cc) {
 
+  lazy val logger = Logger(this.getClass)
   val serviceConfig = new ServicesConfig(configuration)
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
@@ -57,11 +58,11 @@ class TaxEnrolmentCallbackController(
                 formBundleNumber)
           _ <- auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
         } yield {
-          Logger.info("Tax-enrolments callback successful")
+          logger.info("Tax-enrolments callback successful")
           NoContent
         }
       } else {
-        Logger.error(
+        logger.error(
           s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
         auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber)) map { _ =>
           NoContent
@@ -81,12 +82,12 @@ class TaxEnrolmentCallbackController(
           case Some(s) => emailConnector.sendConfirmationEmail(o, e, s)
           case None =>
             Future.successful(
-              Logger.error(
+              logger.error(
                 s"Unable to send email for form bundle $formBundleNumber as enrolment is missing SDIL Number"))
         }
       case _ =>
         Future.successful(
-          Logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
+          logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
     }
 
   private def getSdilNumber(taxEnrolmentsSubscription: TaxEnrolmentsSubscription): Option[String] =

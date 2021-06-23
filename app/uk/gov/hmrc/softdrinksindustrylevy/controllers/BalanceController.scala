@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ class BalanceController(
 }
 
 object BalanceController {
-
+  val logger = Logger(this.getClass)
   type Payment = (String, LocalDate, BigDecimal)
   def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
     val (payments, other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
@@ -132,12 +132,12 @@ object BalanceController {
 
   private def randomNumbers(stringLength: Int, id: String): String = {
     val n = Seq.fill(stringLength)(Random.nextInt(9)).mkString("")
-    Logger.warn(s"$id not retrieved from get financial data api, replaced with $n")
+    logger.warn(s"$id not retrieved from get financial data api, replaced with $n")
     n
   }
 
   private def logBigDec(default: BigDecimal, id: String): BigDecimal = {
-    Logger.warn(s"$id not retrieved from get financial data api, replaced with $default")
+    logger.warn(s"$id not retrieved from get financial data api, replaced with $default")
     default
   }
 
@@ -168,18 +168,18 @@ object BalanceController {
               in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))
             ).pure[List]
           case (a, b) if in.contractAccountCategory == "32".some =>
-            Logger.warn(
+            logger.warn(
               s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
             Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
           case _ =>
-            Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+            logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
             List.empty
         }
       case _ if in.contractAccountCategory == "32".some =>
-        Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
+        logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       case _ =>
-        Logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
+        logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
         List.empty
     }
 

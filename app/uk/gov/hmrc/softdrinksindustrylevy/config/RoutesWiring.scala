@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,14 @@ trait RoutesWiring {
   private lazy val healthRoutes = wire[health.Routes]
   private lazy val testOnlyDoNotUseInAppConfRoutes = wire[testOnlyDoNotUseInAppConf.Routes]
   private lazy val prodRoutes = wire[prod.Routes]
+  private lazy val logger = Logger(this.getClass)
 
   def router: Router =
     if (configuration.underlying.hasPath("play.http.router")) {
       configuration.getOptional[String]("play.http.router") match {
         case Some("testOnlyDoNotUseInAppConf.Routes") => testOnlyDoNotUseInAppConfRoutes
         case Some("prod.Routes")                      => prodRoutes
-        case Some(other)                              => Logger.warn(s"Unrecognised router $other; using prod.Routes"); prodRoutes
+        case Some(other)                              => logger.warn(s"Unrecognised router $other; using prod.Routes"); prodRoutes
         case _                                        => prodRoutes
       }
     } else {

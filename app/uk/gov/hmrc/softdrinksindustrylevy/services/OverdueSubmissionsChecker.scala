@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,25 +40,25 @@ class OverdueSubmissionsChecker(
   override val jobName: String = "overdueSubmissions"
 
   override val jobEnabled: Boolean = {
-    config.getBoolean(s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
+    config.getOptional[Boolean](s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
   }
 
   override val jobStartDelay: FiniteDuration = {
-    config.getLong(s"$jobName.startDelayMinutes") match {
+    config.getOptional[Long](s"$jobName.startDelayMinutes") match {
       case Some(d) => FiniteDuration(d, MINUTES)
       case None    => throw MissingConfiguration(s"$jobName.startDelayMinutes")
     }
   }
 
   val overduePeriod: Duration = {
-    config.getLong(s"$jobName.overduePeriodMinutes") match {
+    config.getOptional[Long](s"$jobName.overduePeriodMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.overduePeriodMinutes")
     }
   }
 
   override val jobInterval: Duration = {
-    config.getLong(s"$jobName.jobIntervalMinutes") match {
+    config.getOptional[Long](s"$jobName.jobIntervalMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }
@@ -68,24 +68,24 @@ class OverdueSubmissionsChecker(
     for {
       subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.getStandardMinutes, ChronoUnit.MINUTES))
       _    <- handleOverdueSubmissions(subs)
-    } yield Logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
+    } yield logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
 
   private def handleOverdueSubmissions(submissions: Seq[SubscriptionWrapper])(implicit ec: ExecutionContext) =
     Future.sequence(
       submissions map { sub =>
         for {
           _ <- mongoBufferService.updateStatus(sub._id, "OVERDUE")
-          _ = Logger.warn(s"Overdue submission (safe id ${sub._id}; submitted at ${sub.timestamp})")
+          _ = logger.warn(s"Overdue submission (safe id ${sub._id}; submitted at ${sub.timestamp})")
           _ <- contactFrontend.raiseTicket(sub.subscription, sub.formBundleNumber, sub.timestamp)(HeaderCarrier(), ec)
         } yield ()
       }
     )
 
   if (jobEnabled) {
-    Logger.info(s"scheduling $jobName to start running in ${jobStartDelay.toMinutes} minutes")
+    logger.info(s"scheduling $jobName to start running in ${jobStartDelay.toMinutes} minutes")
     start()
   } else {
-    Logger.info(s"Job $jobName disabled")
+    logger.info(s"Job $jobName disabled")
   }
 }
 
@@ -97,6 +97,7 @@ trait LockedJobScheduler {
   val jobInterval: Duration
   val jobStartDelay: FiniteDuration
   val jobEnabled: Boolean
+  lazy val logger = Logger(this.getClass)
 
   val lock: ExclusiveTimePeriodLock = new ExclusiveTimePeriodLock {
     override def holdLockFor: Duration = jobInterval
@@ -109,16 +110,16 @@ trait LockedJobScheduler {
   protected def runJob()(implicit ec: ExecutionContext): Future[Unit]
 
   private def run()(implicit ec: ExecutionContext): Future[Unit] = {
-    Logger.info(s"Running job $jobName")
+    logger.info(s"Running job $jobName")
 
     lock.tryToAcquireOrRenewLock {
       runJob() recoverWith {
         case e: Exception =>
-          Logger.error(s"Job $jobName failed", e)
+          logger.error(s"Job $jobName failed", e)
           Future.failed(e)
       }
     } map {
-      _.getOrElse(Logger.info(s"Unable to run job $jobName"))
+      _.getOrElse(logger.info(s"Unable to run job $jobName"))
     }
 
   }

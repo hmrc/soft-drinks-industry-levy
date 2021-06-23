@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,8 +59,9 @@ class ReturnsCorrectorWorker(
       } yield {
         persistence.returns(utr, period) = data
       }
-      job.onSuccess {
-        case _ => logger.info(s"done processing $utrO/$sdilRefO")
+      job.onComplete {
+        case a if (a.isSuccess) => logger.info(s"done processing $utrO/$sdilRefO")
+        case e                  => logger.warn(s"Don't understand $e")
       }
 
     case e => logger.warn(s"Don't understand $e")

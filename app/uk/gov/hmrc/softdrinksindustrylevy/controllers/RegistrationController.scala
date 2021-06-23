@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import play.api.mvc._
 import reactivemongo.api.commands.LastError
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.Retrievals._
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -46,11 +46,13 @@ class RegistrationController(
   val cc: ControllerComponents)
     extends BackendController(cc) with AuthorisedFunctions {
 
+  lazy val logger = Logger(this.getClass)
+
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[Subscription](data => {
-          Logger.info("SDIL Subscription submission sent to DES")
+          logger.info("SDIL Subscription submission sent to DES")
           (for {
             res <- desConnector.createSubscription(data, idType, idNumber)
             _   <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
@@ -59,7 +61,7 @@ class RegistrationController(
             _ <- auditing.sendExtendedEvent(
                   new SdilSubscriptionEvent(
                     request.uri,
-                    buildSubscriptionAudit(data, creds.providerId, Some(res.formBundleNumber), "SUCCESS")
+                    buildSubscriptionAudit(data, creds.get.providerId, Some(res.formBundleNumber), "SUCCESS")
                   )
                 )
           } yield {
@@ -67,14 +69,18 @@ class RegistrationController(
           }) recoverWith {
             case e: LastError if e.code.contains(11000) => {
               auditing.sendExtendedEvent(
-                new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
+                new SdilSubscriptionEvent(
+                  request.uri,
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
               ) map { _ =>
                 Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
               }
             }
             case e =>
               auditing.sendExtendedEvent(
-                new SdilSubscriptionEvent(request.uri, buildSubscriptionAudit(data, creds.providerId, None, "ERROR"))
+                new SdilSubscriptionEvent(
+                  request.uri,
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
               ) map {
                 throw e
               }
@@ -114,23 +120,23 @@ class RegistrationController(
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
-      Logger.info("checking des for a registration with utr: " + utr)
+      logger.info("checking des for a registration with utr: " + utr)
       desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
         case Some(s) if !s.isDeregistered =>
-          Logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
-          Logger.info("isDeregistered for subscription is " + s.isDeregistered)
+          logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
+          logger.info("isDeregistered for subscription is " + s.isDeregistered)
           buffer.find("subscription.utr" -> utr) flatMap {
             case Nil =>
-              Logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
+              logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
               Future successful Ok(Json.toJson(s))
             case l :: _ =>
-              Logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
+              logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
               taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
                 checkEnrolmentState(utr, s)
               } recover {
                 case e: NotFoundException =>
-                  Logger.info("NotFoundException from TE, returning OK and the subscription json")
-                  Logger.error(e.message)
+                  logger.info("NotFoundException from TE, returning OK and the subscription json")
+                  logger.error(e.message)
                   Ok(Json.toJson(s))
               }
           }
@@ -146,20 +152,20 @@ class RegistrationController(
 
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {
     case a if a.state == "SUCCEEDED" =>
-      Logger.info("TE returned SUCCEEDED for subscription")
+      logger.info("TE returned SUCCEEDED for subscription")
       buffer.remove("subscription.utr" -> utr) map { _ =>
-        Logger.info("deleting record from the buffer and returning OK & subscription json")
+        logger.info("deleting record from the buffer and returning OK & subscription json")
         Ok(Json.toJson(s))
       }
     case a if a.state == "ERROR" =>
-      Logger.error(a.errorResponse.getOrElse("unknown tax enrolment error")) // TODO also deskpro
-      Logger.info("TE returned ERROR, returning OK and the subscription json ")
+      logger.error(a.errorResponse.getOrElse("unknown tax enrolment error"))
+      logger.info("TE returned ERROR, returning OK and the subscription json ")
       Future successful Ok(Json.toJson(s))
     case a if a.state == "PENDING" =>
-      Logger.info("TE returned PENDING, returning Accepted and the subscription json")
+      logger.info("TE returned PENDING, returning Accepted and the subscription json")
       Future successful Accepted(Json.toJson(s))
     case _ =>
-      Logger.info("catchall case, not sure what TE returned, returning OK and the subscription json")
+      logger.info("catchall case, not sure what TE returned, returning OK and the subscription json")
       Future successful Ok(Json.toJson(s))
   }
 

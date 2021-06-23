@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ import play.api.Mode
 import play.api.libs.json.{Format, JsObject, Json}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
+  val logger: Logger = Logger(this.getClass)
   val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
   val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
   lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
@@ -46,8 +48,8 @@ class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: Se
     http.GET[TaxEnrolmentsSubscription](s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId")
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
-    Logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
-    HttpResponse(e.responseCode, Some(Json.toJson(e.message)))
+    logger.error(s"Tax enrolment returned $e for ${subscribeUrl(formBundleNumber)}")
+    HttpResponse(e.responseCode, Json.toJson(e.message), headers = Map.empty[String, Seq[String]])
   }
 
   private def subscribeUrl(subscriptionId: String) =
