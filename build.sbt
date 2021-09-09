@@ -1,4 +1,5 @@
 import scoverage.ScoverageKeys
+import play.core.PlayVersion
 // ================================================================================
 // Plugins
 // ================================================================================
@@ -12,9 +13,9 @@ enablePlugins(
 // ================================================================================
 PlayKeys.playDefaultPort := 8701
 
-val akkaVersion     = "2.5.23"
+val akkaVersion     = PlayVersion.akkaVersion
 
-val akkaHttpVersion = "10.0.15"
+val akkaHttpVersion = PlayVersion.akkaHttpVersion
 
 dependencyOverrides += "com.typesafe.akka" %% "akka-stream"    % akkaVersion
 
@@ -41,8 +42,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play"      %% "scalatestplus-play"  % "3.1.3",
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
-  "com.typesafe.akka"           %% "akka-testkit"        % "2.5.23",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-26"
+  "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-28"
 ).map(_ % "test")
 
 // ================================================================================
@@ -59,9 +60,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "proxy"                         % "2.3.7",
   "com.softwaremill.macwire"  %% "util"                          % "2.3.7",
   "org.typelevel"             %% "cats-core"                     % "2.4.0",
-  "uk.gov.hmrc"               %% "bootstrap-backend-play-26"     % "5.3.0",
-  "uk.gov.hmrc"               %% "mongo-lock"                    % "7.0.0-play-26",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"          % "8.0.0-play-26",
+  "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "5.6.0",
+  "uk.gov.hmrc"               %% "mongo-lock"                    % "7.0.0-play-28",
+  "uk.gov.hmrc"               %% "simple-reactivemongo"          % "8.0.0-play-28",
   "org.scala-stm"             %% "scala-stm"                     % "0.9.1",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
