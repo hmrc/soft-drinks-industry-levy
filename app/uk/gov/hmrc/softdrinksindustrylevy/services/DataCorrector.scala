@@ -21,7 +21,6 @@ import cats.implicits._
 import play.api.Logger
 import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 
 import scala.concurrent.duration._
@@ -76,12 +75,11 @@ class ReturnsCorrectorWorker(
 class DataCorrector(
   system: ActorSystem,
   persistence: SdilPersistence,
-  allConfig: SdilConfig,
   connector: DesConnector
 )(implicit ec: ExecutionContext) {
   import DataCorrector._
 
-  val config = allConfig.dataCorrector
+  val config = DataCorrector.Config()
   val logger = Logger("DataCorrector")
 
   logger.info("DataCorrector startup")

@@ -69,11 +69,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  object TestDesConnector
-      extends DesConnector(httpClient, environment.mode, servicesConfig, testPersistence, auditConnector) {
-    override val desURL: String = mockServerUrl
-    override val desDirectDebitUrl: String = mockServerUrl
-  }
+  val desConnector = app.injector.instanceOf[DesConnector]
 
   "DesConnector" should {
     "return : None when DES returns 503 for an unknown UTR" in {
@@ -82,7 +78,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
           .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
-      val response: Future[Option[Subscription]] = TestDesConnector.retrieveSubscriptionDetails("utr", "11111111119")
+      val response: Future[Option[Subscription]] = desConnector.retrieveSubscriptionDetails("utr", "11111111119")
       response.map { x =>
         x mustBe None
       }
@@ -95,7 +91,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
           .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
       val response: Future[Option[des.FinancialTransactionResponse]] =
-        TestDesConnector.retrieveFinancialData("utr", None)
+        desConnector.retrieveFinancialData("utr", None)
       response.map { x =>
         x mustBe None
       }
@@ -108,7 +104,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
           "/enterprise/financial-data/ZSDL/utr/ZSDL?onlyOpenItems=true&includeLocks=false&calculateAccruedInterest=true&customerPaymentInformation=true"))
           .willReturn(aResponse().withStatus(429)))
 
-      lazy val ex = the[Exception] thrownBy (TestDesConnector.retrieveFinancialData("utr", None).futureValue)
+      lazy val ex = the[Exception] thrownBy (desConnector.retrieveFinancialData("utr", None).futureValue)
       ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
 
     }
@@ -119,7 +115,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
           .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
 
-      val response = the[Exception] thrownBy (TestDesConnector
+      val response = the[Exception] thrownBy (desConnector
         .createSubscription(sub, "utr", "11111111119")
         .futureValue)
       response.getMessage must startWith(
@@ -132,7 +128,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
           .willReturn(aResponse().withStatus(429)))
 
-      lazy val response = the[Exception] thrownBy (TestDesConnector
+      lazy val response = the[Exception] thrownBy (desConnector
         .createSubscription(sub, "utr", "11111111119")
         .futureValue)
       response.getMessage must startWith(
@@ -143,7 +139,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
           .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : true }""").withStatus(200)))
-      val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
+      val response = desConnector.displayDirectDebit("XMSDIL000000001").futureValue
       response.directDebitMandateFound mustBe true
     }
 
@@ -151,7 +147,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
           .willReturn(aResponse().withBody("""{ "directDebitMandateFound" : false }""").withStatus(200)))
-      val response = TestDesConnector.displayDirectDebit("XMSDIL000000001").futureValue
+      val response = desConnector.displayDirectDebit("XMSDIL000000001").futureValue
       response.directDebitMandateFound mustBe false
     }
 
@@ -159,7 +155,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
       stubFor(
         get(urlEqualTo("/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"))
           .willReturn(aResponse().withStatus(404)))
-      val response = the[Exception] thrownBy (TestDesConnector
+      val response = the[Exception] thrownBy (desConnector
         .displayDirectDebit("XMSDIL000000001")
         .futureValue)
       response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
@@ -173,7 +169,7 @@ class DesConnectorSpecBehavioural extends WiremockSpec {
         get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111120"))
           .willReturn(aResponse().withStatus(429)))
 
-      lazy val ex = the[Exception] thrownBy (TestDesConnector
+      lazy val ex = the[Exception] thrownBy (desConnector
         .retrieveSubscriptionDetails("utr", "11111111120")
         .futureValue)
       ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")

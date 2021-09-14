@@ -35,7 +35,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, Subscrip
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import scala.concurrent.Future
 
 class RegistrationControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {

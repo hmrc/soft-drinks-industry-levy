@@ -19,7 +19,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
 
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.softdrinksindustrylevy.config.{SdilComponents, SdilConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._

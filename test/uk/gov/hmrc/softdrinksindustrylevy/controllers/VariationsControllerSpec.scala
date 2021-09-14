@@ -28,7 +28,6 @@ import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}

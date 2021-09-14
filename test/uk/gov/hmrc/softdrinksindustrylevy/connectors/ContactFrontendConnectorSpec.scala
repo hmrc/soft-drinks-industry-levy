@@ -24,9 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 class ContactFrontendConnectorSpec extends WiremockSpec {
 
-  object TestContactConnector extends ContactFrontendConnector(httpClient, environment.mode, configuration) {
-    override lazy val contactFrontendUrl: String = mockServerUrl
-  }
+  val connector = app.injector.instanceOf[ContactFrontendConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -35,7 +33,7 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
       post(urlPathEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
         .willReturn(aResponse().withStatus(500)))
 
-    Try(TestContactConnector.raiseTicket(sub, "safeid1", Instant.now()).futureValue) match {
+    Try(connector.raiseTicket(sub, "safeid1", Instant.now()).futureValue) match {
       case Success(_) => fail
       case Failure(_) =>
     }
@@ -45,7 +43,7 @@ class ContactFrontendConnectorSpec extends WiremockSpec {
     stubFor(
       post(urlEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
         .willReturn(aResponse().withStatus(200).withBody("")))
-    Try(TestContactConnector.raiseTicket(sub, "test1", Instant.now()).futureValue) match {
+    Try(connector.raiseTicket(sub, "test1", Instant.now()).futureValue) match {
       case Success(_) =>
       case Failure(_) => fail
     }

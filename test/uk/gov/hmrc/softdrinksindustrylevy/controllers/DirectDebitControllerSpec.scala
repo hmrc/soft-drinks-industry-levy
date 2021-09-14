@@ -28,7 +28,6 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.DisplayDirectDebitResponse
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec

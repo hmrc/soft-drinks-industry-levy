@@ -30,7 +30,6 @@ import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubI
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import scala.concurrent.ExecutionContext.Implicits.global

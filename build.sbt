@@ -1,34 +1,11 @@
 import scoverage.ScoverageKeys
-import play.core.PlayVersion
-// ================================================================================
-// Plugins
-// ================================================================================
 enablePlugins(
   play.sbt.PlayScala,
   SbtDistributablesPlugin
 )
 
-// ================================================================================
-// Play configuration
-// ================================================================================
 PlayKeys.playDefaultPort := 8701
 
-val akkaVersion     = PlayVersion.akkaVersion
-
-val akkaHttpVersion = PlayVersion.akkaHttpVersion
-
-dependencyOverrides += "com.typesafe.akka" %% "akka-stream"    % akkaVersion
-
-dependencyOverrides += "com.typesafe.akka" %% "akka-protobuf"  % akkaVersion
-
-dependencyOverrides += "com.typesafe.akka" %% "akka-slf4j"     % akkaVersion
-
-dependencyOverrides += "com.typesafe.akka" %% "akka-actor"     % akkaVersion
-
-dependencyOverrides += "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion
-// ================================================================================
-// Testing
-// ================================================================================
 libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.11.2",
   "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.11.2",
@@ -39,8 +16,8 @@ libraryDependencies ++= Seq(
   "org.pegdown"                 %  "pegdown"             % "1.6.0",
   "org.scalacheck"              %% "scalacheck"          % "1.15.4",
   "org.scalatest"               %% "scalatest"           % "3.0.9",
-  "org.scalatestplus.play"  %% "scalatestplus-play"             % "5.1.0"                 ,
-  "org.scalatestplus"       %% "scalatestplus-mockito"          % "1.0.0-M2"              ,
+  "org.scalatestplus.play"      %% "scalatestplus-play"             % "5.1.0"                 ,
+  "org.scalatestplus"           %% "scalatestplus-mockito"          % "1.0.0-M2"              ,
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
