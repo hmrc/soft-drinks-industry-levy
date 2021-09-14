@@ -34,6 +34,12 @@ import scala.concurrent.Future
 
 class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with MockitoSugar {
 
+  val mockBuffer = mock[MongoBufferService]
+  val mockEmail = mock[EmailConnector]
+  val mockTaxEnrolments = mock[TaxEnrolmentConnector]
+
+  lazy val testController = mock[TaxEnrolmentCallbackController]
+
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {
       when(mockTaxEnrolments.getSubscription(matching("123"))(any(), any())).thenReturn(
@@ -97,11 +103,4 @@ class TaxEnrolmentCallbackControllerSpec extends FakeApplicationSpec with Mockit
       status(res) mustBe NO_CONTENT
     }
   }
-
-  val mockBuffer = mock[MongoBufferService]
-  val mockEmail = mock[EmailConnector]
-  val mockTaxEnrolments = mock[TaxEnrolmentConnector]
-
-  lazy val cc = new SdilComponents(context).cc
-  lazy val testController = wire[TaxEnrolmentCallbackController]
 }

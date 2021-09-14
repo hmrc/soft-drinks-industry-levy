@@ -21,15 +21,13 @@ import scala.util.{Failure, Success, Try}
 
 class EmailConnectorSpec extends WiremockSpec {
 
-  object TestEmailConnector extends EmailConnector(httpClient, environment.mode, servicesConfig) {
-    override val emailUrl: String = mockServerUrl
-  }
+  val connector = app.injector.instanceOf[EmailConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "attempted email should succeed" in {
     EmailResponses.send(true)
-    Try(TestEmailConnector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
+    Try(connector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
       case Success(_) =>
       case Failure(_) => fail
     }
@@ -37,7 +35,7 @@ class EmailConnectorSpec extends WiremockSpec {
 
   "attempted email should fail when the response from email service is a failure" in {
     EmailResponses.send(false)
-    Try(TestEmailConnector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
+    Try(connector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
       case Success(_) => fail
       case Failure(_) => // do nothing
     }
@@ -45,7 +43,7 @@ class EmailConnectorSpec extends WiremockSpec {
 
   "attempted submission email should succeed" in {
     EmailResponses.send(true)
-    Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+    Try(connector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
       case Success(_) =>
       case Failure(_) => fail
     }
@@ -53,7 +51,7 @@ class EmailConnectorSpec extends WiremockSpec {
 
   "attempted submission email should fail if email service fails" in {
     EmailResponses.send(false)
-    Try(TestEmailConnector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+    Try(connector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
       case Success(_) => fail
       case Failure(_) => // do nothing
     }

@@ -29,14 +29,14 @@ class FinancialLineItemSpec extends FlatSpec with Matchers with ScalaCheckProper
 
   "A FinancialLineItem" should "be serialisable" in {
 
-    val returnCharge = new ReturnCharge(ReturnPeriod(date), bigDecimal)
-    val returnChargeInterest = new ReturnChargeInterest(date, bigDecimal)
-    val centralAssessment = new CentralAssessment(date, bigDecimal)
-    val centralAsstInterest = new CentralAsstInterest(date, bigDecimal)
-    val officerAssessment = new OfficerAssessment(date, bigDecimal)
-    val officerAsstInterest = new OfficerAsstInterest(date, bigDecimal)
-    val paymentOnAccount = new PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
-    val unknown = new Unknown(date, "someTitle", bigDecimal)
+    val returnCharge = ReturnCharge(ReturnPeriod(date), bigDecimal)
+    val returnChargeInterest = ReturnChargeInterest(date, bigDecimal)
+    val centralAssessment = CentralAssessment(date, bigDecimal)
+    val centralAsstInterest = CentralAsstInterest(date, bigDecimal)
+    val officerAssessment = OfficerAssessment(date, bigDecimal)
+    val officerAsstInterest = OfficerAsstInterest(date, bigDecimal)
+    val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
+    val unknown = Unknown(date, "someTitle", bigDecimal)
 
     Json.toJson(returnCharge).as[FinancialLineItem] should be(returnCharge)
     Json.toJson(returnChargeInterest).as[FinancialLineItem] should be(returnChargeInterest)

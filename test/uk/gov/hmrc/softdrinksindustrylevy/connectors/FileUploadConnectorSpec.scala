@@ -22,16 +22,14 @@ import scala.util.{Failure, Success, Try}
 
 class FileUploadConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends FileUploadConnector(wsClient, environment.mode, servicesConfig) {
-    override val url: String = mockServerUrl
-  }
+  val connector = app.injector.instanceOf[FileUploadConnector]
 
   "attempted get of file should succeed if the file is returned" in {
     stubFor(
       get(urlPathEqualTo("/file-upload/envelopes/1234/files/testfile/content"))
         .willReturn(aResponse().withStatus(200).withBody("some data")))
 
-    Try(TestConnector.getFile("1234", "testfile").futureValue) match {
+    Try(connector.getFile("1234", "testfile").futureValue) match {
       case Success(_) =>
       case Failure(_) => fail
     }

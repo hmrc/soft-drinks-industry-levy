@@ -39,9 +39,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-
-  lazy val cc = new SdilComponents(context).cc
-  val testBalanceController = wire[BalanceController]
+  val testBalanceController = mock[BalanceController]
 
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier
 

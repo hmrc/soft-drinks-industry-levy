@@ -22,11 +22,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 class TaxEnrolmentConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends TaxEnrolmentConnector(httpClient, environment.mode, servicesConfig) {
-    override val callbackUrl: String = mockServerUrl
-    override lazy val taxEnrolmentsUrl: String = mockServerUrl
-    override val serviceName: String = "service-name"
-  }
+  val connector = app.injector.instanceOf[TaxEnrolmentConnector]
 
   val req = TaxEnrolmentsSubscription(None, "etmp1", "active", None)
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -39,7 +35,7 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
             .withStatus(200)
             .withBody(Json.toJson(req).toString())))
 
-    val response: TaxEnrolmentsSubscription = TestConnector.getSubscription("1234567890").futureValue
+    val response: TaxEnrolmentsSubscription = connector.getSubscription("1234567890").futureValue
     response mustBe req
   }
 
@@ -50,7 +46,7 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
           aResponse()
             .withStatus(200)
             .withBody(Json.toJson(req).toString())))
-    val res = TestConnector.subscribe("safe1", "1234").futureValue
+    val res = connector.subscribe("safe1", "1234").futureValue
     res.status mustBe 200
   }
 
@@ -59,7 +55,7 @@ class TaxEnrolmentConnectorSpec extends WiremockSpec {
       put(urlPathEqualTo("/tax-enrolments/subscriptions/1234/subscriber"))
         .willReturn(aResponse()
           .withStatus(400)))
-    val res = TestConnector.subscribe("safe1", "1234").futureValue
+    val res = connector.subscribe("safe1", "1234").futureValue
     res.status mustBe 400
   }
 }

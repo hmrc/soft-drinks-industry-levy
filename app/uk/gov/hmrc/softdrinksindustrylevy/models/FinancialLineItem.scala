@@ -17,54 +17,55 @@
 package sdil.models
 
 import java.time.{LocalDate => Date}
-import play.api.i18n.Messages
 import play.api.libs.json._
 
 sealed trait FinancialLineItem {
   def date: Date
   def amount: BigDecimal
-  def description(implicit messages: Messages): String = getClass.toString
 }
 
 case class ReturnCharge(period: ReturnPeriod, amount: BigDecimal) extends FinancialLineItem {
 
   val formatter = java.time.format.DateTimeFormatter.ofPattern("MMMM")
-
-  override def description(implicit messages: Messages): String =
-    Messages(
-      "financiallineitem.returncharge",
-      formatter.format(period.start),
-      period.end.format(formatter)
-    )
   def date = period.deadline
 }
 
-case class ReturnChargeInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.returnchargeinterest")
+object ReturnCharge {
+  implicit val format: Format[ReturnCharge] = Json.format[ReturnCharge]
 }
 
-case class CentralAssessment(date: Date, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.centralassessment")
+case class ReturnChargeInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {}
+
+object ReturnChargeInterest {
+  implicit val format: Format[ReturnChargeInterest] = Json.format[ReturnChargeInterest]
 }
-case class CentralAsstInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.centralasstinterest")
+
+case class CentralAssessment(date: Date, amount: BigDecimal) extends FinancialLineItem {}
+
+object CentralAssessment {
+  implicit val format: Format[CentralAssessment] = Json.format[CentralAssessment]
 }
-case class OfficerAssessment(date: Date, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.officerassessment")
+
+case class CentralAsstInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {}
+
+object CentralAsstInterest {
+  implicit val format: Format[CentralAsstInterest] = Json.format[CentralAsstInterest]
 }
-case class OfficerAsstInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.officerasstinterest")
+
+case class OfficerAssessment(date: Date, amount: BigDecimal) extends FinancialLineItem {}
+
+object OfficerAssessment {
+  implicit val format: Format[OfficerAssessment] = Json.format[OfficerAssessment]
+}
+
+case class OfficerAsstInterest(date: Date, amount: BigDecimal) extends FinancialLineItem {}
+
+object OfficerAsstInterest {
+  implicit val format: Format[OfficerAsstInterest] = Json.format[OfficerAsstInterest]
 }
 
 case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal, lot: String, lotItem: String)
     extends FinancialLineItem {
-  override def description(implicit messages: Messages): String =
-    Messages("financiallineitem.paymentonaccount", reference)
 
   override def equals(any: Any): Boolean = any match {
     case that: PaymentOnAccount =>
@@ -75,14 +76,17 @@ case class PaymentOnAccount(date: Date, reference: String, amount: BigDecimal, l
   override def hashCode: Int = (lot, lotItem).hashCode
 }
 
-case class Unknown(date: Date, title: String, amount: BigDecimal) extends FinancialLineItem {
-  override def description(implicit messages: Messages): String = title
+object PaymentOnAccount {
+  implicit val format: Format[PaymentOnAccount] = Json.format[PaymentOnAccount]
+}
+
+case class Unknown(date: Date, title: String, amount: BigDecimal) extends FinancialLineItem {}
+
+object Unknown {
+  implicit val format: Format[Unknown] = Json.format[Unknown]
 }
 
 object FinancialLineItem {
-
-  implicit val formatPeriod: Format[ReturnPeriod] =
-    Json.format[ReturnPeriod]
 
   implicit val formatter: Format[FinancialLineItem] =
     new Format[FinancialLineItem] {

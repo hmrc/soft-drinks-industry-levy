@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import com.softwaremill.macwire.wire
 import org.mockito.ArgumentMatchers.{any, eq => eqs}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -46,8 +45,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
 
-  lazy val cc = new SdilComponents(context).cc
-  val controller: VariationsController = wire[VariationsController]
+  val controller: VariationsController = mock[VariationsController]
 
   override def beforeEach() {
     reset(mockGformConnector)

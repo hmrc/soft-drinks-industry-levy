@@ -39,13 +39,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
-  val mockSdilConfig = mock[SdilConfig]
 
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  lazy val cc = new SdilComponents(context).cc
-  val testReturnsContoller = wire[ReturnsController]
+  val testReturnsContoller = mock[ReturnsController]
 
   override def beforeEach() {
     reset(mockDesConnector)

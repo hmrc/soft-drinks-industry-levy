@@ -107,4 +107,6 @@ object ReturnPeriod {
     ReturnPeriod(2000 + y.toInt, q.toInt - 1)
   }
 
+  implicit val format: Format[ReturnPeriod] = Json.format[ReturnPeriod]
+
 }

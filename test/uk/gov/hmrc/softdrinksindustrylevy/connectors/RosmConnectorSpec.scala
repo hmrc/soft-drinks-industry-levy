@@ -25,9 +25,7 @@ import scala.concurrent.Future
 
 class RosmConnectorSpec extends WiremockSpec {
 
-  object TestConnector extends RosmConnector(httpClient, environment.mode, servicesConfig) {
-    override val desURL: String = mockServerUrl
-  }
+  val connector = app.injector.instanceOf[RosmConnector]
 
   val req = RosmRegisterRequest("CT", false, false)
   val res = RosmRegisterResponse(
@@ -49,7 +47,7 @@ class RosmConnectorSpec extends WiremockSpec {
         .willReturn(aResponse()
           .withStatus(500)))
 
-    val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)
+    val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
     response.map { x =>
       x mustBe None
     }
@@ -60,7 +58,7 @@ class RosmConnectorSpec extends WiremockSpec {
       post(urlPathEqualTo("/registration/organisation/utr/1234567890"))
         .willReturn(aResponse().withStatus(429)))
 
-    val ex = the[Exception] thrownBy (TestConnector.retrieveROSMDetails("1234567890", req).futureValue)
+    val ex = the[Exception] thrownBy (connector.retrieveROSMDetails("1234567890", req).futureValue)
     ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
   }
 
@@ -72,7 +70,7 @@ class RosmConnectorSpec extends WiremockSpec {
             .withStatus(200)
             .withBody(Json.toJson(req).toString())))
 
-    val response: Future[Option[RosmRegisterResponse]] = TestConnector.retrieveROSMDetails("1234567890", req)
+    val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
     response.map { x =>
       x mustBe Some(res)
     }

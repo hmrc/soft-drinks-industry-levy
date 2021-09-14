@@ -40,9 +40,8 @@ class DirectDebitControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   val mockDesConnector: DesConnector = mock[DesConnector]
-  lazy val cc = new SdilComponents(context).cc
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val testDirectDebitController = wire[DirectDebitController]
+  val testDirectDebitController = mock[DirectDebitController]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

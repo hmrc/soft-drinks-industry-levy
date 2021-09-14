@@ -18,10 +18,12 @@ libraryDependencies ++= Seq(
   "org.scalatest"               %% "scalatest"           % "3.0.9",
   "org.scalatestplus.play"      %% "scalatestplus-play"             % "5.1.0"                 ,
   "org.scalatestplus"           %% "scalatestplus-mockito"          % "1.0.0-M2"              ,
+  "org.scalatestplus"           %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-28"
+  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-28",
+  "com.vladsch.flexmark"        % "flexmark-all"         % "0.36.8"
 ).map(_ % "test")
 
 // ================================================================================

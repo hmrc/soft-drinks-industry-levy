@@ -21,6 +21,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
+import play.api.mvc.ControllerComponents
 import reactivemongo.bson.BSONObjectID
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.http.HttpClient
@@ -36,6 +37,7 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  lazy val components: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 

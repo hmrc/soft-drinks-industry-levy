@@ -23,6 +23,8 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
 class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwaitTimeout {
 
+  val connector = app.injector.instanceOf[GformConnector]
+
   "Submitting a html to gform" should {
     "base64 encode the html" in {
       val rawHtml = "<p>totally a variation</p>"
@@ -33,7 +35,7 @@ class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwai
           .willReturn(aResponse().withStatus(204))
       )
 
-      await(testConnector.submitToDms(rawHtml, "totally an sdil number"))
+      await(connector.submitToDms(rawHtml, "totally an sdil number"))
 
       verify(
         postRequestedFor(urlEqualTo("/gform/dms/submit"))
@@ -51,17 +53,13 @@ class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwai
       val expectedMetadataJson =
         """{"dmsFormId":"SDIL-VAR-1","customerId":"XZSDIL0009999","classificationType":"BT-NRU-SDIL","businessArea":"BT"}"""
 
-      await(testConnector.submitToDms("", sdilNumber))
+      await(connector.submitToDms("", sdilNumber))
 
       verify(
         postRequestedFor(urlEqualTo("/gform/dms/submit"))
           .withRequestBody(containing(s""""metadata":$expectedMetadataJson"""))
       )
     }
-  }
-
-  lazy val testConnector = new GformConnector(httpClient, environment.mode, servicesConfig) {
-    override val gformUrl = mockServerUrl
   }
 
   implicit lazy val hc: HeaderCarrier = HeaderCarrier()
