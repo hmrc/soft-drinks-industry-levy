@@ -31,8 +31,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import java.time._
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class ReturnsController(
+@Singleton
+class ReturnsController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val persistence: SdilPersistence,

@@ -24,12 +24,14 @@ import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.ReturnVariationData
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-class ReturnsAdjustmentSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
+@Singleton
+class ReturnsAdjustmentSubmissionService @Inject()(implicit mc: MongoConnector, ec: ExecutionContext)
     extends ReactiveRepository[ReturnVariationWrapper, String](
       "returnadjustments",
       mc.db,

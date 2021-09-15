@@ -29,7 +29,10 @@ import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class OverdueSubmissionsChecker(
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class OverdueSubmissionsChecker @Inject()(
   val config: Configuration,
   val mongoConnector: MongoConnector,
   val actorSystem: ActorSystem,

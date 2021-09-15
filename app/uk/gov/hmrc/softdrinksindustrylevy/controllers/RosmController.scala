@@ -27,10 +27,12 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class RosmController(
+@Singleton
+class RosmController @Inject()(
   val authConnector: AuthConnector,
   rosmConnector: RosmConnector,
   taxEnrolmentConnector: TaxEnrolmentConnector,

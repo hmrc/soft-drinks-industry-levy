@@ -23,7 +23,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class EmailConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val emailUrl: String = servicesConfig.baseUrl("email")
 

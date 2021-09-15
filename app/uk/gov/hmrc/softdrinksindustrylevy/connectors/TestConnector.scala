@@ -22,8 +22,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class TestConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+@Singleton
+class TestConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val resetURL: String = servicesConfig.baseUrl("des")
 

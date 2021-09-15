@@ -22,8 +22,11 @@ import play.api.libs.ws.WSClient
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class FileUploadConnector(ws: WSClient, val mode: Mode, servicesConfig: ServicesConfig)(implicit ec: ExecutionContext) {
+@Singleton
+class FileUploadConnector @Inject()(ws: WSClient, val mode: Mode, servicesConfig: ServicesConfig)(
+  implicit ec: ExecutionContext) {
 
   val url: String = servicesConfig.baseUrl("file-upload")
 

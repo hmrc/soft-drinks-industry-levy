@@ -22,6 +22,7 @@ import play.api.Logger
 import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
   * provided) from the SDIL reference and then create the [[sdil.models.SdilReturn]] in
   * mongo. Called from [[DataCorrector.DataCorrectorSupervisor]].
   */
-class ReturnsCorrectorWorker(
+
+@Singleton
+class ReturnsCorrectorWorker @Inject()(
   connector: DesConnector,
   persistence: SdilPersistence
 )(implicit ec: ExecutionContext)

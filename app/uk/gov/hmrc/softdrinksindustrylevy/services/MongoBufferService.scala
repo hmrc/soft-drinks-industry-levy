@@ -30,7 +30,10 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-class MongoBufferService(implicit mc: MongoConnector)
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class MongoBufferService @Inject()(implicit mc: MongoConnector)
     extends ReactiveRepository[SubscriptionWrapper, String](
       "sdil-subscription",
       mc.db,

@@ -23,8 +23,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class RosmConnector(val http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig)
+@Singleton
+class RosmConnector @Inject()(val http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig)
     extends DesHelpers(servicesConfig) {
   lazy val logger = Logger(this.getClass)
   val desURL: String = servicesConfig.baseUrl("des")

@@ -34,8 +34,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import com.google.inject.{Inject, Singleton}
 
-class RegistrationController(
+@Singleton
+class RegistrationController @Inject()(
   val authConnector: AuthConnector,
   taxEnrolmentConnector: TaxEnrolmentConnector,
   desConnector: DesConnector,

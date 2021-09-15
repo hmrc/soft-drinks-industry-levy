@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Mode
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
@@ -31,7 +32,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TaxEnrolmentCallbackController(
+@Singleton
+class TaxEnrolmentCallbackController @Inject()(
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   taxEnrolments: TaxEnrolmentConnector,

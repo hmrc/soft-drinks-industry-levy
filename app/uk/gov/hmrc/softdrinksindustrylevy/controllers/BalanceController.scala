@@ -27,11 +27,13 @@ import sdil.models.des._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent._
 import scala.util.Random
 
-class BalanceController(
+@Singleton
+class BalanceController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val cc: ControllerComponents

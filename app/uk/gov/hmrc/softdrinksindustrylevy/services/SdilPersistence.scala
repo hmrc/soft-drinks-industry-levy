@@ -24,6 +24,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
+import com.google.inject.{Inject, Singleton}
 
 import java.time._
 import scala.concurrent.{ExecutionContext => EC, _}
@@ -72,7 +73,8 @@ trait SdilPersistence {
   def subscriptions: SubsDAO[String, Subscription]
 }
 
-class SdilMongoPersistence(mc: MongoConnector) extends SdilPersistence {
+@Singleton
+class SdilMongoPersistence @Inject()(mc: MongoConnector) extends SdilPersistence {
 
   val subscriptions = new SubsDAO[String, Subscription] {
 
