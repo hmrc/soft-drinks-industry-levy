@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Format, JsResult, JsValue, Json}
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -30,10 +31,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ReturnsVariationSubmissionService @Inject()(implicit mc: MongoConnector, ec: ExecutionContext)
+class ReturnsVariationSubmissionService @Inject()(implicit mc: ReactiveMongoComponent, ec: ExecutionContext)
     extends ReactiveRepository[ReturnsVariationWrapper, String](
       "returns-variations",
-      mc.db,
+      mc.mongoConnector.db,
       ReturnsVariationWrapper.format,
       implicitly) {
 

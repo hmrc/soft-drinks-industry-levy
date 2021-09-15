@@ -17,7 +17,6 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import java.time.Instant
-
 import play.api.libs.json.{Format, JsResult, JsValue, Json}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
@@ -25,16 +24,17 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.ReturnVariationData
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import com.google.inject.{Inject, Singleton}
+import play.modules.reactivemongo.ReactiveMongoComponent
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ReturnsAdjustmentSubmissionService @Inject()(implicit mc: MongoConnector, ec: ExecutionContext)
+class ReturnsAdjustmentSubmissionService @Inject()(implicit mc: ReactiveMongoComponent, ec: ExecutionContext)
     extends ReactiveRepository[ReturnVariationWrapper, String](
       "returnadjustments",
-      mc.db,
+      mc.mongoConnector.db,
       ReturnVariationWrapper.format,
       implicitly) {
 

@@ -17,8 +17,9 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import java.time.Instant
-
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.mockito.MockitoSugar
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONObjectID
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
@@ -27,7 +28,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class VariationSubmissionServiceSpec
-    extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+    extends UnitSpec with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+
+  implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
 
   private val service = new VariationSubmissionService
 

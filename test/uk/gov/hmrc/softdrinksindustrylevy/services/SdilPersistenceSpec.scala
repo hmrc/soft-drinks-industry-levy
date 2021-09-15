@@ -17,7 +17,9 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
+import play.modules.reactivemongo.ReactiveMongoComponent
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.validCreateSubscriptionRequest
@@ -27,10 +29,12 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+class SdilPersistenceSpec
+    extends UnitSpec with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
 
   implicit val readsSubscription = subReads
-  val service = new SdilMongoPersistence(mongoConnector)
+  val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
+  val service = new SdilMongoPersistence(mc)
 
   val sDbReturns = service.returns
   val sDbSubscriptions = service.subscriptions

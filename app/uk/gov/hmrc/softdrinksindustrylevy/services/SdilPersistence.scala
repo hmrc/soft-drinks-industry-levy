@@ -24,11 +24,13 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ImplementedBy, Inject, Singleton}
+import play.modules.reactivemongo.ReactiveMongoComponent
 
 import java.time._
 import scala.concurrent.{ExecutionContext => EC, _}
 
+@ImplementedBy(classOf[SdilMongoPersistence])
 trait SdilPersistence {
 
   protected trait DAO[U, K, V] {
@@ -74,7 +76,7 @@ trait SdilPersistence {
 }
 
 @Singleton
-class SdilMongoPersistence @Inject()(mc: MongoConnector) extends SdilPersistence {
+class SdilMongoPersistence @Inject()(mc: ReactiveMongoComponent) extends SdilPersistence {
 
   val subscriptions = new SubsDAO[String, Subscription] {
 
@@ -93,7 +95,7 @@ class SdilMongoPersistence @Inject()(mc: MongoConnector) extends SdilPersistence
     val subscriptionsMongo =
       new ReactiveRepository[SubscriptionWrapper, BSONObjectID](
         "sdilsubscriptions",
-        mc.db,
+        mc.mongoConnector.db,
         subscriptionsFormatWrapper,
         implicitly) {
         override def indexes: Seq[Index] = Seq(
@@ -110,7 +112,11 @@ class SdilMongoPersistence @Inject()(mc: MongoConnector) extends SdilPersistence
   val returns = new DAO[String, ReturnPeriod, SdilReturn] {
 
     val returnsMongo =
-      new ReactiveRepository[ReturnsWrapper, BSONObjectID]("sdilreturns", mc.db, returnsFormatWrapper, implicitly) {
+      new ReactiveRepository[ReturnsWrapper, BSONObjectID](
+        "sdilreturns",
+        mc.mongoConnector.db,
+        returnsFormatWrapper,
+        implicitly) {
 
         override def indexes: Seq[Index] = Seq(
           Index(
