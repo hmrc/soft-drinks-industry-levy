@@ -17,8 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalatest._
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
