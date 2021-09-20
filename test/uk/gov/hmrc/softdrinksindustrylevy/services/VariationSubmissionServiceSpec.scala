@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import java.time.Instant
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
@@ -25,10 +28,17 @@ import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
 
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class VariationSubmissionServiceSpec
-    extends UnitSpec with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+    extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach
+    with MongoConnectorCustom {
+
+  implicit val defaultTimeout: FiniteDuration = 5 seconds
+
+  def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
   implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
 

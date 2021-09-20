@@ -16,16 +16,15 @@
 
 package sdil.models
 
-import org.scalatest.Matchers
 import java.time.LocalDate
-
 import org.scalacheck.Gen
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 
-class ReturnSpec extends UnitSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
+class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
 
   "A ReturnPeriod" should {
     val lowPosInts = Gen.choose(0, 1000)

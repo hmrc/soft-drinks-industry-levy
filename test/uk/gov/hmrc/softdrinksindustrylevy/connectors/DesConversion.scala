@@ -17,10 +17,10 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.LocalDate
-
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main._
-import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
@@ -29,249 +29,250 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 
-class DesConversionSpec extends FunSuite with ScalaCheckPropertyChecks with Matchers {
+class DesConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
-  test("∀ Subscription: toJson(x) is valid") {
-    val validator = JsonSchemaFactory.byDefault.getValidator
-    val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
-    forAll { r: Subscription =>
-      val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
-      val report = validator.validate(schema, json)
-      assert(report.isSuccess, report)
+  "DesConversion" should {
+    "parse Subscription as expected" in {
+      val validator = JsonSchemaFactory.byDefault.getValidator
+      val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
+      forAll { r: Subscription =>
+        val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
+        val report = validator.validate(schema, json)
+        assert(report.isSuccess, report)
+      }
     }
-  }
 
-  test("Small producer and copackee conversion includes all producer details") {
-    val copackeeSmallProd = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((100L, 100L)),
-          Copackee         -> ((100L, 100L))
-        ),
-        isLarge = false))
+    "Small producer and copackee conversion includes all producer details" in {
+      val copackeeSmallProd = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((100L, 100L)),
+            Copackee         -> ((100L, 100L))
+          ),
+          isLarge = false))
 
-    val transformedJson = Json.toJson(copackeeSmallProd)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(copackeeSmallProd)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert(!(details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert((producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "0")
-    assert((producerDetails \ "smallProducerExemption").as[Boolean])
-    assert((producerDetails \ "useContractPacker").as[Boolean])
-    assert((producerDetails \ "voluntarilyRegistered").as[Boolean])
-  }
+      assert((details \ "producer").as[Boolean])
+      assert(!(details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert((producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "0")
+      assert((producerDetails \ "smallProducerExemption").as[Boolean])
+      assert((producerDetails \ "useContractPacker").as[Boolean])
+      assert((producerDetails \ "voluntarilyRegistered").as[Boolean])
+    }
 
-  test("Large producer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducer = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1000000L, 1000000L))
-        ),
-        isLarge = true))
+    "Large producer conversion includes only produceMillionLitres and producerClassification" in {
+      val largeProducer = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1000000L, 1000000L))
+          ),
+          isLarge = true))
 
-    val transformedJson = Json.toJson(largeProducer)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(largeProducer)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert(!(details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "1")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert(!(details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "1")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Large producer and importer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1000000L, 1000000L)),
-          Imported         -> ((1L, 1L))
-        ),
-        isLarge = true))
+    "Large producer and importer conversion includes only produceMillionLitres and producerClassification" in {
+      val largeProducerImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1000000L, 1000000L)),
+            Imported         -> ((1L, 1L))
+          ),
+          isLarge = true))
 
-    val transformedJson = Json.toJson(largeProducerImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(largeProducerImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert((details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "1")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert((details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "1")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Large producer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopacker = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1000000L, 1000000L)),
-          CopackerAll      -> ((1L, 1L))
-        ),
-        isLarge = true))
+    "Large producer and contract packer conversion includes only produceMillionLitres and producerClassification" in {
+      val largeProducerCopacker = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1000000L, 1000000L)),
+            CopackerAll      -> ((1L, 1L))
+          ),
+          isLarge = true))
 
-    val transformedJson = Json.toJson(largeProducerCopacker)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(largeProducerCopacker)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert(!(details \ "importer").as[Boolean])
-    assert((details \ "contractPacker").as[Boolean])
-    assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "1")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert(!(details \ "importer").as[Boolean])
+      assert((details \ "contractPacker").as[Boolean])
+      assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "1")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test(
-    "Large producer, importer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopackerImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1000000L, 1000000L)),
-          CopackerAll      -> ((1L, 1L)),
-          Imported         -> ((1L, 1L))
-        ),
-        isLarge = true))
+    "Large producer, importer and contract packer conversion includes only produceMillionLitres and producerClassification" in {
+      val largeProducerCopackerImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1000000L, 1000000L)),
+            CopackerAll      -> ((1L, 1L)),
+            Imported         -> ((1L, 1L))
+          ),
+          isLarge = true))
 
-    val transformedJson = Json.toJson(largeProducerCopackerImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(largeProducerCopackerImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert((details \ "importer").as[Boolean])
-    assert((details \ "contractPacker").as[Boolean])
-    assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "1")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert((details \ "importer").as[Boolean])
+      assert((details \ "contractPacker").as[Boolean])
+      assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "1")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Large producer and copackee conversion includes only produceMillionLitres and producerClassification") {
-    val largeProducerCopackerImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1000000L, 1000000L)),
-          Copackee         -> ((1L, 1L))
-        ),
-        isLarge = true))
+    "Large producer and copackee conversion includes only produceMillionLitres and producerClassification" in {
+      val largeProducerCopackerImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1000000L, 1000000L)),
+            Copackee         -> ((1L, 1L))
+          ),
+          isLarge = true))
 
-    val transformedJson = Json.toJson(largeProducerCopackerImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(largeProducerCopackerImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert(!(details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "1")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert(!(details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert(!(producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "1")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Small producer and contract packer conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopacker = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1L, 1L)),
-          CopackerAll      -> ((1L, 1L))
-        ),
-        isLarge = false))
+    "Small producer and contract packer conversion includes only produceMillionLitres and producerClassification" in {
+      val smallProducerCopacker = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1L, 1L)),
+            CopackerAll      -> ((1L, 1L))
+          ),
+          isLarge = false))
 
-    val transformedJson = Json.toJson(smallProducerCopacker)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(smallProducerCopacker)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert(!(details \ "importer").as[Boolean])
-    assert((details \ "contractPacker").as[Boolean])
-    assert((producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "0")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert(!(details \ "importer").as[Boolean])
+      assert((details \ "contractPacker").as[Boolean])
+      assert((producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "0")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Small producer and importer conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1L, 1L)),
-          Imported         -> ((1L, 1L))
-        ),
-        isLarge = false))
+    "Small producer and importer conversion includes only produceMillionLitres and producerClassification" in {
+      val smallProducerImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1L, 1L)),
+            Imported         -> ((1L, 1L))
+          ),
+          isLarge = false))
 
-    val transformedJson = Json.toJson(smallProducerImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(smallProducerImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert((details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert((producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "0")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert((details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert((producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "0")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Small producer, importer and copacker conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopackerImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1L, 1L)),
-          Imported         -> ((1L, 1L)),
-          CopackerAll      -> ((1L, 1L))
-        ),
-        isLarge = false))
+    "Small producer, importer and copacker conversion includes only produceMillionLitres and producerClassification" in {
+      val smallProducerCopackerImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1L, 1L)),
+            Imported         -> ((1L, 1L)),
+            CopackerAll      -> ((1L, 1L))
+          ),
+          isLarge = false))
 
-    val transformedJson = Json.toJson(smallProducerCopackerImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(smallProducerCopackerImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert((details \ "importer").as[Boolean])
-    assert((details \ "contractPacker").as[Boolean])
-    assert((producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "0")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
-  }
+      assert((details \ "producer").as[Boolean])
+      assert((details \ "importer").as[Boolean])
+      assert((details \ "contractPacker").as[Boolean])
+      assert((producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "0")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
 
-  test("Small producer, importer and copackee conversion includes only produceMillionLitres and producerClassification") {
-    val smallProducerCopackeeImport = baseSubscription.copy(
-      activity = InternalActivity(
-        Map(
-          ProducedOwnBrand -> ((1L, 1L)),
-          Imported         -> ((1L, 1L)),
-          Copackee         -> ((1L, 1L))
-        ),
-        isLarge = false))
+    "Small producer, importer and copackee conversion includes only produceMillionLitres and producerClassification" in {
+      val smallProducerCopackeeImport = baseSubscription.copy(
+        activity = InternalActivity(
+          Map(
+            ProducedOwnBrand -> ((1L, 1L)),
+            Imported         -> ((1L, 1L)),
+            Copackee         -> ((1L, 1L))
+          ),
+          isLarge = false))
 
-    val transformedJson = Json.toJson(smallProducerCopackeeImport)
-    val details = (transformedJson \\ "details").head
-    val producerDetails = (details \\ "producerDetails").head
+      val transformedJson = Json.toJson(smallProducerCopackeeImport)
+      val details = (transformedJson \\ "details").head
+      val producerDetails = (details \\ "producerDetails").head
 
-    assert((details \ "producer").as[Boolean])
-    assert((details \ "importer").as[Boolean])
-    assert(!(details \ "contractPacker").as[Boolean])
-    assert((producerDetails \ "produceMillionLitres").as[Boolean])
-    assert((producerDetails \ "producerClassification").as[String] == "0")
-    assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
-    assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+      assert((details \ "producer").as[Boolean])
+      assert((details \ "importer").as[Boolean])
+      assert(!(details \ "contractPacker").as[Boolean])
+      assert((producerDetails \ "produceMillionLitres").as[Boolean])
+      assert((producerDetails \ "producerClassification").as[String] == "0")
+      assert((producerDetails \ "smallProducerExemption").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
+      assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
+    }
   }
 
   private lazy val baseSubscription = Subscription(

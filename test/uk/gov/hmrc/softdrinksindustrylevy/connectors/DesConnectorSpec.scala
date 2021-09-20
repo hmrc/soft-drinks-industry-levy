@@ -17,48 +17,51 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalatest.{FunSuite, Matchers}
 import play.api.libs.json._
 import sdil.models.des
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest, sub}
 
-class DesConnectorSpecPropertyBased extends FunSuite with ScalaCheckPropertyChecks with Matchers {
+class DesConnectorSpecPropertyBased extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
   import json.internal._
 
-  test("∀ Activity: parse(toJson(x)) = x") {
-    forAll { r: Activity =>
-      Json.toJson(r).as[Activity] should be(r)
+  "DesConnectorSpec" should {
+
+    "parse Activity as expected" in {
+      forAll { r: Activity =>
+        Json.toJson(r).as[Activity] should be(r)
+      }
     }
   }
 
-  test("∀ UkAddress: parse(toJson(x)) = x") {
+  "parse UkAddress as expected" in {
     forAll { r: Address =>
       Json.toJson(r).as[Address] should be(r)
     }
   }
 
-  test("∀ Contact: parse(toJson(x)) = x") {
+  "parse Contact as expected" in {
     forAll { r: Contact =>
       Json.toJson(r).as[Contact] should be(r)
     }
   }
 
-  test("∀ Subscription: parse(toJson(x)) = x") {
+  "parse Subscription as expected" in {
     forAll { r: Subscription =>
       Json.toJson(r).as[Subscription] should be(r)
     }
   }
 
-  test("∀ DisplayDirectDebitResponse: parse(toJson(x)) = x") {
+  "parse DisplayDirectDebitResponse as expected" in {
     forAll { r: DisplayDirectDebitResponse =>
       Json.toJson(r).as[DisplayDirectDebitResponse] should be(r)
     }
   }
-
 }
 
 class DesConnectorSpecBehavioural extends WiremockSpec {

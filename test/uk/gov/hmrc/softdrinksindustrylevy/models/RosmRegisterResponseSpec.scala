@@ -16,31 +16,33 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import org.scalatest._
 import org.scalacheck.Arbitrary._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class RosmResponseAddressSpec extends FunSuite with Matchers with ScalaCheckPropertyChecks {
+class RosmRegisterResponseSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
-  test("Remove invalid characters from address lines") {
-    forAll { (line1: String, line2: Option[String], line3: Option[String], line4: Option[String]) =>
-      val address = RosmResponseAddress(line1, line2, line3, line4, "GB", "AB12 3CD")
-      val pattern = "^[A-Za-z0-9 \\-,.&'\\/]*$"
+  "RosmRegisterResponse" should {
+    "Remove invalid characters from address lines" in {
+      forAll { (line1: String, line2: Option[String], line3: Option[String], line4: Option[String]) =>
+        val address = RosmResponseAddress(line1, line2, line3, line4, "GB", "AB12 3CD")
+        val pattern = "^[A-Za-z0-9 \\-,.&'\\/]*$"
 
-      List(
-        Some(address.addressLine1),
-        address.addressLine2,
-        address.addressLine3,
-        address.addressLine4
-      ).flatten.foreach {
-        _.matches(pattern) should be(true)
+        List(
+          Some(address.addressLine1),
+          address.addressLine2,
+          address.addressLine3,
+          address.addressLine4
+        ).flatten.foreach {
+          _.matches(pattern) should be(true)
+        }
       }
     }
-  }
 
-  test("Convert extended latin characters to their base form") {
-    val addr = RosmResponseAddress("12 T́ḣè Stréët", None, None, None, "GB", "AB12 3CD")
-    addr.addressLine1 should be("12 The Street")
+    "Convert extended latin characters to their base form" in {
+      val addr = RosmResponseAddress("12 T́ḣè Stréët", None, None, None, "GB", "AB12 3CD")
+      addr.addressLine1 should be("12 The Street")
+    }
   }
-
 }

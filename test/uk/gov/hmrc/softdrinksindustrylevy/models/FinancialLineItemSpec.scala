@@ -16,35 +16,38 @@
 
 package sdil.models
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
+
 import java.time.LocalDate
 
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-
-class FinancialLineItemSpec extends FlatSpec with Matchers with ScalaCheckPropertyChecks {
+class FinancialLineItemSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
   val date: LocalDate = LocalDate.now
   val bigDecimal: BigDecimal = 1000
 
-  "A FinancialLineItem" should "be serialisable" in {
+  "A FinancialLineItem" should {
+    "be serialisable" in {
 
-    val returnCharge = ReturnCharge(ReturnPeriod(date), bigDecimal)
-    val returnChargeInterest = ReturnChargeInterest(date, bigDecimal)
-    val centralAssessment = CentralAssessment(date, bigDecimal)
-    val centralAsstInterest = CentralAsstInterest(date, bigDecimal)
-    val officerAssessment = OfficerAssessment(date, bigDecimal)
-    val officerAsstInterest = OfficerAsstInterest(date, bigDecimal)
-    val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
-    val unknown = Unknown(date, "someTitle", bigDecimal)
+      val returnCharge = ReturnCharge(ReturnPeriod(date), bigDecimal)
+      val returnChargeInterest = ReturnChargeInterest(date, bigDecimal)
+      val centralAssessment = CentralAssessment(date, bigDecimal)
+      val centralAsstInterest = CentralAsstInterest(date, bigDecimal)
+      val officerAssessment = OfficerAssessment(date, bigDecimal)
+      val officerAsstInterest = OfficerAsstInterest(date, bigDecimal)
+      val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
+      val unknown = Unknown(date, "someTitle", bigDecimal)
 
-    Json.toJson(returnCharge).as[FinancialLineItem] should be(returnCharge)
-    Json.toJson(returnChargeInterest).as[FinancialLineItem] should be(returnChargeInterest)
-    Json.toJson(centralAssessment).as[FinancialLineItem] should be(centralAssessment)
-    Json.toJson(centralAsstInterest).as[FinancialLineItem] should be(centralAsstInterest)
-    Json.toJson(officerAssessment).as[FinancialLineItem] should be(officerAssessment)
-    Json.toJson(officerAsstInterest).as[FinancialLineItem] should be(officerAsstInterest)
-    Json.toJson(paymentOnAccount).as[FinancialLineItem] should be(paymentOnAccount)
-    Json.toJson(unknown).as[FinancialLineItem] should be(unknown)
+      Json.toJson(returnCharge).as[FinancialLineItem] should be(returnCharge)
+      Json.toJson(returnChargeInterest).as[FinancialLineItem] should be(returnChargeInterest)
+      Json.toJson(centralAssessment).as[FinancialLineItem] should be(centralAssessment)
+      Json.toJson(centralAsstInterest).as[FinancialLineItem] should be(centralAsstInterest)
+      Json.toJson(officerAssessment).as[FinancialLineItem] should be(officerAssessment)
+      Json.toJson(officerAsstInterest).as[FinancialLineItem] should be(officerAsstInterest)
+      Json.toJson(paymentOnAccount).as[FinancialLineItem] should be(paymentOnAccount)
+      Json.toJson(unknown).as[FinancialLineItem] should be(unknown)
+    }
   }
 }
