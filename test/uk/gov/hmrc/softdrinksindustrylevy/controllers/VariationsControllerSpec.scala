@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.mockito.ArgumentMatchers.{any, eq => eqs}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.i18n.Messages
+import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Request
+import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
@@ -44,8 +44,15 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockVariationSubmissionService = mock[VariationSubmissionService]
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
+  val cc = mock[ControllerComponents]
 
-  val controller: VariationsController = mock[VariationsController]
+  val controller: VariationsController = new VariationsController(
+    messagesApi,
+    mockGformConnector,
+    mockVariationSubmissionService,
+    mockReturnsVariationSubmissionService,
+    mockReturnsAdjustmentSubmissionService,
+    cc)
 
   override def beforeEach() {
     reset(mockGformConnector)
@@ -72,12 +79,15 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     val page = variations_pdf(variationRequest, sdilNumber).toString()
 
     "204 successfully generate Variations" in {
-      val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+      implicit val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any[String](), any[String]())(any(), any()))
         .thenReturn(Future.successful(()))
-      when(mockVariationSubmissionService.save(eqs(variationRequest), eqs(sdilNumber)))
+
+      when(mockVariationSubmissionService.save(any(), any[String]()))
         .thenReturn(Future.successful(()))
+
+      println(s"MOHAN MOHAN controller = $controller")
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
 
@@ -95,7 +105,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when gform connector throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenThrow(new RuntimeException)
 
       an[RuntimeException] shouldBe thrownBy(controller.generateVariations(sdilNumber)(requestInput))
@@ -104,7 +114,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when repository service throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockVariationSubmissionService.save(any(), any()))
         .thenThrow(new RuntimeException)
@@ -133,7 +143,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "204 when successfully" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnsVariationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockReturnsVariationSubmissionService.save(any(), any()))
         .thenReturn(Future.successful(()))
@@ -154,7 +164,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when gform connector throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnsVariationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenThrow(new RuntimeException)
 
       an[RuntimeException] shouldBe thrownBy(controller.returnsVariation(sdilNumber)(requestInput))
@@ -163,7 +173,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when repository service throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnsVariationRequest))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockReturnsVariationSubmissionService.save(any(), any()))
         .thenThrow(new RuntimeException)
@@ -186,7 +196,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "204 when successfully" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnVariationData))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockReturnsAdjustmentSubmissionService.save(any(), any()))
         .thenReturn(Future.successful(()))
@@ -207,7 +217,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when gform connector throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnVariationData))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenThrow(new RuntimeException)
 
       an[RuntimeException] shouldBe thrownBy(controller.varyReturn(sdilNumber)(requestInput))
@@ -216,7 +226,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     "throwException when repository service throws exception" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnVariationData))
 
-      when(mockGformConnector.submitToDms(eqs(page), eqs(sdilNumber))(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockReturnsAdjustmentSubmissionService.save(any(), any()))
         .thenThrow(new RuntimeException)
