@@ -21,8 +21,11 @@ import com.softwaremill.macwire.wire
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.libs.json.Json
+import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, PaymentOnAccount, ReturnChargeInterest, Unknown}
@@ -30,18 +33,26 @@ import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubI
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, GformConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
-class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
+import scala.concurrent.{ExecutionContext, Future}
+
+class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val testBalanceController = mock[BalanceController]
 
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier
+
+  implicit val messages: Messages = messagesApi.preferred(request)
+  implicit lazy val request: Request[_] = FakeRequest()
+
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  val cc = app.injector.instanceOf[ControllerComponents]
+
+  val testBalanceController: BalanceController = new BalanceController(mockAuthConnector, mockDesConnector, cc)
 
   override def beforeEach() {
     reset(mockDesConnector)

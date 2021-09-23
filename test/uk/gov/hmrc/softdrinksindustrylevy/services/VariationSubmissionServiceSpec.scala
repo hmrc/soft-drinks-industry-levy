@@ -16,25 +16,22 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.concurrent.ScalaFutures
 
 import java.time.Instant
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
-import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
+import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class VariationSubmissionServiceSpec
-    extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterAll with BeforeAndAfterEach
-    with MongoConnectorCustom {
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures with MongoConnectorCustom {
 
   implicit val defaultTimeout: FiniteDuration = 5 seconds
 
@@ -60,11 +57,11 @@ class VariationSubmissionServiceSpec
 
       val storedItem = await(service.find()).head
 
-      storedItem.isInstanceOf[VariationWrapper] shouldBe true
-      storedItem.submission shouldBe variationsRequest
-      storedItem.sdilRef shouldBe sdilRef
-      storedItem._id.isInstanceOf[BSONObjectID] shouldBe true
-      storedItem.timestamp.isInstanceOf[Instant] shouldBe true
+      storedItem.isInstanceOf[VariationWrapper] mustBe true
+      storedItem.submission mustBe variationsRequest
+      storedItem.sdilRef mustBe sdilRef
+      storedItem._id.isInstanceOf[BSONObjectID] mustBe true
+      storedItem.timestamp.isInstanceOf[Instant] mustBe true
     }
   }
 
@@ -73,7 +70,7 @@ class VariationSubmissionServiceSpec
       await(service.save(variationsRequest, sdilRef))
 
       val storedItem = await(service.get(sdilRef)).get
-      storedItem shouldBe variationsRequest
+      storedItem mustBe variationsRequest
     }
 
     "assure the result is headOption from list when sortedWith _.timestamp isAfter _.timestamp" in {
@@ -82,7 +79,7 @@ class VariationSubmissionServiceSpec
       await(service.save(variationsRequest.copy(tradingName = Some(tradingNameToCompare)), sdilRef))
 
       val storedItem = await(service.get(sdilRef)).get
-      storedItem.tradingName.get shouldBe tradingNameToCompare
+      storedItem.tradingName.get mustBe tradingNameToCompare
     }
   }
 }

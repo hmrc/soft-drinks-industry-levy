@@ -19,8 +19,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 import java.time.LocalDate
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main._
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType._
@@ -28,8 +28,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbSubRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class DesConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
+class DesConversionSpec
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
 
   "DesConversion" should {
     "parse Subscription as expected" in {

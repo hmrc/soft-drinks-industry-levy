@@ -39,12 +39,12 @@ class TaxEnrolmentCallbackController @Inject()(
   taxEnrolments: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val configuration: Configuration,
+  val configuration: ServicesConfig,
   auditing: AuditConnector)
     extends BackendController(cc) {
 
   lazy val logger = Logger(this.getClass)
-  val serviceConfig = new ServicesConfig(configuration)
+  val serviceConfig: ServicesConfig = configuration
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>

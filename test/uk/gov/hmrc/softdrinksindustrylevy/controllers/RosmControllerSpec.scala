@@ -29,7 +29,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmen
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.{Configuration, Mode}
+import play.api.mvc.ControllerComponents
 
+import java.time.Clock
 import scala.concurrent.Future
 
 class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -37,12 +40,17 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val testRosmController = mock[RosmController]
-
+  val mockMode: Mode = mock[Mode]
+  val mockConfiguration: Configuration = mock[Configuration]
+  implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
+  val cc = app.injector.instanceOf[ControllerComponents]
+  val testRosmController =
+    new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector, mockMode, cc, mockConfiguration)
 
   override def beforeEach() {
     reset(mockRosmConnector)
+    reset(mockAuthConnector)
   }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))

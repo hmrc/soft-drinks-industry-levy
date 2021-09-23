@@ -17,19 +17,30 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlPathEqualTo}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.hmrc.http.{HttpClient, HttpResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
-class FileUploadConnectorSpec extends WiremockSpec {
+class FileUploadConnectorSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
 
   val connector = app.injector.instanceOf[FileUploadConnector]
 
-  "attempted get of file should succeed if the file is returned" in {
-    stubFor(
-      get(urlPathEqualTo("/file-upload/envelopes/1234/files/testfile/content"))
-        .willReturn(aResponse().withStatus(200).withBody("some data")))
+  val mockHttpClient = mock[HttpClient]
 
-    Try(connector.getFile("1234", "testfile").futureValue) match {
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  "attempted get of file should succeed if the file is returned" in {
+
+    when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
+
+    connector.getFile("1234", "testfile") onComplete {
       case Success(_) =>
       case Failure(_) => fail
     }

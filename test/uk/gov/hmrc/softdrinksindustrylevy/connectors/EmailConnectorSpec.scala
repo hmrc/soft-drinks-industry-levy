@@ -16,42 +16,65 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import uk.gov.hmrc.http.HeaderCarrier
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import play.api.libs.json.JsValue
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.Mode
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class EmailConnectorSpec extends WiremockSpec {
+class EmailConnectorSpec extends FakeApplicationSpec {
+
+  val mockServicesConfig: ServicesConfig = app.injector.instanceOf[ServicesConfig]
+
+  val mode = mock[Mode]
+
+  val mockHttpClient = mock[HttpClient]
 
   val connector = app.injector.instanceOf[EmailConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
   "attempted email should succeed" in {
-    EmailResponses.send(true)
-    Try(connector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.successful(HttpResponse(200, "")))
+
+    connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
+
       case Success(_) =>
       case Failure(_) => fail
+
     }
   }
 
   "attempted email should fail when the response from email service is a failure" in {
-    EmailResponses.send(false)
-    Try(connector.sendConfirmationEmail("test", "test", "dfg").futureValue) match {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.failed(new Exception("")))
+    connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
       case Success(_) => fail
       case Failure(_) => // do nothing
     }
   }
 
   "attempted submission email should succeed" in {
-    EmailResponses.send(true)
-    Try(connector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.successful(HttpResponse(200, "")))
+    connector.sendSubmissionReceivedEmail("test", "test") onComplete {
       case Success(_) =>
       case Failure(_) => fail
     }
   }
 
   "attempted submission email should fail if email service fails" in {
-    EmailResponses.send(false)
-    Try(connector.sendSubmissionReceivedEmail("test", "test").futureValue) match {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.failed(new Exception("")))
+    connector.sendSubmissionReceivedEmail("test", "test") onComplete {
       case Success(_) => fail
       case Failure(_) => // do nothing
     }

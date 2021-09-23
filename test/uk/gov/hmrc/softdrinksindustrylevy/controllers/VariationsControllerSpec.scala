@@ -21,30 +21,35 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.Play.materializer
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import views.html.{returns_variation_pdf, variations_pdf}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   implicit val messages: Messages = messagesApi.preferred(request)
   implicit lazy val request: Request[_] = FakeRequest()
+  implicit val hc: HeaderCarrier = new HeaderCarrier
+
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mockGformConnector = mock[GformConnector]
   val mockVariationSubmissionService = mock[VariationSubmissionService]
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
-  val cc = mock[ControllerComponents]
+  val cc = app.injector.instanceOf[ControllerComponents]
 
   val controller: VariationsController = new VariationsController(
     messagesApi,
@@ -79,15 +84,13 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     val page = variations_pdf(variationRequest, sdilNumber).toString()
 
     "204 successfully generate Variations" in {
-      implicit val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+      val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
 
-      when(mockGformConnector.submitToDms(any[String](), any[String]())(any(), any()))
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
 
-      when(mockVariationSubmissionService.save(any(), any[String]()))
+      when(mockVariationSubmissionService.save(any(), any()))
         .thenReturn(Future.successful(()))
-
-      println(s"MOHAN MOHAN controller = $controller")
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
 
