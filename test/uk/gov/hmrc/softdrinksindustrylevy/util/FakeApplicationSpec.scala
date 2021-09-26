@@ -30,7 +30,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.collection.mutable
-import scala.concurrent.{Future, ExecutionContext => EC}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future, ExecutionContext => EC}
 
 trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar with MongoConnectorCustom {
 
@@ -53,6 +54,8 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
         data = Map.empty
         Future.successful(data.isEmpty)
       }
+
+      def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
       def get(
         user: String,

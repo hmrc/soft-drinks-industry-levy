@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 
 import java.time.Instant
@@ -38,7 +39,7 @@ class VariationSubmissionServiceSpec
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
   implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
-
+  when(mc.mongoConnector).thenReturn(mongoConnector)
   private val service = new VariationSubmissionService
 
   override def beforeEach() {

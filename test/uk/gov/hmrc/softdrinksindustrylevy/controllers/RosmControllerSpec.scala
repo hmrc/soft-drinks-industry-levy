@@ -31,6 +31,7 @@ import com.softwaremill.macwire._
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.{Configuration, Mode}
 import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.Clock
 import scala.concurrent.Future
@@ -45,15 +46,16 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
   val cc = app.injector.instanceOf[ControllerComponents]
+  val serviceConfig = mock[ServicesConfig]
   val testRosmController =
-    new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector, mockMode, cc, mockConfiguration)
+    new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector, mockMode, cc, serviceConfig)
 
   override def beforeEach() {
     reset(mockRosmConnector)
-    reset(mockAuthConnector)
   }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+  when(serviceConfig.getString(any())).thenReturn("someBaseUrl")
 
   "RosmController" should {
     "return Status: OK Body: RosmRegisterResponse for successful valid Rosm lookup" in {

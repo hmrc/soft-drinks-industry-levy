@@ -91,7 +91,7 @@ class TaxEnrolmentCallbackControllerSpec
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
       status(res) mustBe NO_CONTENT
-      //verify(mockBuffer, times(1)).removeById(matching("safe-id"), any())(any())
+      verify(mockBuffer, times(1)).removeById(matching("safe-id"), any())(any())
     }
 
     "send a notification email on success" in {

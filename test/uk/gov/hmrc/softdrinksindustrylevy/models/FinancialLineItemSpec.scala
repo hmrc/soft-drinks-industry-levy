@@ -16,14 +16,16 @@
 
 package sdil.models
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfterAll
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.LocalDate
 
-class FinancialLineItemSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
+class FinancialLineItemSpec
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterAll with ScalaCheckPropertyChecks {
 
   val date: LocalDate = LocalDate.now
   val bigDecimal: BigDecimal = 1000
@@ -40,14 +42,14 @@ class FinancialLineItemSpec extends AnyWordSpec with Matchers with ScalaCheckPro
       val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
       val unknown = Unknown(date, "someTitle", bigDecimal)
 
-      Json.toJson(returnCharge).as[FinancialLineItem] should be(returnCharge)
-      Json.toJson(returnChargeInterest).as[FinancialLineItem] should be(returnChargeInterest)
-      Json.toJson(centralAssessment).as[FinancialLineItem] should be(centralAssessment)
-      Json.toJson(centralAsstInterest).as[FinancialLineItem] should be(centralAsstInterest)
-      Json.toJson(officerAssessment).as[FinancialLineItem] should be(officerAssessment)
-      Json.toJson(officerAsstInterest).as[FinancialLineItem] should be(officerAsstInterest)
-      Json.toJson(paymentOnAccount).as[FinancialLineItem] should be(paymentOnAccount)
-      Json.toJson(unknown).as[FinancialLineItem] should be(unknown)
+      Json.toJson(returnCharge).as[FinancialLineItem] mustBe (returnCharge)
+      Json.toJson(returnChargeInterest).as[FinancialLineItem] mustBe (returnChargeInterest)
+      Json.toJson(centralAssessment).as[FinancialLineItem] mustBe (centralAssessment)
+      Json.toJson(centralAsstInterest).as[FinancialLineItem] mustBe (centralAsstInterest)
+      Json.toJson(officerAssessment).as[FinancialLineItem] mustBe (officerAssessment)
+      Json.toJson(officerAsstInterest).as[FinancialLineItem] mustBe (officerAsstInterest)
+      Json.toJson(paymentOnAccount).as[FinancialLineItem] mustBe (paymentOnAccount)
+      Json.toJson(unknown).as[FinancialLineItem] mustBe (unknown)
     }
   }
 }

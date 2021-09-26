@@ -38,15 +38,15 @@ class RosmController @Inject()(
   taxEnrolmentConnector: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val configuration: Configuration
+  val configuration: ServicesConfig
 ) extends BackendController(cc) with AuthorisedFunctions {
 
-  val serviceConfig = new ServicesConfig(configuration)
+  //val serviceConfig = new ServicesConfig(configuration)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       rosmConnector
-        .retrieveROSMDetails(utr, RosmRegisterRequest(regime = serviceConfig.getString("etmp.sdil.regime")))
+        .retrieveROSMDetails(utr, RosmRegisterRequest(regime = configuration.getString("etmp.sdil.regime")))
         .map {
           case Some(r) if r.organisation.isDefined || r.individual.isDefined =>
             JsonSchemaChecker[RosmRegisterResponse](r, "rosm-response")
