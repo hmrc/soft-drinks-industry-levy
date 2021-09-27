@@ -42,6 +42,8 @@ class FinancialLineItemSpec
       val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
       val unknown = Unknown(date, "someTitle", bigDecimal)
 
+      println(s"Mohan Mohan Mohan ${Json.toJson(returnCharge).as[FinancialLineItem]}")
+
       Json.toJson(returnCharge).as[FinancialLineItem] mustBe (returnCharge)
       Json.toJson(returnChargeInterest).as[FinancialLineItem] mustBe (returnChargeInterest)
       Json.toJson(centralAssessment).as[FinancialLineItem] mustBe (centralAssessment)
