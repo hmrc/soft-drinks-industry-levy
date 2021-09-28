@@ -33,16 +33,14 @@ class FinancialLineItemSpec
   "A FinancialLineItem" should {
     "be serialisable" in {
 
-      val returnCharge = ReturnCharge(ReturnPeriod(date), bigDecimal)
-      val returnChargeInterest = ReturnChargeInterest(date, bigDecimal)
-      val centralAssessment = CentralAssessment(date, bigDecimal)
-      val centralAsstInterest = CentralAsstInterest(date, bigDecimal)
-      val officerAssessment = OfficerAssessment(date, bigDecimal)
-      val officerAsstInterest = OfficerAsstInterest(date, bigDecimal)
-      val paymentOnAccount = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
-      val unknown = Unknown(date, "someTitle", bigDecimal)
-
-      println(s"Mohan Mohan Mohan ${Json.toJson(returnCharge).as[FinancialLineItem]}")
+      val returnCharge: FinancialLineItem = ReturnCharge(ReturnPeriod(date), bigDecimal)
+      val returnChargeInterest: FinancialLineItem = ReturnChargeInterest(date, bigDecimal)
+      val centralAssessment: FinancialLineItem = CentralAssessment(date, bigDecimal)
+      val centralAsstInterest: FinancialLineItem = CentralAsstInterest(date, bigDecimal)
+      val officerAssessment: FinancialLineItem = OfficerAssessment(date, bigDecimal)
+      val officerAsstInterest: FinancialLineItem = OfficerAsstInterest(date, bigDecimal)
+      val paymentOnAccount: FinancialLineItem = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
+      val unknown: FinancialLineItem = Unknown(date, "someTitle", bigDecimal)
 
       Json.toJson(returnCharge).as[FinancialLineItem] mustBe (returnCharge)
       Json.toJson(returnChargeInterest).as[FinancialLineItem] mustBe (returnChargeInterest)
