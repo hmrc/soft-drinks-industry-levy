@@ -99,7 +99,6 @@ class TaxEnrolmentCallbackController @Inject()(
 
   private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String)(
     implicit hc: HeaderCarrier) = {
-    implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
       "url"            -> s"${serviceConfig.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",

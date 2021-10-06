@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.net.URLEncoder.encode
 import java.time.{LocalDate, LocalDateTime}
-import cats.implicits._
 import com.google.inject.{Inject, Singleton}
 import play.api.{Logger, Mode}
 import play.api.libs.json.{Json, OWrites}
@@ -33,7 +32,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized,
 
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
 @Singleton
 class DesConnector @Inject()(

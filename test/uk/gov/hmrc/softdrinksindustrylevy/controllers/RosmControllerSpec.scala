@@ -48,7 +48,7 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val cc = app.injector.instanceOf[ControllerComponents]
   val serviceConfig = mock[ServicesConfig]
   val testRosmController =
-    new RosmController(mockAuthConnector, mockRosmConnector, mockTaxEnrolmentConnector, mockMode, cc, serviceConfig)
+    new RosmController(mockAuthConnector, mockRosmConnector, mockMode, cc, serviceConfig)
 
   override def beforeEach() {
     reset(mockRosmConnector)

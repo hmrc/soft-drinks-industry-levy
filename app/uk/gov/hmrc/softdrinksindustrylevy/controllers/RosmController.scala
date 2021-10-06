@@ -35,7 +35,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class RosmController @Inject()(
   val authConnector: AuthConnector,
   rosmConnector: RosmConnector,
-  taxEnrolmentConnector: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
   val configuration: ServicesConfig

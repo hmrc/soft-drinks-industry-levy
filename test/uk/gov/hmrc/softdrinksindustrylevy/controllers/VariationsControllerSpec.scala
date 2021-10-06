@@ -81,7 +81,6 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       displayOrgName = tradingName,
       ppobAddress = address,
       correspondenceContact = Some(contactDetails))
-    val page = variations_pdf(variationRequest, sdilNumber).toString()
 
     "204 successfully generate Variations" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
@@ -141,7 +140,6 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       "",
       "email",
       BigDecimal("1.1"))
-    val page = returns_variation_pdf(returnsVariationRequest, sdilNumber).toString()
 
     "204 when successfully" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnsVariationRequest))
