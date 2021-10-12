@@ -37,7 +37,7 @@ class OverdueSubmissionsChecker @Inject()(
   val mongoConnector: MongoConnector,
   val actorSystem: ActorSystem,
   mongoBufferService: MongoBufferService,
-  contactFrontend: ContactFrontendConnector)(implicit val ec: ExecutionContext)
+  contactFrontend: ContactFrontendConnector)(implicit ec: ExecutionContext)
     extends LockedJobScheduler {
 
   override val jobName: String = "overdueSubmissions"
@@ -131,7 +131,7 @@ trait LockedJobScheduler {
     actorSystem.scheduler.schedule(
       jobStartDelay,
       FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
-    )(run())
+    )(run)
 }
 
 case class MissingConfiguration(key: String) extends RuntimeException(s"Missing configuration value $key")

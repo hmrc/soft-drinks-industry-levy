@@ -114,7 +114,7 @@ class DataCorrector(
 
   val supervisor = system.actorOf(Props(new DataCorrectorSupervisor(config.returns)), name = "datacorrector")
 
-  system.scheduler.schedule(
+  system.scheduler.scheduleAtFixedRate(
     initialDelay = config.initialDelay,
     interval = config.interval,
     receiver = supervisor,

@@ -90,8 +90,6 @@ class SdilMongoPersistence @Inject()(mc: ReactiveMongoComponent) extends SdilPer
         )
         .map(_.map(_.subscription))
 
-    def dropDb(implicit ec: EC) = subscriptionsMongo.drop
-
     val subscriptionsMongo =
       new ReactiveRepository[SubscriptionWrapper, BSONObjectID](
         "sdilsubscriptions",

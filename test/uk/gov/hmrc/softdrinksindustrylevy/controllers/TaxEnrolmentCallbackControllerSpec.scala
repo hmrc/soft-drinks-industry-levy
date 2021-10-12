@@ -21,12 +21,11 @@ import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import reactivemongo.api.commands.DefaultWriteResult
+import reactivemongo.api.commands.{DefaultWriteResult, UpdateWriteResult}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
@@ -34,6 +33,7 @@ import play.api.Mode
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.Future
 
@@ -85,7 +85,8 @@ class TaxEnrolmentCallbackControllerSpec
         formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any()))
-        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+        .thenReturn(
+          Future.successful(UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
@@ -112,7 +113,8 @@ class TaxEnrolmentCallbackControllerSpec
         formBundleNumber)
       when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
       when(mockBuffer.removeById(matching("safe-id"), any())(any()))
-        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+        .thenReturn(
+          Future.successful(UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None)))
       when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))

@@ -93,7 +93,8 @@ class RegistrationControllerSpec
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockBuffer.insert(any())(any()))
-        .thenReturn(Future.successful(DefaultWriteResult(true, 1, Nil, None, None, None)))
+        .thenReturn(
+          Future.successful(UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None)))
       when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
         .thenReturn(Future.successful(HttpResponse(418)))
       when(mockAuditing.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
@@ -226,7 +227,8 @@ class RegistrationControllerSpec
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
-        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+        .thenReturn(
+          Future successful UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe OK
@@ -250,7 +252,8 @@ class RegistrationControllerSpec
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
-        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+        .thenReturn(
+          Future successful UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe OK
@@ -274,7 +277,8 @@ class RegistrationControllerSpec
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
-        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+        .thenReturn(
+          Future successful UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe ACCEPTED
@@ -298,7 +302,8 @@ class RegistrationControllerSpec
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
-        .thenReturn(Future successful DefaultWriteResult(true, 1, Nil, None, None, None))
+        .thenReturn(
+          Future successful UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
       status(response) mustBe OK

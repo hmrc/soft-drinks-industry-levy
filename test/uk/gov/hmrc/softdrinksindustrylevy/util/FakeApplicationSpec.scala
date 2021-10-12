@@ -83,11 +83,6 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
         Future.successful(())
       }
 
-      def dropCollection(implicit ec: EC): Future[Boolean] = {
-        data = scala.collection.mutable.Map.empty[String, List[Subscription]]
-        Future.successful(data.isEmpty)
-      }
-
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =
         Future(data.getOrElse(key, List.empty[Subscription]))
       override def subscriptionsMongo: ReactiveRepository[SubscriptionWrapper, BSONObjectID] =
