@@ -24,9 +24,12 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
+import com.google.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 
-class GformConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+@Singleton
+class GformConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val gformUrl: String = servicesConfig.baseUrl("gform")
 

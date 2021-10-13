@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
@@ -28,7 +29,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionS
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class VariationsController(
+@Singleton
+class VariationsController @Inject()(
   override val messagesApi: MessagesApi,
   gforms: GformConnector,
   variationSubmissions: VariationSubmissionService,

@@ -17,18 +17,16 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import org.mockito.ArgumentMatchers.any
-import com.softwaremill.macwire.wire
 import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.test.Helpers._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.DisplayDirectDebitResponse
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
@@ -41,9 +39,10 @@ class DirectDebitControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   val mockDesConnector: DesConnector = mock[DesConnector]
-  lazy val cc = new SdilComponents(context).cc
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val testDirectDebitController = wire[DirectDebitController]
+
+  val cc = app.injector.instanceOf[ControllerComponents]
+  val testDirectDebitController = new DirectDebitController(mockDesConnector, cc, mockAuthConnector)
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 

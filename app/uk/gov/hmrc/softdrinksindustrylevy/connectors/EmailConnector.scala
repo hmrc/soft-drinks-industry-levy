@@ -20,10 +20,14 @@ import play.api.Mode
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class EmailConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class EmailConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val emailUrl: String = servicesConfig.baseUrl("email")
 

@@ -17,36 +17,40 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
-
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.softdrinksindustrylevy.config.{SdilComponents, SdilConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import com.softwaremill.macwire._
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsNull
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
+import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
+class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
-  val mockSdilConfig = mock[SdilConfig]
+  val mockAuditing: AuditConnector = mock[AuditConnector]
+
+  val cc = app.injector.instanceOf[ControllerComponents]
 
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  lazy val cc = new SdilComponents(context).cc
-  val testReturnsContoller = wire[ReturnsController]
+  val testReturnsContoller =
+    new ReturnsController(mockAuthConnector, mockDesConnector, testPersistence, mockAuditing, cc)
 
   override def beforeEach() {
     reset(mockDesConnector)
@@ -131,7 +135,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       testReturnsContoller
         .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli)
         .asMilliseconds
-        .toString mustBe testDate.toString
+        .toString mustBe LocalDateTime.now().toString
     }
   }
 

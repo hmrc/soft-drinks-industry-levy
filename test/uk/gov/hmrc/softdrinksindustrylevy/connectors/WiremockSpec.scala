@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
@@ -25,8 +26,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import scala.concurrent.ExecutionContext
 
 trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with BeforeAndAfterAll with ScalaFutures {
-  val port = WireMockSupport.port
-  val mockServer = new WireMockServer(port)
+
+  protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -34,7 +35,7 @@ trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with Befo
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    mockServer.start()
+    server.start()
     WireMock.configureFor("localhost", WireMockSupport.port)
   }
 
@@ -51,6 +52,6 @@ trait WiremockSpec extends FakeApplicationSpec with BeforeAndAfterEach with Befo
 
   override protected def afterAll(): Unit = {
     super.afterAll()
-    mockServer.stop()
+    server.stop()
   }
 }

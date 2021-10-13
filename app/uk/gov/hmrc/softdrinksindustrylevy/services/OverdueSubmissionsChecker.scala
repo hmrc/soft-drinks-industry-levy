@@ -29,12 +29,15 @@ import java.time.temporal.ChronoUnit
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class OverdueSubmissionsChecker(
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class OverdueSubmissionsChecker @Inject()(
   val config: Configuration,
   val mongoConnector: MongoConnector,
   val actorSystem: ActorSystem,
   mongoBufferService: MongoBufferService,
-  contactFrontend: ContactFrontendConnector)(implicit val ec: ExecutionContext)
+  contactFrontend: ContactFrontendConnector)(implicit ec: ExecutionContext)
     extends LockedJobScheduler {
 
   override val jobName: String = "overdueSubmissions"
@@ -128,7 +131,7 @@ trait LockedJobScheduler {
     actorSystem.scheduler.schedule(
       jobStartDelay,
       FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
-    )(run())
+    )(run)
 }
 
 case class MissingConfiguration(key: String) extends RuntimeException(s"Missing configuration value $key")

@@ -17,23 +17,25 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import java.time.Instant
-
 import play.api.libs.json._
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
+import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
+import com.google.inject.{Inject, Singleton}
+import play.modules.reactivemongo.ReactiveMongoComponent
 
-class MongoBufferService(implicit mc: MongoConnector)
+@Singleton
+class MongoBufferService @Inject()(implicit mc: ReactiveMongoComponent)
     extends ReactiveRepository[SubscriptionWrapper, String](
       "sdil-subscription",
-      mc.db,
+      mc.mongoConnector.db,
       SubscriptionWrapper.format,
       implicitly) {
 

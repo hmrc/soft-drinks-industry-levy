@@ -21,8 +21,8 @@ import cats.implicits._
 import play.api.Logger
 import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,7 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
   * provided) from the SDIL reference and then create the [[sdil.models.SdilReturn]] in
   * mongo. Called from [[DataCorrector.DataCorrectorSupervisor]].
   */
-class ReturnsCorrectorWorker(
+
+@Singleton
+class ReturnsCorrectorWorker @Inject()(
   connector: DesConnector,
   persistence: SdilPersistence
 )(implicit ec: ExecutionContext)
@@ -76,12 +78,11 @@ class ReturnsCorrectorWorker(
 class DataCorrector(
   system: ActorSystem,
   persistence: SdilPersistence,
-  allConfig: SdilConfig,
   connector: DesConnector
 )(implicit ec: ExecutionContext) {
   import DataCorrector._
 
-  val config = allConfig.dataCorrector
+  val config = DataCorrector.Config()
   val logger = Logger("DataCorrector")
 
   logger.info("DataCorrector startup")
@@ -113,7 +114,7 @@ class DataCorrector(
 
   val supervisor = system.actorOf(Props(new DataCorrectorSupervisor(config.returns)), name = "datacorrector")
 
-  system.scheduler.schedule(
+  system.scheduler.scheduleAtFixedRate(
     initialDelay = config.initialDelay,
     interval = config.interval,
     receiver = supervisor,

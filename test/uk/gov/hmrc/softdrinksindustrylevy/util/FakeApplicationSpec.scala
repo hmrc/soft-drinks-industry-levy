@@ -17,10 +17,12 @@
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
 import play.api.i18n.MessagesApi
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.ws.WSClient
+import play.api.mvc.ControllerComponents
 import play.api.{Application, ApplicationLoader}
 import play.core.DefaultWebCommands
 import reactivemongo.bson.BSONObjectID
@@ -28,30 +30,18 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.mongo.ReactiveRepository
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilApplicationLoader
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext => EC}
 
-trait FakeApplicationSpec
-    extends PlaySpec with BaseOneAppPerSuite with FakeApplicationFactory with TestWiring with MockitoSugar
-    with MongoConnectorCustom {
-  protected val context = ApplicationLoader.Context(
-    environment,
-    sourceMapper = None,
-    new DefaultWebCommands,
-    configuration,
-    new DefaultApplicationLifecycle
-  )
+trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar with MongoConnectorCustom {
 
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
-  lazy val httpClient: HttpClient = new DefaultHttpClient(configuration, httpAuditing, wsClient, actorSystem)
-
-  override def fakeApplication(): Application =
-    new SdilApplicationLoader().load(context)
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  lazy val components: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   lazy val testPersistence: SdilPersistence = new SdilPersistence {
 
@@ -91,11 +81,6 @@ trait FakeApplicationSpec
       override def insert(key: String, value: Subscription)(implicit ec: EC): Future[Unit] = {
         data += data.get(key).fold(key -> List(value))(x => key -> (value +: x))
         Future.successful(())
-      }
-
-      def dropCollection(implicit ec: EC): Future[Boolean] = {
-        data = scala.collection.mutable.Map.empty[String, List[Subscription]]
-        Future.successful(data.isEmpty)
       }
 
       override def list(key: String)(implicit ec: EC): Future[List[Subscription]] =

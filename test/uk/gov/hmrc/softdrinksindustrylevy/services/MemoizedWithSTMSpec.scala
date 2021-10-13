@@ -16,40 +16,44 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.LocalDateTime
-
-import org.scalatest._
 import cats.implicits._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
+import java.time.LocalDateTime
 import scala.concurrent.Future
 import scala.concurrent.stm.TMap
 
-class MemoizedWithSTMSpec extends AsyncFlatSpec {
+class MemoizedWithSTMSpec extends AsyncWordSpec with Matchers {
 
   def testFunc(k: String): Future[LocalDateTime] = Future(LocalDateTime.now)
   val cache: TMap[String, (LocalDateTime, LocalDateTime)] = TMap[String, (LocalDateTime, LocalDateTime)]()
 
-  "Memoized function" should "return a cached result" in {
-    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 60 * 60)(testFunc)
-    val x = for {
-      a <- memoized("test1")
-      b <- memoized("test1")
-    } yield (a, b)
-    x.map { y =>
-      assert(y._1 == y._2)
-    }
+  "Memoized function" should {
+    "return a cached result" in {
+      val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 60 * 60)(testFunc)
+      val x = for {
+        a <- memoized("test1")
+        b <- memoized("test1")
+      } yield (a, b)
+      x.map { y =>
+        assert(y._1 == y._2)
+      }
 
+    }
   }
 
-  "Memoized function" should "return a fresh result when the cache has timed out" in {
-    val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 1)(testFunc)
-    val x = for {
-      a <- memoized("test2")
-      _ = Thread.sleep(2000)
-      b <- memoized("test2")
-    } yield (a, b)
-    x.map { y =>
-      assert(y._1 != y._2)
+  "Memoized function" should {
+    "return a fresh result when the cache has timed out" in {
+      val memoized = Memoized.memoizedCache[Future, String, LocalDateTime](cache, 1)(testFunc)
+      val x = for {
+        a <- memoized("test2")
+        _ = Thread.sleep(2000)
+        b <- memoized("test2")
+      } yield (a, b)
+      x.map { y =>
+        assert(y._1 != y._2)
+      }
     }
   }
 }

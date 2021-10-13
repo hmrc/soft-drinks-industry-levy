@@ -17,35 +17,41 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.Instant
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, post, stubFor, urlEqualTo, urlPathEqualTo}
-import uk.gov.hmrc.http.HeaderCarrier
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import play.api.libs.json.JsValue
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors._
-import scala.util.{Failure, Success, Try}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class ContactFrontendConnectorSpec extends WiremockSpec {
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
-  object TestContactConnector extends ContactFrontendConnector(httpClient, environment.mode, configuration) {
-    override lazy val contactFrontendUrl: String = mockServerUrl
-  }
+class ContactFrontendConnectorSpec extends FakeApplicationSpec {
+
+  val connector = app.injector.instanceOf[ContactFrontendConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "attempted contact form should fail if contact service is not available" in {
-    stubFor(
-      post(urlPathEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
-        .willReturn(aResponse().withStatus(500)))
+  val mockHttpClient = mock[HttpClient]
 
-    Try(TestContactConnector.raiseTicket(sub, "safeid1", Instant.now()).futureValue) match {
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  "attempted contact form should fail if contact service is not available" in {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.failed(new Exception("")))
+
+    connector.raiseTicket(sub, "safeid1", Instant.now()) onComplete {
       case Success(_) => fail
       case Failure(_) =>
     }
   }
 
   "attempted contact form should succeed if contact service is available" in {
-    stubFor(
-      post(urlEqualTo("/contact/contact-hmrc/form?resubmitUrl=/"))
-        .willReturn(aResponse().withStatus(200).withBody("")))
-    Try(TestContactConnector.raiseTicket(sub, "test1", Instant.now()).futureValue) match {
+    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      .thenReturn(Future.successful(HttpResponse(200, "")))
+
+    connector.raiseTicket(sub, "test1", Instant.now()) onComplete {
       case Success(_) =>
       case Failure(_) => fail
     }

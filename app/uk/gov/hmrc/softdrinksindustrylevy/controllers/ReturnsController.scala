@@ -25,19 +25,19 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
 import java.time._
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class ReturnsController(
+@Singleton
+class ReturnsController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val persistence: SdilPersistence,
-  val sdilConfig: SdilConfig,
   auditing: AuditConnector,
   val cc: ControllerComponents
 )(implicit ec: ExecutionContext)
@@ -158,7 +158,6 @@ class ReturnsController(
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
-        import sdilConfig.today
         val start = subscription match {
           case Some(x) => x.liabilityDate
           case None => {
@@ -168,12 +167,12 @@ class ReturnsController(
         }
 
         val all = {
-          ReturnPeriod(start).count to ReturnPeriod(today).count
+          ReturnPeriod(start).count to ReturnPeriod(LocalDate.now()).count
         }.map {
             ReturnPeriod.apply
           }
           .filter {
-            _.end.isBefore(today)
+            _.end.isBefore(LocalDate.now())
           }
         persistence.returns.list(utr).map { posted =>
           Ok(Json.toJson(all.toList diff posted.keys.toList))

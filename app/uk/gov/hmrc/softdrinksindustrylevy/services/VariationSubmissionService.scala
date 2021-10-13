@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Format, JsResult, JsValue, Json}
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
@@ -28,8 +30,13 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
-class VariationSubmissionService(implicit mc: MongoConnector, ec: ExecutionContext)
-    extends ReactiveRepository[VariationWrapper, String]("variations", mc.db, VariationWrapper.format, implicitly) {
+@Singleton
+class VariationSubmissionService @Inject()(implicit mc: ReactiveMongoComponent, ec: ExecutionContext)
+    extends ReactiveRepository[VariationWrapper, String](
+      "variations",
+      mc.mongoConnector.db,
+      VariationWrapper.format,
+      implicitly) {
 
   def save(variation: VariationsRequest, sdilRef: String): Future[Unit] =
     insert(VariationWrapper(variation, sdilRef)) map { _ =>

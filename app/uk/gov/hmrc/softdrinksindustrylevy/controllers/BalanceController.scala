@@ -27,11 +27,13 @@ import sdil.models.des._
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent._
 import scala.util.Random
 
-class BalanceController(
+@Singleton
+class BalanceController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val cc: ControllerComponents
@@ -150,14 +152,18 @@ object BalanceController {
         (main, sub) match {
           case (4810, 1540) =>
             deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(
-              ReturnChargeInterest,
+              ReturnChargeInterest.apply,
               in.accruedInterest)
           case (4815, 2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
           case (4820, 1540) =>
-            deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest, in.accruedInterest)
+            deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(
+              CentralAsstInterest.apply,
+              in.accruedInterest)
           case (4825, 2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
           case (4830, 1540) =>
-            deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest, in.accruedInterest)
+            deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(
+              OfficerAsstInterest.apply,
+              in.accruedInterest)
           case (4835, 2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
           case (60, 100) if in.contractAccountCategory == "32".some =>
             PaymentOnAccount(

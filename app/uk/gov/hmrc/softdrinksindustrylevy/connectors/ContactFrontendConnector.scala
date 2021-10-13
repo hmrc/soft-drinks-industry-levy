@@ -16,19 +16,22 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.{Instant, LocalDateTime, ZoneId}
+import com.google.inject.{Inject, Singleton}
 
+import java.time.{Instant, LocalDateTime, ZoneId}
 import play.api.Configuration
 import play.api.Mode
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionFormat
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContactFrontendConnector(http: HttpClient, val mode: Mode, val configuration: Configuration)
+@Singleton
+class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val configuration: Configuration)
     extends ServicesConfig(configuration) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")

@@ -16,18 +16,20 @@
 
 package sdil.models.des
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
 
-class DesFinancialDataSpec extends FlatSpec with Matchers with ScalaCheckPropertyChecks {
+class DesFinancialDataSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
-  "A FinancialDataResponse" should "be readable from DES's sample record" in {
-    val stream = getClass.getResourceAsStream("/des-financial-data.sample.json")
-    import FinancialTransaction._
+  "A FinancialDataResponse" should {
+    "be readable from DES's sample record" in {
+      val stream = getClass.getResourceAsStream("/des-financial-data.sample.json")
+      import FinancialTransaction._
 
-    val obj = Json.parse(stream).as[FinancialTransactionResponse]
-    obj.idType == "ZSDIL"
+      val obj = Json.parse(stream).as[FinancialTransactionResponse]
+      obj.idType == "ZSDIL"
+    }
   }
-
 }

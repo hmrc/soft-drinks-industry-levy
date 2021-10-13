@@ -16,21 +16,37 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import org.mockito.Mockito.when
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json.Json
+import play.modules.reactivemongo.ReactiveMongoComponent
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.play.test.UnitSpec
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.validCreateSubscriptionRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subReads
-import uk.gov.hmrc.softdrinksindustrylevy.util.MongoConnectorCustom
+import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
-class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAndAfterEach with MongoConnectorCustom {
+class SdilPersistenceSpec
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterAll with ScalaCheckPropertyChecks
+    with BeforeAndAfterEach with MongoConnectorCustom {
+
+  implicit val defaultTimeout: FiniteDuration = 5 seconds
+
+  def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
   implicit val readsSubscription = subReads
-  val service = new SdilMongoPersistence(mongoConnector)
+
+  val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
+  when(mc.mongoConnector).thenReturn(mongoConnector)
+  val service = new SdilMongoPersistence(mc)
 
   val sDbReturns = service.returns
   val sDbSubscriptions = service.subscriptions
@@ -54,7 +70,7 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
       val result = await(sSubscriptionsMongo.find()).toString
 
       Seq(utr, subscription.orgName, subscription.utr, "Wrapper").foreach(testFor =>
-        result.contains(testFor.toString) shouldBe true)
+        result.contains(testFor.toString) mustBe true)
     }
 
     "insert => allow for duplicate submissions" in {
@@ -63,7 +79,7 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
 
       val result = await(sSubscriptionsMongo.find())
 
-      result.size shouldBe 2
+      result.size mustBe 2
     }
 
     "list => find all subscriptions for given utr" in {
@@ -72,14 +88,14 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
       await(sDbSubscriptions.insert(utr, subscription))
 
       val result = await(sDbSubscriptions.list(utr))
-      result.size shouldBe 3
+      result.size mustBe 3
     }
 
     "list => get 0 results when no results for specified utr" in {
       await(sDbSubscriptions.insert(utr, subscription))
 
       val result = await(sDbSubscriptions.list("otherUtr"))
-      result.size shouldBe 0
+      result.size mustBe 0
     }
   }
 
@@ -92,7 +108,7 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
 
       val result = await(sReturnsMongo.find()).toString
 
-      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor => result.contains(testFor.toString) shouldBe true)
+      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor => result.contains(testFor.toString) mustBe true)
     }
 
     "update => successfully updated the record" in {
@@ -100,10 +116,10 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
       await(sDbReturns.update(utr, returnPeriod, sdilReturn))
 
       val result = await(sReturnsMongo.find())
-      result.size shouldBe 1
+      result.size mustBe 1
 
       Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor =>
-        result.toString.contains(testFor.toString) shouldBe true)
+        result.toString.contains(testFor.toString) mustBe true)
     }
 
     "get => successfully get Tuple(sdilReturn, BsonObjectId) when matching utr & returnPeriod" in {
@@ -111,8 +127,8 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
 
       val result = await(sDbReturns.get(utr, returnPeriod)).get
 
-      result._1 shouldBe sdilReturn
-      result._2.isDefined shouldBe true
+      result._1 mustBe sdilReturn
+      result._2.isDefined mustBe true
     }
 
     "get => if exists get first from collection" in {
@@ -121,14 +137,14 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
 
       val result = await(sDbReturns.get(utr, returnPeriod)).get
 
-      result._1 shouldBe sdilReturn
-      result._2.isDefined shouldBe true
+      result._1 mustBe sdilReturn
+      result._2.isDefined mustBe true
     }
 
     "get => None when match not found" in {
       val result = await(sDbReturns.get(utr, returnPeriod))
 
-      result.isDefined shouldBe false
+      result.isDefined mustBe false
     }
 
     "list => get all results that match a given UTR but exclusively: (1/returnperiod, returning the latest submitted)" in {
@@ -137,13 +153,13 @@ class SdilPersistenceSpec extends UnitSpec with BeforeAndAfterAll with BeforeAnd
       await(sDbReturns.update(utr, returnPeriod, sdilReturn))
 
       val result = await(sDbReturns.list(utr))
-      result.size shouldBe 2
-      result.get(returnPeriod).get.ownBrand shouldBe sdilReturn.ownBrand
+      result.size mustBe 2
+      result.get(returnPeriod).get.ownBrand mustBe sdilReturn.ownBrand
     }
 
     "list => get all" in {
       val result = await(sDbReturns.list(utr))
-      result.size shouldBe 0
+      result.size mustBe 0
     }
   }
 }

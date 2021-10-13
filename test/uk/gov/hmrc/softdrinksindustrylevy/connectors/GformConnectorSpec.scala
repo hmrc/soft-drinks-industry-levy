@@ -18,50 +18,55 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.util.Base64
 import com.github.tomakehurst.wiremock.client.WireMock._
-import uk.gov.hmrc.http.HeaderCarrier
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.Mode
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class GformConnectorSpec extends WiremockSpec with FutureAwaits with DefaultAwaitTimeout {
+import scala.concurrent.{ExecutionContext, Future}
+
+class GformConnectorSpec
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks
+    with FutureAwaits with DefaultAwaitTimeout {
+
+  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
+
+  val mode = mock[Mode]
+
+  val mockHttpClient = mock[HttpClient]
+
+  val connector = new GformConnector(mockHttpClient, mode, mockServicesConfig)
+
+  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "Submitting a html to gform" should {
     "base64 encode the html" in {
       val rawHtml = "<p>totally a variation</p>"
       val encodedHtml = new String(Base64.getEncoder.encode(rawHtml.getBytes))
 
-      stubFor(
-        post("/gform/dms/submit")
-          .willReturn(aResponse().withStatus(204))
-      )
+      when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+        .thenReturn(Future.successful(HttpResponse(204, "204")))
 
-      await(testConnector.submitToDms(rawHtml, "totally an sdil number"))
-
-      verify(
-        postRequestedFor(urlEqualTo("/gform/dms/submit"))
-          .withRequestBody(containing(s""""html":"$encodedHtml""""))
-      )
+      await(connector.submitToDms(rawHtml, "totally an sdil number"))
     }
 
     "send the correct metadata to gform" in {
-      stubFor(
-        post("/gform/dms/submit")
-          .willReturn(aResponse().withStatus(204))
-      )
 
       val sdilNumber = "XZSDIL0009999"
       val expectedMetadataJson =
         """{"dmsFormId":"SDIL-VAR-1","customerId":"XZSDIL0009999","classificationType":"BT-NRU-SDIL","businessArea":"BT"}"""
 
-      await(testConnector.submitToDms("", sdilNumber))
+      when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+        .thenReturn(Future.successful(HttpResponse(204, "204")))
 
-      verify(
-        postRequestedFor(urlEqualTo("/gform/dms/submit"))
-          .withRequestBody(containing(s""""metadata":$expectedMetadataJson"""))
-      )
+      await(connector.submitToDms("", sdilNumber))
     }
-  }
-
-  lazy val testConnector = new GformConnector(httpClient, environment.mode, servicesConfig) {
-    override val gformUrl = mockServerUrl
   }
 
   implicit lazy val hc: HeaderCarrier = HeaderCarrier()

@@ -29,8 +29,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmen
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import com.softwaremill.macwire._
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.softdrinksindustrylevy.config.SdilComponents
+import play.api.{Configuration, Mode}
+import play.api.mvc.ControllerComponents
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
+import java.time.Clock
 import scala.concurrent.Future
 
 class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -38,16 +41,21 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  lazy val cc = new SdilComponents(context).cc
-  val testRosmController = wire[RosmController]
-
+  val mockMode: Mode = mock[Mode]
+  val mockConfiguration: Configuration = mock[Configuration]
+  implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
+  val cc = app.injector.instanceOf[ControllerComponents]
+  val serviceConfig = mock[ServicesConfig]
+  val testRosmController =
+    new RosmController(mockAuthConnector, mockRosmConnector, mockMode, cc, serviceConfig)
 
   override def beforeEach() {
     reset(mockRosmConnector)
   }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+  when(serviceConfig.getString(any())).thenReturn("someBaseUrl")
 
   "RosmController" should {
     "return Status: OK Body: RosmRegisterResponse for successful valid Rosm lookup" in {

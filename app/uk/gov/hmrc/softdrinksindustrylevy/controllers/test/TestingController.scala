@@ -24,7 +24,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilPers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TestingController(
+import com.google.inject.{Inject, Singleton}
+
+@Singleton
+class TestingController @Inject()(
   override val messagesApi: MessagesApi,
   testConnector: TestConnector,
   buffer: MongoBufferService,

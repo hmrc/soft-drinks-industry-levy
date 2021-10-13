@@ -24,8 +24,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
+import com.google.inject.{Inject, Singleton}
 
-class TaxEnrolmentConnector(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+@Singleton
+class TaxEnrolmentConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val logger: Logger = Logger(this.getClass)
   val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Mode
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
@@ -31,18 +32,19 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class TaxEnrolmentCallbackController(
+@Singleton
+class TaxEnrolmentCallbackController @Inject()(
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   taxEnrolments: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
-  val configuration: Configuration,
+  val configuration: ServicesConfig,
   auditing: AuditConnector)
     extends BackendController(cc) {
 
   lazy val logger = Logger(this.getClass)
-  val serviceConfig = new ServicesConfig(configuration)
+  val serviceConfig: ServicesConfig = configuration
 
   def callback(formBundleNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackNotification] { body =>
@@ -97,7 +99,6 @@ class TaxEnrolmentCallbackController(
 
   private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String)(
     implicit hc: HeaderCarrier) = {
-    implicit val callbackFormat: OWrites[CallbackNotification] = Json.writes[CallbackNotification]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
       "url"            -> s"${serviceConfig.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",
