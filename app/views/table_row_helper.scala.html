@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *@
+@import views.util.ViewsUtils
 
 @(questionKey: String, rowData: String)(implicit messages: Messages)
 <tr>
@@ -20,6 +21,6 @@
         @Messages(s"variations.$questionKey")
     </td>
     <td>
-        @Html(rowData)
+        @Html(ViewUtils.htmlUnescape(rowData))
     </td>
 </tr>
