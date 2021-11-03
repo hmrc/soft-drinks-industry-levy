@@ -19,15 +19,19 @@ package views.util
 object ViewsUtils {
 
   def htmlUnescape(str: String): String = str match {
-    case s if s.indexOf("&") > 0  => s.replace("&", "&amp;")
-    case s if s.indexOf("<") > 0  => s.replace("<", "&lt;")
-    case s if s.indexOf(">") > 0  => s.replace(">", "&gt;")
-    case s if s.indexOf("£") > 0  => s.replace(">", "&pound;")
-    case s if s.indexOf("\"") > 0 => s.replace("\"", "&quot;")
-    case s if s.indexOf("\'") > 0 => s.replace("\'", "&apos;")
-    case s if s.indexOf("©'") > 0 => s.replace("©", "&copy;")
-    case s if s.indexOf("®") > 0  => s.replace("®", "&reg;")
+    case s if s.indexOf("&") >= 0 => s.replace("&", "&amp;")
+    case s if s.indexOf("<") >= 0  => s.replace("<", "&lt;")
+    case s if s.indexOf(">") >= 0  => s.replace(">", "&gt;")
+    case s if s.indexOf("£") >= 0  => s.replace(">", "&pound;")
+    case s if s.indexOf("\"") >= 0 => s.replace("\"", "&quot;")
+    case s if s.indexOf("\'") >= 0 => s.replace("\'", "&apos;")
+    case s if s.indexOf("©'") >= 0 => s.replace("©", "&copy;")
+    case s if s.indexOf("®") >= 0  => s.replace("®", "&reg;")
     case _                        => str
   }
 
+  def main(args: Array[String]): Unit = {
+    val str = "& co ltd"
+    println(htmlUnescape(str))
+  }
 }
