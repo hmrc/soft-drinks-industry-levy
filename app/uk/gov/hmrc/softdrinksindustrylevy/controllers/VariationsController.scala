@@ -43,7 +43,6 @@ class VariationsController @Inject()(
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
-      logger.info(s"VariationsController:: generateVariations:: Before encoding html page = $page")
       for {
         _ <- gforms.submitToDms(page, sdilNumber)
         _ <- variationSubmissions.save(data, sdilNumber)
@@ -54,7 +53,6 @@ class VariationsController @Inject()(
   def returnsVariation(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[ReturnsVariationRequest] { data =>
       val page = views.html.returns_variation_pdf(data, sdilNumber).toString
-      logger.info(s"VariationsController:: returnsVariation:: Before encoding html page = $page")
       for {
         _ <- gforms.submitToDms(page, sdilNumber)
         _ <- returnSubmission.save(data, sdilNumber)
@@ -67,7 +65,6 @@ class VariationsController @Inject()(
       withJsonBody[ReturnVariationData] { data =>
         logger.info("SDIL return variation sent to DMS queue")
         val page = views.html.return_variation_pdf(data, sdilRef).toString
-        logger.info(s"VariationsController:: varyReturn:: Before encoding html page = $page")
         for {
           _ <- gforms.submitToDms(page, sdilRef)
           _ <- returnsAdjustmentSubmissionService.save(data, sdilRef)
