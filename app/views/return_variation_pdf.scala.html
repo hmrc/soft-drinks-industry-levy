@@ -16,70 +16,10 @@
 
 @import sdil.models.ReturnVariationData
 @(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages)
-
-<div>
-    <div id="service-info">
-        <div id="service-info-logo">
-            <span id="service-info-logo-image">@Messages("variations.hmrc")</span>
-            <p>@Messages("variations.sdil.header")</p>
-        </div>
-        <p class="internal-hmrc">@Messages("variations.internal-hmrc-copy")</p>
-    </div>
-</div>
-
-<h1>
-@Messages("variations.internal-information")
-</h1>
-<p>
-@Messages("variations.return.guidance.p1")
-</p>
-
-@table_helper("sdil-number") {
-    @table_row_helper("sdil-number", sdilNumber)
-}
-
-@table_helper("sdil-business-details") {
-    @table_row_helper("sdil-orgName", variation.orgName)
-    @table_row_helper("address-line-1", variation.address.lines(0))
-    @table_row_helper("address-line-2", variation.address.lines(1))
-    @if(variation.address.lines.size >= 3) {
-        @table_row_helper("address-line-3", variation.address.lines(2))
-    }
-    @if(variation.address.lines.size >= 4) {
-        @table_row_helper("address-line-4", variation.address.lines(3))
-    }
-    @table_row_helper("address-postcode", variation.address.postCode)
-}
-
-@table_helper("return-period") {
-    <tr><td colspan="2">@variation.period.pretty</td></tr>
-}
-
-@table_helper("return-reason") {
-    <tr><td colspan="2">@variation.reason</td></tr>
-}
-
-@table_helper("return-value") {
-    @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
-    @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
-    @if(variation.revised.total - variation.original.total < 0) {
-        @table_row_helper("change", s"-&pound;${(variation.revised.total - variation.original.total).abs.formatted("%,1.2f")}")
-    } else {
-        @table_row_helper("change", s"&pound;${(variation.revised.total - variation.original.total).formatted("%,1.2f")}")
-    }
-}
-
-@variation.repaymentMethod.map { method =>
-    @table_helper("return-repayment-method") {
-        @table_row_helper("return-repayment-method.subtitle", Messages(s"variations.return-repayment-method.$method"))
-    }
-}
-
-@table_helper("declaration") {
-    @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))
-}
-
-<style>
+<!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
+<html>
+<head>
+    <style>
         h2 {
             page-break-inside: avoid;
         }
@@ -137,4 +77,57 @@
         table {
             border-collapse: collapse;
         }
-</style>
+    </style>
+</head>
+<body>
+    <div>
+        <div id="service-info">
+            <div id="service-info-logo">
+                <span id="service-info-logo-image">@Messages("variations.hmrc")</span>
+                <p>@Messages("variations.sdil.header")</p>
+            </div>
+            <p class="internal-hmrc">@Messages("variations.internal-hmrc-copy")</p>
+        </div>
+    </div>
+    <h1>@Messages("variations.internal-information")</h1>
+    <p>@Messages("variations.return.guidance.p1")</p>
+    @table_helper("sdil-number") {
+        @table_row_helper("sdil-number", sdilNumber)
+    }
+    @table_helper("sdil-business-details") {
+        @table_row_helper("sdil-orgName", variation.orgName)
+        @table_row_helper("address-line-1", variation.address.lines(0))
+        @table_row_helper("address-line-2", variation.address.lines(1))
+        @if(variation.address.lines.size >= 3) {
+            @table_row_helper("address-line-3", variation.address.lines(2))
+        }
+        @if(variation.address.lines.size >= 4) {
+            @table_row_helper("address-line-4", variation.address.lines(3))
+        }
+        @table_row_helper("address-postcode", variation.address.postCode)
+    }
+    @table_helper("return-period") {
+        <tr><td colspan="2">@variation.period.pretty</td></tr>
+    }
+    @table_helper("return-reason") {
+        <tr><td colspan="2">@variation.reason</td></tr>
+    }
+    @table_helper("return-value") {
+        @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
+        @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
+        @if(variation.revised.total - variation.original.total < 0) {
+            @table_row_helper("change", s"-&pound;${(variation.revised.total - variation.original.total).abs.formatted("%,1.2f")}")
+        } else {
+            @table_row_helper("change", s"&pound;${(variation.revised.total - variation.original.total).formatted("%,1.2f")}")
+        }
+    }
+    @variation.repaymentMethod.map { method =>
+        @table_helper("return-repayment-method") {
+            @table_row_helper("return-repayment-method.subtitle", Messages(s"variations.return-repayment-method.$method"))
+        }
+    }
+    @table_helper("declaration") {
+        @table_row_helper("declaration.status", Messages("variations.declaration.authorised-official"))
+    }
+</body>
+</html>

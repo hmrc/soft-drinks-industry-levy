@@ -15,12 +15,11 @@
  *@
 
 @(questionKey: String, rowData: String)(implicit messages: Messages)
-
 <tr>
     <td>
         @Messages(s"variations.$questionKey")
     </td>
     <td>
-        @Html(rowData)
+        @rowData
     </td>
 </tr>
