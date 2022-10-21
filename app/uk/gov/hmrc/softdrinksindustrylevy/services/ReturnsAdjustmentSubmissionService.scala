@@ -22,7 +22,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.ReturnVariationData
-import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
+import uk.gov.hmrc.mongo.ReactiveRepository
 import com.google.inject.{Inject, Singleton}
 import play.modules.reactivemongo.ReactiveMongoComponent
 

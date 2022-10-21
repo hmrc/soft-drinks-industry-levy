@@ -102,14 +102,13 @@ class MongoBufferServiceSpec
 
   "find overdue method" should {
     "retrieve no records if  created Before criteria is not met" in {
-      await(service.insert(subscriptionWrapper))//created date 20 oct
+      await(service.insert(subscriptionWrapper)) //created date 20 oct
       val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve no records if  created Before criteria is met but status is not pending" in {
-      await(service.insert(subscriptionWrapper.copy(status = "finished",
-        timestamp = Instant.ofEpochMilli(1666089585))))//created date 18 oct
+      await(service.insert(subscriptionWrapper.copy(status = "finished", timestamp = Instant.ofEpochMilli(1666089585)))) //created date 18 oct
       val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
       items mustBe Seq.empty
     }
@@ -119,7 +118,7 @@ class MongoBufferServiceSpec
       await(
         service.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1666089585),//created date 18 oct
+            timestamp = Instant.ofEpochMilli(1666089585), //created date 18 oct
             _id = "SubscriptionWrapperId2",
             subscription = subscription.copy(sdilRef = Some(sdilRef1)))))
       val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
