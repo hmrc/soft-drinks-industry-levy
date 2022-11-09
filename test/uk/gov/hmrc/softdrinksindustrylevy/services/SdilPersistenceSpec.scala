@@ -17,12 +17,15 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.mockito.Mockito.when
+import org.mongodb.scala.MongoDatabase
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json.Json
-import play.modules.reactivemongo.ReactiveMongoComponent
 import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.validCreateSubscriptionRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subReads
@@ -35,8 +38,8 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class SdilPersistenceSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterAll with ScalaCheckPropertyChecks
-    with BeforeAndAfterEach with MongoConnectorCustom {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[SubscriptionWrap] with MockitoSugar with BeforeAndAfterAll
+    with ScalaCheckPropertyChecks {
 
   implicit val defaultTimeout: FiniteDuration = 5 seconds
 
@@ -44,20 +47,9 @@ class SdilPersistenceSpec
 
   implicit val readsSubscription = subReads
 
-  val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
-  when(mc.mongoConnector).thenReturn(mongoConnector)
-  val service = new SdilMongoPersistence(mc)
+  val repository = new SdilMongoPersistence(mongoComponent)
 
-  val sDbReturns = service.returns
-  val sDbSubscriptions = service.subscriptions
-
-  val sReturnsMongo = service.returns.returnsMongo
-  val sSubscriptionsMongo = service.subscriptions.subscriptionsMongo
-
-  override def beforeEach() {
-    sReturnsMongo.drop
-    sSubscriptionsMongo.drop
-  }
+  val sSubscriptionsMongo = repository.collection
 
   val utr = "7674173564"
 
@@ -65,101 +57,38 @@ class SdilPersistenceSpec
     val subscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get
 
     "insert => successfully insert subscription" in {
-      await(sDbSubscriptions.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
 
-      val result = await(sSubscriptionsMongo.find()).toString
+      val result = await(sSubscriptionsMongo.find().toFuture()).toString
 
-      Seq(utr, subscription.orgName, subscription.utr, "Wrapper").foreach(testFor =>
+      Seq(utr, subscription.orgName, subscription.utr, "Wrap").foreach(testFor =>
         result.contains(testFor.toString) mustBe true)
     }
 
     "insert => allow for duplicate submissions" in {
-      await(sDbSubscriptions.insert(utr, subscription))
-      await(sDbSubscriptions.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
 
-      val result = await(sSubscriptionsMongo.find())
+      val result = await(sSubscriptionsMongo.find().toFuture())
 
       result.size mustBe 2
     }
 
     "list => find all subscriptions for given utr" in {
-      await(sDbSubscriptions.insert(utr, subscription))
-      await(sDbSubscriptions.insert(utr, subscription))
-      await(sDbSubscriptions.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
 
-      val result = await(sDbSubscriptions.list(utr))
+      val result = await(repository.list(utr))
       result.size mustBe 3
     }
 
     "list => get 0 results when no results for specified utr" in {
-      await(sDbSubscriptions.insert(utr, subscription))
+      await(repository.insert(utr, subscription))
 
-      val result = await(sDbSubscriptions.list("otherUtr"))
+      val result = await(repository.list("otherUtr"))
       result.size mustBe 0
     }
   }
 
-  "SdilMongoPersistence.returns" should {
-    val returnPeriod = new ReturnPeriod(2018, 1)
-    val sdilReturn = SdilReturn((3, 3), (3, 3), Nil, (3, 3), (3, 3), (3, 3), (3, 3), None)
-
-    "update => create if one does not exist successfully saves new record" in {
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-
-      val result = await(sReturnsMongo.find()).toString
-
-      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor => result.contains(testFor.toString) mustBe true)
-    }
-
-    "update => successfully updated the record" in {
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-
-      val result = await(sReturnsMongo.find())
-      result.size mustBe 1
-
-      Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor =>
-        result.toString.contains(testFor.toString) mustBe true)
-    }
-
-    "get => successfully get Tuple(sdilReturn, BsonObjectId) when matching utr & returnPeriod" in {
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-
-      val result = await(sDbReturns.get(utr, returnPeriod)).get
-
-      result._1 mustBe sdilReturn
-      result._2.isDefined mustBe true
-    }
-
-    "get => if exists get first from collection" in {
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (123, 123))))
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-
-      val result = await(sDbReturns.get(utr, returnPeriod)).get
-
-      result._1 mustBe sdilReturn
-      result._2.isDefined mustBe true
-    }
-
-    "get => None when match not found" in {
-      val result = await(sDbReturns.get(utr, returnPeriod))
-
-      result.isDefined mustBe false
-    }
-
-    "list => get all results that match a given UTR but exclusively: (1/returnperiod, returning the latest submitted)" in {
-      await(sDbReturns.update(utr, returnPeriod.copy(year = 9999), sdilReturn))
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (1230000, 123))))
-      await(sDbReturns.update(utr, returnPeriod, sdilReturn))
-
-      val result = await(sDbReturns.list(utr))
-      result.size mustBe 2
-      result.get(returnPeriod).get.ownBrand mustBe sdilReturn.ownBrand
-    }
-
-    "list => get all" in {
-      val result = await(sDbReturns.list(utr))
-      result.size mustBe 0
-    }
-  }
 }

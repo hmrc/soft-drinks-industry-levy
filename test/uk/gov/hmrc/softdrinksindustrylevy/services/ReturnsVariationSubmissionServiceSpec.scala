@@ -17,11 +17,13 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.mockito.Mockito.when
+import org.mongodb.scala.MongoDatabase
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.BSONObjectID
+import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress}
 import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
 
@@ -31,15 +33,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class ReturnsVariationSubmissionServiceSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures with MongoConnectorCustom {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsVariationWrapper] with MockitoSugar
+    with BeforeAndAfterEach with ScalaFutures {
 
   implicit val defaultTimeout: FiniteDuration = 5.seconds
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
-  when(mc.mongoConnector).thenReturn(mongoConnector)
-  private val service: ReturnsVariationSubmissionService = new ReturnsVariationSubmissionService()
+  val repository: ReturnsVariationSubmissionService = new ReturnsVariationSubmissionService(mongoComponent)
   val address = UkAddress(List("My House", "My Lane"), "AA111A")
   val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
   val returnVariationRequest =
@@ -57,41 +58,36 @@ class ReturnsVariationSubmissionServiceSpec
   val sdilRef = "XCSDIL000000000"
   val sdilRef1 = "XCSDIL000000001"
 
-  override def beforeEach() {
-    service.drop
-  }
-
   "save method" should {
     " successfully save the data within ReturnsVariationWrapper" in {
-      await(service.save(returnVariationRequest, sdilRef))
-      val storedItem = await(service.find()).head
+      await(repository.save(returnVariationRequest, sdilRef))
+      val storedItem = await(repository.collection.find().toFuture()).head
       storedItem.isInstanceOf[ReturnsVariationWrapper] mustBe true
       storedItem.submission mustBe returnVariationRequest
       storedItem.sdilRef mustBe sdilRef
-      storedItem._id.isInstanceOf[BSONObjectID] mustBe true
       storedItem.timestamp.isInstanceOf[Instant] mustBe true
     }
   }
 
   "get method" should {
     "retrieve None when there are no records in the db" in {
-      val storedItem = await(service.get(sdilRef))
+      val storedItem = await(repository.get(sdilRef))
       storedItem mustBe None
     }
 
     "retrieve One record that matches the sdilRef " in {
       val tradingNameToCompare: String = "checkOrderOfThisObjectCreationUsingThis"
-      await(service.save(returnVariationRequest, sdilRef))
-      await(service.save(returnVariationRequest.copy(orgName = tradingNameToCompare), sdilRef1))
-      val storedItem = await(service.get(sdilRef)).get
+      await(repository.save(returnVariationRequest, sdilRef))
+      await(repository.save(returnVariationRequest.copy(orgName = tradingNameToCompare), sdilRef1))
+      val storedItem = await(repository.get(sdilRef)).get
       storedItem mustBe returnVariationRequest
     }
 
     "retrieve the first record if more than one records are found (sorted by timestamp descending)" in {
       val tradingNameToCompare: String = "checkOrderOfThisObjectCreationUsingThis"
-      await(service.save(returnVariationRequest, sdilRef))
-      await(service.save(returnVariationRequest.copy(orgName = tradingNameToCompare), sdilRef))
-      val storedItem = await(service.get(sdilRef)).get
+      await(repository.save(returnVariationRequest, sdilRef))
+      await(repository.save(returnVariationRequest.copy(orgName = tradingNameToCompare), sdilRef))
+      val storedItem = await(repository.get(sdilRef)).get
       storedItem.orgName mustBe tradingNameToCompare
     }
   }

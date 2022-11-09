@@ -28,7 +28,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilPersistence
+import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
+
 import java.time._
 import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
@@ -37,7 +38,8 @@ import com.google.inject.{Inject, Singleton}
 class ReturnsController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
-  val persistence: SdilPersistence,
+  val persistence: SdilMongoPersistence,
+  val returns: ReturnsPersistence,
   auditing: AuditConnector,
   val cc: ControllerComponents
 )(implicit ec: ExecutionContext)
@@ -55,7 +57,7 @@ class ReturnsController @Inject()(
       val period = ReturnPeriod(year, quarter)
       for {
         sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
-        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
           b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
@@ -118,7 +120,7 @@ class ReturnsController @Inject()(
                       "SUCCESS")
                   )
                 )
-            _ <- persistence.returns(utr, period) = sdilReturn
+            _ <- returns(utr, period) = sdilReturn
           } yield {
             Ok(Json.toJson(returnsReq))
           }).recoverWith {
@@ -138,11 +140,9 @@ class ReturnsController @Inject()(
 
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async {
-      persistence.returns.get(utr, ReturnPeriod(year, quarter)).map {
-        case Some((record, objectID)) =>
-          Ok(Json.toJson(record.copy(submittedOn = objectID.map {
-            _.time.asMilliseconds
-          })))
+      returns.get(utr, ReturnPeriod(year, quarter)).map {
+        case Some((record)) =>
+          Ok(Json.toJson(record))
         case None => NotFound
       }
     }
@@ -174,7 +174,7 @@ class ReturnsController @Inject()(
           .filter {
             _.end.isBefore(LocalDate.now())
           }
-        persistence.returns.list(utr).map { posted =>
+        returns.list(utr).map { posted: Map[ReturnPeriod, SdilReturn] =>
           Ok(Json.toJson(all.toList diff posted.keys.toList))
         }
       }
@@ -182,7 +182,7 @@ class ReturnsController @Inject()(
 
   def variable(utr: String): Action[AnyContent] =
     Action.async {
-      persistence.returns.listVariable(utr).map { posted =>
+      returns.listVariable(utr).map { posted =>
         Ok(Json.toJson(posted.keys.toList))
       }
     }

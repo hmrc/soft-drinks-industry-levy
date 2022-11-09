@@ -17,6 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import com.google.inject.{Inject, Singleton}
+import org.apache.commons.lang3.StringUtils
+import org.mongodb.scala.model.Filters
 import play.api.Mode
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
@@ -54,8 +56,8 @@ class TaxEnrolmentCallbackController @Inject()(
           pendingSub <- buffer.findById(teSub.etmpId)
           _          <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(
-                pendingSub.map(_.subscription.orgName),
-                pendingSub.map(_.subscription.contact.email),
+                pendingSub.subscription.orgName,
+                pendingSub.subscription.contact.email,
                 getSdilNumber(teSub),
                 formBundleNumber)
           _ <- auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
@@ -74,12 +76,12 @@ class TaxEnrolmentCallbackController @Inject()(
   }
 
   private def sendNotificationEmail(
-    orgName: Option[String],
-    email: Option[String],
+    orgName: String,
+    email: String,
     sdilNumber: Option[String],
     formBundleNumber: String)(implicit hc: HeaderCarrier): Future[Unit] =
     (orgName, email) match {
-      case (Some(o), Some(e)) =>
+      case (o, e) if StringUtils.isNoneEmpty(o) && StringUtils.isNoneEmpty(e) =>
         sdilNumber match {
           case Some(s) => emailConnector.sendConfirmationEmail(o, e, s)
           case None =>

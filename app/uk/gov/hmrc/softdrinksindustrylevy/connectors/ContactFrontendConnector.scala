@@ -36,7 +36,7 @@ class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val c
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)(
+  def raiseTicket(subscription: Subscription, safeId: String, timestamp: LocalDateTime)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] = {
 
@@ -57,7 +57,7 @@ class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val c
              |
              |Safe Id: $safeId
              |
-             |Submitted at: ${LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault)}
+             |Submitted at: ${LocalDateTime.now()}
            """.stripMargin
         ),
       "isJavascript" -> Seq("false"),

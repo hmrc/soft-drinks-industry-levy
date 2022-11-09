@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
   "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
   "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
-  "uk.gov.hmrc"                 %% "reactivemongo-test"  % "5.0.0-play-28",
+  "uk.gov.hmrc.mongo"           %% "hmrc-mongo-test-play-28"  % "0.73.0",
   "com.vladsch.flexmark"        % "flexmark-all"         % "0.36.8"
 ).map(_ % "test")
 
@@ -42,8 +42,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "util"                          % "2.3.7",
   "org.typelevel"             %% "cats-core"                     % "2.4.0",
   "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "5.12.0",
-  "uk.gov.hmrc"               %% "mongo-lock"                    % "7.0.0-play-28",
-  "uk.gov.hmrc"               %% "simple-reactivemongo"          % "8.0.0-play-28",
+    "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"            % "0.73.0",
   "org.scala-stm"             %% "scala-stm"                     % "0.9.1",
   compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
   "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full

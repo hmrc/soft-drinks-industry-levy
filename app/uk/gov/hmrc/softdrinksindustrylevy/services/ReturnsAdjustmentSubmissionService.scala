@@ -16,61 +16,49 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.Instant
-import play.api.libs.json.{Format, JsResult, JsValue, Json}
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONObjectID}
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import sdil.models.ReturnVariationData
-import uk.gov.hmrc.mongo.ReactiveRepository
 import com.google.inject.{Inject, Singleton}
-import play.modules.reactivemongo.ReactiveMongoComponent
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
+import play.api.libs.json.{Format, Json}
+import sdil.models.ReturnVariationData
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import java.time.Instant
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ReturnsAdjustmentSubmissionService @Inject()(implicit mc: ReactiveMongoComponent, ec: ExecutionContext)
-    extends ReactiveRepository[ReturnVariationWrapper, String](
-      "returnadjustments",
-      mc.mongoConnector.db,
-      ReturnVariationWrapper.format,
-      implicitly) {
+class ReturnsAdjustmentSubmissionService @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[ReturnVariationWrapper](
+      collectionName = "returnadjustments",
+      mongoComponent = mongo,
+      domainFormat = ReturnVariationWrapper.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("timestamp"),
+          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)),
+        IndexModel(Indexes.ascending("sdilRef"))
+      )
+    ) {
 
   def save(variation: ReturnVariationData, sdilRef: String): Future[Unit] =
-    insert(ReturnVariationWrapper(variation, sdilRef)) map { _ =>
+    collection.insertOne(ReturnVariationWrapper(variation, sdilRef)).toFuture() map { _ =>
       ()
     }
 
   def get(sdilRef: String): Future[Option[ReturnVariationData]] =
-    find("sdilRef" -> sdilRef).map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
+    collection
+      .find(
+        Filters.equal("sdilRef", sdilRef)
+      )
+      .toFuture()
+      .map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
 
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("timestamp" -> IndexType.Ascending),
-      name = Some("ttl"),
-      options = BSONDocument("expireAfterSeconds" -> (90 days).toSeconds)
-    )
-  )
 }
 
-case class ReturnVariationWrapper(
-  submission: ReturnVariationData,
-  sdilRef: String,
-  _id: BSONObjectID = BSONObjectID.generate(),
-  timestamp: Instant = Instant.now)
+case class ReturnVariationWrapper(submission: ReturnVariationData, sdilRef: String, timestamp: Instant = Instant.now)
 
 object ReturnVariationWrapper {
-  implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue =
-      Json.toJson(BSONDateTime(o.toEpochMilli))
-
-    override def reads(json: JsValue): JsResult[Instant] =
-      json.validate[BSONDateTime] map { dt =>
-        Instant.ofEpochMilli(dt.value)
-      }
-  }
-
   val format: Format[ReturnVariationWrapper] = Json.format[ReturnVariationWrapper]
 }

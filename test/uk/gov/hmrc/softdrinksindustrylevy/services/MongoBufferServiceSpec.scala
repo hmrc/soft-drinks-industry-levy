@@ -16,28 +16,35 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import org.mongodb.scala.{MongoCollection, MongoDatabase}
+import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.modules.reactivemongo.ReactiveMongoComponent
+import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
+import SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, InternalActivity, Site, Subscription, UkAddress}
 import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
-import java.time.Instant
-import java.time.LocalDate
+
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 class MongoBufferServiceSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures with MongoConnectorCustom {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[SubscriptionWrapper] with MockitoSugar
+    with BeforeAndAfterEach with ScalaFutures {
   implicit val defaultTimeout: FiniteDuration = 5.seconds
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
-  when(mc.mongoConnector).thenReturn(mongoConnector)
-  private val service = new MongoBufferService()
+  val repository = new MongoBufferService(mongoComponent)
 
   val testUtr = "testUtr"
   val testSdilRef = "someSdilRef"
@@ -74,26 +81,24 @@ class MongoBufferServiceSpec
     _id = "SubscriptionWrapperId1",
     subscription = subscription,
     formBundleNumber = "formBundle1",
-    timestamp = Instant.ofEpochMilli(1666262385) //20 oct 2022 10:39:45
+    timestamp = LocalDateTime.of(2022, 10, 20, 10, 30) //20 oct 2022 10:39:45
   )
-
-  override def beforeEach() {
-    service.drop
-  }
 
   "update status method" should {
 
-    "not set any collection document if record is not found" in {
-      await(service.insert(subscriptionWrapper))
-      await(service.updateStatus("SubscriptionWrapperId2", "finished"))
-      val itemFetched = await(service.find("status" -> "finished")).headOption
+    "not set any collection document if record is found" in {
+      await(repository.insert(subscriptionWrapper))
+      await(repository.updateStatus("SubscriptionWrapperId2", "finished"))
+
+      val itemFetched = await(repository.collection.find(Filters.equal("status", "finished")).headOption())
       itemFetched mustBe None
     }
 
     "update one record if found" in {
-      await(service.insert(subscriptionWrapper))
-      await(service.updateStatus("SubscriptionWrapperId1", "finished"))
-      val itemFetched = await(service.findById("SubscriptionWrapperId1")).get
+      await(repository.insert(subscriptionWrapper))
+      await(repository.updateStatus("SubscriptionWrapperId1", "finished"))
+      val itemFetched: SubscriptionWrapper =
+        await(repository.collection.find(Filters.equal("_id", "SubscriptionWrapperId1")).toFuture()).head
       itemFetched.subscription mustBe subscription
       itemFetched.status mustBe "finished"
     }
@@ -102,48 +107,51 @@ class MongoBufferServiceSpec
 
   "find overdue method" should {
     "retrieve no records if  created Before criteria is not met" in {
-      await(service.insert(subscriptionWrapper)) //created date 20 oct
-      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+      await(repository.insert(subscriptionWrapper)) //created date 20 oct
+      val items = await(repository.findOverdue(LocalDateTime.of(2022, 10, 19, 10, 30))) //find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve no records if  created Before criteria is met but status is not pending" in {
-      await(service.insert(subscriptionWrapper.copy(status = "finished", timestamp = Instant.ofEpochMilli(1666089585)))) //created date 18 oct
-      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+      await(
+        repository.insert(subscriptionWrapper
+          .copy(status = "finished", timestamp = LocalDateTime.of(2022, 10, 18, 10, 30)))) //created date 18 oct
+      val items = await(repository.findOverdue(LocalDateTime.of(2022, 10, 19, 10, 30))) //find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve one record if  created Before criteria is  met" in {
-      await(service.insert(subscriptionWrapper)) //created date of 20 oct
+      await(repository.insert(subscriptionWrapper)) //created date of 20 oct
       await(
-        service.insert(
+        repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1666089585), //created date 18 oct
+            timestamp = LocalDateTime.of(2022, 10, 18, 10, 30), //created date 18 oct
             _id = "SubscriptionWrapperId2",
-            subscription = subscription.copy(sdilRef = Some(sdilRef1)))))
-      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+            subscription = subscription.copy(sdilRef = Some(sdilRef1))
+          )))
+      val items = await(repository.findOverdue(LocalDateTime.of(2022, 10, 19, 10, 30))) //find before 19 oct
       items.size mustBe 1
       items.head.subscription.sdilRef.get mustBe sdilRef1
     }
 
     "retrieve more  record if  created Before criteria is  met" in {
-      await(service.insert(subscriptionWrapper)) //created date of 20 oct
+      await(repository.insert(subscriptionWrapper)) //created date of 20 oct
       await(
-        service.insert(
+        repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1666089585), //created date 18 oct
+            timestamp = LocalDateTime.of(2022, 10, 18, 10, 30), //created date 18 oct
             _id = "SubscriptionWrapperId2",
             subscription = subscription.copy(sdilRef = Some(sdilRef1)))))
       await(
-        service.insert(
+        repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1665484785), //created date 11 oct
+            timestamp = LocalDateTime.of(2022, 10, 11, 10, 30), //created date 11 oct
             _id = "SubscriptionWrapperId3",
             subscription = subscription.copy(sdilRef = Some(sdilRef2)))))
-      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+      val items = await(repository.findOverdue(LocalDateTime.of(2022, 10, 19, 10, 30))) //find before 19 oct
       items.size mustBe 2
-      items.map(_._id) mustBe Seq("SubscriptionWrapperId2", "SubscriptionWrapperId3")
-      items.map(_.subscription.sdilRef.get) mustBe Seq(sdilRef1, sdilRef2)
+      items.map(_._id) mustBe Seq("SubscriptionWrapperId3", "SubscriptionWrapperId2")
+      items.map(_.subscription.sdilRef.get) mustBe Seq(sdilRef2, sdilRef1)
     }
 
   }
