@@ -26,7 +26,7 @@ import uk.gov.hmrc.mongo.lock.{LockRepository, MongoLockRepository, TimePeriodLo
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 
 import java.time.{Instant, LocalDateTime}
-import java.time.temporal.ChronoUnit
+import java.time.temporal.{ChronoUnit, TemporalUnit}
 import scala.concurrent.duration.{FiniteDuration, MINUTES}
 import scala.concurrent.{ExecutionContext, Future, duration}
 
@@ -71,7 +71,7 @@ class OverdueSubmissionsChecker @Inject()(
 
   protected def runJob()(implicit ec: ExecutionContext): Future[Unit] =
     for {
-      subs <- mongoBufferService.findOverdue(LocalDateTime.now().minusMinutes(overduePeriod.getStandardMinutes))
+      subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.getStandardMinutes, ChronoUnit.MINUTES))
       _    <- handleOverdueSubmissions(subs)
     } yield logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
 

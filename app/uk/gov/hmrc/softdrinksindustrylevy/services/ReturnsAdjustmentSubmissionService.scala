@@ -22,6 +22,7 @@ import play.api.libs.json.{Format, Json}
 import sdil.models.ReturnVariationData
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 
 import java.time.Instant
 import scala.concurrent.duration._
@@ -60,5 +61,6 @@ class ReturnsAdjustmentSubmissionService @Inject()(mongo: MongoComponent)(implic
 case class ReturnVariationWrapper(submission: ReturnVariationData, sdilRef: String, timestamp: Instant = Instant.now)
 
 object ReturnVariationWrapper {
+  implicit val inf = instantFormat
   val format: Format[ReturnVariationWrapper] = Json.format[ReturnVariationWrapper]
 }

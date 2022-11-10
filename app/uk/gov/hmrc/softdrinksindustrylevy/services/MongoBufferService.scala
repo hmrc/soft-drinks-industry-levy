@@ -26,14 +26,10 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import com.google.inject.{Inject, Singleton}
-import org.mongodb.scala.bson.BsonDateTime
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Updates}
 import org.mongodb.scala.result.DeleteResult
-import play.api.libs.json.Format.GenericFormat
-import play.api.libs.json.OFormat.oFormatFromReadsAndOWrites
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.{Implicits, instantReads, instantWrites, localDateTimeReads, localDateTimeWrites}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.{Implicits, instantFormat, instantReads, instantWrites, localDateTimeReads, localDateTimeWrites}
 @Singleton
 class MongoBufferService @Inject()(
   mongoComponent: MongoComponent
@@ -61,7 +57,7 @@ class MongoBufferService @Inject()(
       ()
     }
 
-  def findOverdue(createdBefore: LocalDateTime)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+  def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
     collection
       .find(
         Filters.and(
@@ -91,12 +87,12 @@ case class SubscriptionWrapper(
   _id: String,
   subscription: Subscription,
   formBundleNumber: String,
-  timestamp: LocalDateTime = LocalDateTime.now,
+  timestamp: Instant = Instant.now,
   status: String = "PENDING")
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
-
+  implicit val inf = instantFormat
   implicit val localDateTimeFormat: Format[LocalDateTime] = new Format[LocalDateTime] {
     override def writes(o: LocalDateTime): JsValue = localDateTimeWrites.writes(o)
     override def reads(json: JsValue): JsResult[LocalDateTime] = localDateTimeReads.reads(json)

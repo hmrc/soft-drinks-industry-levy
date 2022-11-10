@@ -21,6 +21,7 @@ import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.ReturnsVariationRequest
 
 import java.time.Instant
@@ -61,6 +62,6 @@ case class ReturnsVariationWrapper(
   timestamp: Instant = Instant.now)
 
 object ReturnsVariationWrapper {
-
+  implicit val inf = instantFormat
   val format: Format[ReturnsVariationWrapper] = Json.format[ReturnsVariationWrapper]
 }
