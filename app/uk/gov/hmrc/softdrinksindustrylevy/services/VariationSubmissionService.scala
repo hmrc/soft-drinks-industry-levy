@@ -30,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.concurrent.{ExecutionContext => EC, _}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 
 @Singleton
 class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(implicit ec: EC)
@@ -63,5 +64,6 @@ class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(impli
 case class VariationWrapper(submission: VariationsRequest, sdilRef: String, timestamp: Instant = Instant.now)
 
 object VariationWrapper {
+  implicit val inf = instantFormat
   val format: Format[VariationWrapper] = Json.format[VariationWrapper]
 }
