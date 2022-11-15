@@ -159,7 +159,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
 
@@ -175,14 +175,14 @@ class RegistrationControllerSpec
         formBundleNumber)
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
 
       status(response) mustBe ACCEPTED
     }
 
     "return Status: OK for subscription for a sub that is in Des but is not in the pending queue (Mongo)" in {
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
@@ -205,7 +205,7 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
@@ -233,7 +233,7 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
@@ -261,7 +261,7 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
@@ -289,7 +289,7 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any())(any()))
@@ -312,7 +312,7 @@ class RegistrationControllerSpec
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.failed(new NotFoundException("foo"))
       )
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
@@ -321,7 +321,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
-      when(mockBuffer.find(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
       val deregisteredSubscription =
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))

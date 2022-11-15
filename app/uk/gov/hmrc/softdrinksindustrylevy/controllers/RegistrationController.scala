@@ -128,7 +128,7 @@ class RegistrationController @Inject()(
         case Some(s) if !s.isDeregistered =>
           logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
           logger.info("isDeregistered for subscription is " + s.isDeregistered)
-          buffer.find(utr) flatMap {
+          buffer.findByUtr(utr) flatMap {
             case Nil =>
               logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
               Future successful Ok(Json.toJson(s))
@@ -144,7 +144,7 @@ class RegistrationController @Inject()(
               }
           }
         case _ =>
-          buffer.find(utr) map {
+          buffer.findByUtr(utr) map {
             case Nil => NotFound
             case l :: _ =>
               Accepted(Json.toJson(l.subscription))

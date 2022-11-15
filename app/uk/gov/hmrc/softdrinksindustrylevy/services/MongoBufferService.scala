@@ -21,7 +21,8 @@ import play.api.libs.json._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
+import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -69,7 +70,7 @@ class MongoBufferService @Inject()(
   def insert(sub: SubscriptionWrapper)(implicit ec: ExecutionContext): Future[Unit] =
     collection.insertOne(sub).toFuture() map (_ => ())
 
-  def find(utr: String)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+  def findByUtr(utr: String)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
     collection.find(Filters.equal("utr", utr)).toFuture()
 
   def remove(utr: String)(implicit ec: ExecutionContext): Future[DeleteResult] =
@@ -93,10 +94,6 @@ case class SubscriptionWrapper(
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
   implicit val inf = instantFormat
-  implicit val localDateTimeFormat: Format[LocalDateTime] = new Format[LocalDateTime] {
-    override def writes(o: LocalDateTime): JsValue = localDateTimeWrites.writes(o)
-    override def reads(json: JsValue): JsResult[LocalDateTime] = localDateTimeReads.reads(json)
-  }
 
   val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]
 }
