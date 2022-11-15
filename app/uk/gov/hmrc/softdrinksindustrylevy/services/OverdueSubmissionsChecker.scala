@@ -17,36 +17,38 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import akka.actor.{ActorSystem, Cancellable}
+import com.google.inject.{Inject, Singleton}
 import org.joda.time.Duration
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.lock.{ExclusiveTimePeriodLock, LockMongoRepository, LockRepository}
-import uk.gov.hmrc.mongo.MongoConnector
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.lock.{LockRepository, MongoLockRepository, TimePeriodLockService}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-
-import com.google.inject.{Inject, Singleton}
+import java.time.{Instant, LocalDateTime}
+import java.time.temporal.{ChronoUnit, TemporalUnit}
+import scala.concurrent.duration.{FiniteDuration, MINUTES}
+import scala.concurrent.{ExecutionContext, Future, duration}
 
 @Singleton
 class OverdueSubmissionsChecker @Inject()(
-  val config: Configuration,
-  val mongoConnector: MongoConnector,
-  val actorSystem: ActorSystem,
+  val mongoLockRepository: MongoLockRepository,
   mongoBufferService: MongoBufferService,
-  contactFrontend: ContactFrontendConnector)(implicit ec: ExecutionContext)
-    extends LockedJobScheduler {
+  val config: Configuration,
+  val actorSystem: ActorSystem,
+  contactFrontend: ContactFrontendConnector)(implicit ec: ExecutionContext) {
+  val logger = Logger(this.getClass)
 
-  override val jobName: String = "overdueSubmissions"
+  val jobName: String = "overdueSubmissions"
 
-  override val jobEnabled: Boolean = {
-    config.getOptional[Boolean](s"$jobName.enabled").getOrElse(throw MissingConfiguration(s"$jobName.enabled"))
+  val jobEnabled: Boolean = {
+    config.getOptional[Boolean](s"$jobName.enabled") match {
+      case Some(value) => value
+      case None        => throw MissingConfiguration(s"$jobName.enabled")
+    }
   }
 
-  override val jobStartDelay: FiniteDuration = {
+  val jobStartDelay: FiniteDuration = {
     config.getOptional[Long](s"$jobName.startDelayMinutes") match {
       case Some(d) => FiniteDuration(d, MINUTES)
       case None    => throw MissingConfiguration(s"$jobName.startDelayMinutes")
@@ -60,14 +62,14 @@ class OverdueSubmissionsChecker @Inject()(
     }
   }
 
-  override val jobInterval: Duration = {
+  val jobInterval: Duration = {
     config.getOptional[Long](s"$jobName.jobIntervalMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }
   }
 
-  override protected def runJob()(implicit ec: ExecutionContext): Future[Unit] =
+  protected def runJob()(implicit ec: ExecutionContext): Future[Unit] =
     for {
       subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.getStandardMinutes, ChronoUnit.MINUTES))
       _    <- handleOverdueSubmissions(subs)
@@ -90,32 +92,17 @@ class OverdueSubmissionsChecker @Inject()(
   } else {
     logger.info(s"Job $jobName disabled")
   }
-}
 
-trait LockedJobScheduler {
-  val config: Configuration
-  val mongoConnector: MongoConnector
-  val actorSystem: ActorSystem
-  val jobName: String
-  val jobInterval: Duration
-  val jobStartDelay: FiniteDuration
-  val jobEnabled: Boolean
-  lazy val logger = Logger(this.getClass)
-
-  val lock: ExclusiveTimePeriodLock = new ExclusiveTimePeriodLock {
-    override def holdLockFor: Duration = jobInterval
-
-    override def repo: LockRepository = LockMongoRepository(mongoConnector.db)
-
-    override def lockId: String = jobName
+  val lock: TimePeriodLockService = new TimePeriodLockService {
+    override val lockRepository: LockRepository = mongoLockRepository
+    override val lockId: String = jobName
+    override val ttl: duration.Duration = FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
   }
-
-  protected def runJob()(implicit ec: ExecutionContext): Future[Unit]
 
   private def run()(implicit ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Running job $jobName")
 
-    lock.tryToAcquireOrRenewLock {
+    lock.withRenewedLock {
       runJob() recoverWith {
         case e: Exception =>
           logger.error(s"Job $jobName failed", e)

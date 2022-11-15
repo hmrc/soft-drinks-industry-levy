@@ -19,7 +19,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
-import reactivemongo.api.commands.LastError
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
@@ -32,9 +31,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.google.inject.{Inject, Singleton}
+import org.mongodb.scala.DuplicateKeyException
 
 @Singleton
 class RegistrationController @Inject()(
@@ -44,7 +45,7 @@ class RegistrationController @Inject()(
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   auditing: AuditConnector,
-  persistence: SdilPersistence,
+  persistence: SdilMongoPersistence,
   val cc: ControllerComponents)
     extends BackendController(cc) with AuthorisedFunctions {
 
@@ -69,7 +70,7 @@ class RegistrationController @Inject()(
           } yield {
             Ok(Json.toJson(res))
           }) recoverWith {
-            case e: LastError if e.code.contains(11000) => {
+            case e: DuplicateKeyException => {
               auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(
                   request.uri,
@@ -101,7 +102,7 @@ class RegistrationController @Inject()(
       val period = ReturnPeriod(year, quarter)
       for {
         sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
-        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
           b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
@@ -127,7 +128,7 @@ class RegistrationController @Inject()(
         case Some(s) if !s.isDeregistered =>
           logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
           logger.info("isDeregistered for subscription is " + s.isDeregistered)
-          buffer.find("subscription.utr" -> utr) flatMap {
+          buffer.findByUtr(utr) flatMap {
             case Nil =>
               logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
               Future successful Ok(Json.toJson(s))
@@ -143,7 +144,7 @@ class RegistrationController @Inject()(
               }
           }
         case _ =>
-          buffer.find("subscription.utr" -> utr) map {
+          buffer.findByUtr(utr) map {
             case Nil => NotFound
             case l :: _ =>
               Accepted(Json.toJson(l.subscription))
@@ -155,7 +156,7 @@ class RegistrationController @Inject()(
   private def checkEnrolmentState(utr: String, s: Subscription): TaxEnrolmentsSubscription => Future[Result] = {
     case a if a.state == "SUCCEEDED" =>
       logger.info("TE returned SUCCEEDED for subscription")
-      buffer.remove("subscription.utr" -> utr) map { _ =>
+      buffer.remove(utr) map { _ =>
         logger.info("deleting record from the buffer and returning OK & subscription json")
         Ok(Json.toJson(s))
       }

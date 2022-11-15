@@ -19,15 +19,19 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 import akka.actor.ActorSystem
 import org.mockito.ArgumentMatchers.{any, contains, eq => mEq}
 import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
-import uk.gov.hmrc.mongo.MongoConnector
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.ExecutionContext
 
-class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSugar {
+class OverdueSubmissionsCheckerSpec
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
   val minutesTestVal: Long = 59
 
   "vals" should {
@@ -35,10 +39,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
     when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
     when(configMock.getOptional[Long](contains("Minutes"))(any())) thenReturn Option(minutesTestVal)
     val overdueSubmissionsCheckerMock = new OverdueSubmissionsChecker(
-      configMock,
-      mock[MongoConnector],
-      mock[ActorSystem],
+      mock[MongoLockRepository],
       mock[MongoBufferService],
+      configMock,
+      mock[ActorSystem],
       mock[ContactFrontendConnector])(mock[ExecutionContext])
 
     "jobEnabled correct" in {
@@ -65,10 +69,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn None
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
-        configMock,
-        mock[MongoConnector],
-        mock[ActorSystem],
+        mock[MongoLockRepository],
         mock[MongoBufferService],
+        configMock,
+        mock[ActorSystem],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.enabled"
     }
 
@@ -78,10 +82,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
-        configMock,
-        mock[MongoConnector],
-        mock[ActorSystem],
+        mock[MongoLockRepository],
         mock[MongoBufferService],
+        configMock,
+        mock[ActorSystem],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.startDelayMinutes"
     }
 
@@ -93,10 +97,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
-        configMock,
-        mock[MongoConnector],
-        mock[ActorSystem],
+        mock[MongoLockRepository],
         mock[MongoBufferService],
+        configMock,
+        mock[ActorSystem],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.overduePeriodMinutes"
     }
 
@@ -110,10 +114,10 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
       when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
-        configMock,
-        mock[MongoConnector],
-        mock[ActorSystem],
+        mock[MongoLockRepository],
         mock[MongoBufferService],
+        configMock,
+        mock[ActorSystem],
         mock[ContactFrontendConnector])(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.jobIntervalMinutes"
     }
   }

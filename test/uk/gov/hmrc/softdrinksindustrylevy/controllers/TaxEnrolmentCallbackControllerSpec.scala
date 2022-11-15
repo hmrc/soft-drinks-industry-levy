@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.mongodb.client.result.DeleteResult
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
+import org.mongodb.scala.MongoCollection
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import reactivemongo.api.commands.{DefaultWriteResult, UpdateWriteResult}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
@@ -83,16 +84,19 @@ class TaxEnrolmentCallbackControllerSpec
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber)
-      when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
-      when(mockBuffer.removeById(matching("safe-id"), any())(any()))
-        .thenReturn(
-          Future.successful(UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None)))
+      when(mockBuffer.findById(matching("safe-id"))(any())).thenReturn(Future.successful(wrapper))
+      when(mockBuffer.removeById(matching("safe-id"))(any()))
+        .thenReturn(Future.successful(new DeleteResult() {
+          override def wasAcknowledged(): Boolean = true
+
+          override def getDeletedCount: Long = 1
+        }))
       when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
       status(res) mustBe NO_CONTENT
-      verify(mockBuffer, times(1)).removeById(matching("safe-id"), any())(any())
+      verify(mockBuffer, times(1)).removeById(matching("safe-id"))(any())
     }
 
     "send a notification email on success" in {
@@ -111,10 +115,13 @@ class TaxEnrolmentCallbackControllerSpec
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber)
-      when(mockBuffer.findById(matching("safe-id"), any())(any())).thenReturn(Future.successful(Some(wrapper)))
-      when(mockBuffer.removeById(matching("safe-id"), any())(any()))
-        .thenReturn(
-          Future.successful(UpdateWriteResult(true, 1, 0, upserted = Seq(), writeErrors = Seq(), None, None, None)))
+      when(mockBuffer.findById(matching("safe-id"))(any())).thenReturn(Future.successful(wrapper))
+      when(mockBuffer.removeById(matching("safe-id"))(any()))
+        .thenReturn(Future.successful(new DeleteResult() {
+          override def wasAcknowledged(): Boolean = true
+
+          override def getDeletedCount: Long = 1
+        }))
       when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))

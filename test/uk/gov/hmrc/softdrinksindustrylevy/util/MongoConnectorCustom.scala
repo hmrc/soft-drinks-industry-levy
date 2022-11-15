@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
-import uk.gov.hmrc.mongo.MongoConnector
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
+import org.scalatestplus.mockito.MockitoSugar.mock
 
 trait MongoConnectorCustom {
 
   protected val databaseName: String = "test-" + this.getClass.getSimpleName
   protected val mongoUri: String = s"mongodb://127.0.0.1:27017/$databaseName"
-  implicit val mongoConnector = MongoConnector(mongoUri)
+  implicit val mongoClient = MongoClient(mongoUri)
+
 }

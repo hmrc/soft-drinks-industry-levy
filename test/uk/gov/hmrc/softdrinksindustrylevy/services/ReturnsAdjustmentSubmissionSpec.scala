@@ -17,12 +17,14 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.mockito.Mockito.when
+import org.mongodb.scala.MongoDatabase
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.bson.BSONObjectID
+import org.scalatestplus.play.PlaySpec
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress}
 import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
 
@@ -33,14 +35,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class ReturnsAdjustmentSubmissionSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures with MongoConnectorCustom {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnVariationWrapper] with MockitoSugar
+    with BeforeAndAfterEach with ScalaFutures {
   implicit val defaultTimeout: FiniteDuration = 5.seconds
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  implicit val mc: ReactiveMongoComponent = mock[ReactiveMongoComponent]
-  when(mc.mongoConnector).thenReturn(mongoConnector)
-  private val service: ReturnsAdjustmentSubmissionService = new ReturnsAdjustmentSubmissionService()
+  val repository: ReturnsAdjustmentSubmissionService = new ReturnsAdjustmentSubmissionService(mongoComponent)
 
   val address = UkAddress(List("My House", "My Lane"), "AA111A")
 
@@ -67,16 +68,12 @@ class ReturnsAdjustmentSubmissionSpec
   val sdilRef = "XCSDIL000000000"
   val sdilRef1 = "XCSDIL000000001"
 
-  override def beforeEach() {
-    service.drop
-  }
   "save method" should {
     "successfully save the data within ReturnVariationWrapper" in {
-      await(service.save(returnVariationData, sdilRef))
-      val storedItem = await(service.find()).head
+      await(repository.save(returnVariationData, sdilRef))
+      val storedItem = await(repository.collection.find().toFuture()).head
       storedItem.submission mustBe returnVariationData
       storedItem.sdilRef mustBe sdilRef
-      storedItem._id.isInstanceOf[BSONObjectID] mustBe true
       storedItem.timestamp.isInstanceOf[Instant] mustBe true
     }
 
@@ -84,23 +81,23 @@ class ReturnsAdjustmentSubmissionSpec
 
   "get method" should {
     "retrieve None when there are no records in the db" in {
-      val storedItem = await(service.get(sdilRef))
+      val storedItem = await(repository.get(sdilRef))
       storedItem mustBe None
     }
 
     "retrieve One record that matches the sdilRef " in {
       val tradingNameToCompare: String = "checkOrderOfThisObjectCreationUsingThis"
-      await(service.save(returnVariationData, sdilRef))
-      await(service.save(returnVariationData.copy(orgName = tradingNameToCompare), sdilRef1))
-      val storedItem = await(service.get(sdilRef)).get
+      await(repository.save(returnVariationData, sdilRef))
+      await(repository.save(returnVariationData.copy(orgName = tradingNameToCompare), sdilRef1))
+      val storedItem = await(repository.get(sdilRef)).get
       storedItem mustBe returnVariationData
     }
 
     "retrieve the first record if more than one records are found (sorted by timestamp descending)" in {
       val tradingNameToCompare: String = "checkOrderOfThisObjectCreationUsingThis"
-      await(service.save(returnVariationData, sdilRef))
-      await(service.save(returnVariationData.copy(orgName = tradingNameToCompare), sdilRef))
-      val storedItem = await(service.get(sdilRef)).get
+      await(repository.save(returnVariationData, sdilRef))
+      await(repository.save(returnVariationData.copy(orgName = tradingNameToCompare), sdilRef))
+      val storedItem = await(repository.get(sdilRef)).get
       storedItem.orgName mustBe tradingNameToCompare
     }
   }

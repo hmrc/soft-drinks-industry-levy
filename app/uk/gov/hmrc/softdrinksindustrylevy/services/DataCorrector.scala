@@ -37,7 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ReturnsCorrectorWorker @Inject()(
   connector: DesConnector,
-  persistence: SdilPersistence
+  returns: ReturnsPersistence
 )(implicit ec: ExecutionContext)
     extends Actor {
   import DataCorrector._
@@ -59,7 +59,7 @@ class ReturnsCorrectorWorker @Inject()(
       val job: Future[Unit] = for {
         utr <- utrO.fold(getUtrFromSdil(sdilRefO.get))(_.pure[Future])
       } yield {
-        persistence.returns(utr, period) = data
+        returns(utr, period) = data
       }
       job.onComplete {
         case a if (a.isSuccess) => logger.info(s"done processing $utrO/$sdilRefO")
@@ -77,7 +77,7 @@ class ReturnsCorrectorWorker @Inject()(
   */
 class DataCorrector(
   system: ActorSystem,
-  persistence: SdilPersistence,
+  returnsPersistence: ReturnsPersistence,
   connector: DesConnector
 )(implicit ec: ExecutionContext) {
   import DataCorrector._
@@ -94,7 +94,7 @@ class DataCorrector(
     // worker threads
     val worker = context.actorOf(
       Props(
-        new ReturnsCorrectorWorker(connector, persistence)
+        new ReturnsCorrectorWorker(connector, returnsPersistence)
       ),
       name = "worker")
 

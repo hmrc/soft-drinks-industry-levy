@@ -17,180 +17,155 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import play.api.libs.json._
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONArray, BSONDocument, BSONObjectID}
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.mongo.{MongoConnector, ReactiveRepository}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
-import com.google.inject.{ImplementedBy, Inject, Singleton}
-import play.modules.reactivemongo.ReactiveMongoComponent
+import com.google.inject.{Inject, Singleton}
+import org.mongodb.scala.model.{Filters, FindOneAndReplaceOptions, IndexModel, IndexOptions, Indexes, ReturnDocument, Updates}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap._
 
 import java.time._
 import scala.concurrent.{ExecutionContext => EC, _}
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import play.api.libs.functional.syntax._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
+import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
 
-@ImplementedBy(classOf[SdilMongoPersistence])
-trait SdilPersistence {
+case class SubscriptionWrap(
+  utr: String,
+  subscription: Subscription,
+  retrievalTime: LocalDateTime = LocalDateTime.now()
+)
+object SubscriptionWrap {
 
-  protected trait DAO[U, K, V] {
-    def update(user: U, key: K, value: V)(implicit ec: EC): Future[Unit]
-    def get(user: U, key: K)(implicit ec: EC): Future[Option[(V, Option[BSONObjectID])]]
-    def apply(user: U, key: K)(implicit ec: EC): Future[V] =
-      get(user, key).map { _.get._1 }
-    def list(user: U)(implicit ec: EC): Future[Map[K, V]]
-    def listVariable(user: U)(implicit ec: EC): Future[Map[K, V]]
-    def dropCollection(implicit ec: EC): Future[Boolean]
+  val subsWrapperFormat = Json.format[SubscriptionWrap]
+}
 
-    protected case class ReturnsWrapper(
-      utr: String,
-      period: ReturnPeriod,
-      sdilReturn: SdilReturn,
-      _id: Option[BSONObjectID] = None)
+case class ReturnsWrapper(
+  utr: String,
+  period: ReturnPeriod,
+  sdilReturn: SdilReturn
+)
 
-    implicit val returnsFormatWrapper = Json.format[ReturnsWrapper]
-
-    def returnsMongo: ReactiveRepository[ReturnsWrapper, BSONObjectID]
-  }
-
-  def returns: DAO[String, ReturnPeriod, SdilReturn]
-
-  protected trait SubsDAO[K, V] {
-    def insert(key: K, value: V)(implicit ec: EC): Future[Unit]
-    def list(key: K)(implicit ec: EC): Future[List[V]]
-
-    protected case class SubscriptionWrapper(
-      utr: String,
-      subscription: Subscription,
-      retrievalTime: LocalDateTime = LocalDateTime.now(),
-      _id: Option[BSONObjectID] = None
-    )
-
-    import json.internal._
-    implicit val subscriptionsFormatWrapper = Json.format[SubscriptionWrapper]
-
-    def subscriptionsMongo: ReactiveRepository[SubscriptionWrapper, BSONObjectID]
-  }
-
-  def subscriptions: SubsDAO[String, Subscription]
+object ReturnsWrapper {
+  val returnsWrapperFormat = Json.format[ReturnsWrapper]
 }
 
 @Singleton
-class SdilMongoPersistence @Inject()(mc: ReactiveMongoComponent) extends SdilPersistence {
+class SdilMongoPersistence @Inject()(
+  mongoComponent: MongoComponent
+)(implicit ec: EC)
+    extends PlayMongoRepository[SubscriptionWrap](
+      collectionName = "sdilsubscriptions",
+      mongoComponent = mongoComponent,
+      domainFormat = subsWrapperFormat,
+      indexes = Seq(
+        IndexModel(Indexes.ascending("utr"), IndexOptions().name("utrIdx").unique(false))
+      )
+    ) {
 
-  val subscriptions = new SubsDAO[String, Subscription] {
+  // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
+  def findAll(): Future[Seq[SubscriptionWrap]] = collection.find().toFuture()
+  def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] =
+    collection.insertOne(SubscriptionWrap(utr, value)).toFuture().map(_ => ())
+  def list(utr: String)(implicit ec: EC): Future[List[Subscription]] =
+    collection
+      .find(Filters.equal("utr", utr))
+      .collect()
+      .toFuture()
+      .map(_.map(_.subscription).toList)
 
-    override def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] =
-      subscriptionsMongo.insert(SubscriptionWrapper(utr, value)).map(_ => ())
+}
 
-    override def list(utr: String)(implicit ec: EC): Future[List[Subscription]] =
-      subscriptionsMongo
-        .find(
-          "utr" -> utr
-        )
-        .map(_.map(_.subscription))
-
-    val subscriptionsMongo =
-      new ReactiveRepository[SubscriptionWrapper, BSONObjectID](
-        "sdilsubscriptions",
-        mc.mongoConnector.db,
-        subscriptionsFormatWrapper,
-        implicitly) {
-        override def indexes: Seq[Index] = Seq(
-          Index(
-            key = Seq(
-              "utr" -> IndexType.Ascending
+@Singleton
+class ReturnsPersistence @Inject()(
+  mongoComponent: MongoComponent
+)(implicit ec: EC)
+    extends PlayMongoRepository[ReturnsWrapper](
+      collectionName = "sdilreturns",
+      mongoComponent = mongoComponent,
+      domainFormat = returnsWrapperFormat,
+      indexes = Seq(
+        IndexModel(Indexes.ascending("utr"), IndexOptions().name("utrIdx")),
+        IndexModel(Indexes.descending("period.year"), IndexOptions().name("periodYearIdx")),
+        IndexModel(Indexes.descending("period.quarter"), IndexOptions().name("periodQuarterIdx"))
+      )
+    ) {
+  // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
+  def dropCollection(implicit ec: EC) = collection.drop.toFuture() map (_ => ())
+  def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
+    val data = ReturnsWrapper(utr, period, value)
+    domainFormat.writes(data) match {
+      case j @ JsObject(_) =>
+        val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
+        collection
+          .findOneAndReplace(
+            filter = Filters.and(
+              Filters.equal("utr", utr),
+              Filters.equal("period.year", period.year),
+              Filters.equal("period.quarter", period.quarter)
             ),
-            unique = false
+            replacement = data, //How to convert data to Bson
+            options = FindOneAndReplaceOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
           )
-        )
-      }
+          .toFuture()
+          .map(_ => ())
+      case _ =>
+        Future.failed(new Exception("cannot write object"))
+    }
+
   }
 
-  val returns = new DAO[String, ReturnPeriod, SdilReturn] {
-
-    val returnsMongo =
-      new ReactiveRepository[ReturnsWrapper, BSONObjectID](
-        "sdilreturns",
-        mc.mongoConnector.db,
-        returnsFormatWrapper,
-        implicitly) {
-
-        override def indexes: Seq[Index] = Seq(
-          Index(
-            key = Seq(
-              "utr"            -> IndexType.Ascending,
-              "period.year"    -> IndexType.Descending,
-              "period.quarter" -> IndexType.Descending
-            ),
-            unique = true
-          )
-        )
+  def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[SdilReturn]] =
+    collection
+      .find(
+        Filters.and(
+          Filters.equal("utr", utr),
+          Filters.equal("period.year", period.year),
+          Filters.equal("period.quarter", period.quarter)
+        ))
+      .toFuture()
+      .map {
+        _.headOption.map { x =>
+          x.sdilReturn
+        }
       }
 
-    def dropCollection(implicit ec: EC) = returnsMongo.drop
-
-    def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
-      import returnsMongo._
-
-      val data = ReturnsWrapper(utr, period, value)
-
-      domainFormatImplicit.writes(data) match {
-        case _ @JsObject(_) =>
-          val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
-          collection.update(ordered = false).one(selector, data, upsert = true)
-        case _ =>
-          Future.failed[WriteResult](new Exception("cannot write object"))
+  def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+    collection
+      .find(
+        Filters.equal("utr", utr)
+      )
+      .toFuture()
+      .map {
+        _.map { x =>
+          (x.period, x.sdilReturn)
+        }.toMap
       }
-    }.map { _ =>
-      ()
-    }
 
-    def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[(SdilReturn, Option[BSONObjectID])]] =
-      returnsMongo
-        .find(
-          "utr"            -> utr,
-          "period.year"    -> period.year,
-          "period.quarter" -> period.quarter
-        )
-        .map {
-          _.headOption.map { x =>
-            (x.sdilReturn, x._id)
-          }
-        }
+  def listVariable(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
+    val since = LocalDate.now.minusYears(4)
 
-    def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
-      returnsMongo
-        .find(
-          "utr" -> utr
-        )
-        .map {
-          _.map { x =>
-            (x.period, x.sdilReturn)
-          }.toMap
-        }
-
-    def listVariable(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
-      val since = LocalDate.now.minusYears(4)
-
-      returnsMongo
-        .find(
-          "utr" -> utr,
-          "$or" -> BSONArray(
-            BSONDocument("period.year" -> BSONDocument("$gt" -> since.getYear)),
-            BSONDocument(
-              "$and" -> BSONArray(
-                BSONDocument("period.year"    -> BSONDocument("$eq"  -> since.getYear)),
-                BSONDocument("period.quarter" -> BSONDocument("$gte" -> (since.getMonthValue - 1) / 3))
-              ))
+    collection
+      .find(
+        Filters.and(
+          Filters.equal("utr", utr),
+          Filters.or(
+            Filters.gt("period.year", since.getYear),
+            Filters.and(
+              Filters.equal("period.year", since.getYear),
+              Filters.gte("period.quarter", ((since.getMonthValue - 1) / 3)),
+            )
           )
         )
-        .map {
-          _.map { x =>
-            (x.period, x.sdilReturn)
-          }.toMap
-        }
-    }
+      )
+      .toFuture()
+      .map {
+        _.map { x =>
+          (x.period, x.sdilReturn)
+        }.toMap
+      }
 
   }
 

@@ -57,7 +57,7 @@ class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val c
              |
              |Safe Id: $safeId
              |
-             |Submitted at: ${LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault)}
+             |Submitted at: ${LocalDateTime.now()}
            """.stripMargin
         ),
       "isJavascript" -> Seq("false"),

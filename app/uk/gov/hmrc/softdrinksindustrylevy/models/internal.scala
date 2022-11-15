@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models.json
 
 import play.api.libs.json._
+import sdil.models.SdilReturn
 import uk.gov.hmrc.softdrinksindustrylevy.models.{longTupleFormatter => _, _}
 
 package object internal {
@@ -96,8 +97,8 @@ package object internal {
   }
 
   val subReads: Reads[Subscription] = Json.reads[Subscription]
-  val subWrites: Writes[Subscription] = new Writes[Subscription] {
-    override def writes(o: Subscription): JsValue = Json.obj(
+  val subWrites: Writes[Subscription] = (o: Subscription) =>
+    Json.obj(
       "utr"             -> o.utr,
       "sdilRef"         -> o.sdilRef,
       "orgName"         -> o.orgName,
@@ -109,8 +110,7 @@ package object internal {
       "warehouseSites"  -> o.warehouseSites,
       "contact"         -> o.contact,
       "_id"             -> o.utr
-    )
-  }
+  )
 
   implicit val subscriptionFormat: OFormat[Subscription] = Json.format[Subscription]
 

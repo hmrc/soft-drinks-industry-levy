@@ -28,7 +28,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilPersistence}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilMongoPersistence}
 import uk.gov.hmrc.http.HttpReads.Implicits.{readJsValue, readRaw, readUnit}
 
 import scala.concurrent.stm.TMap
@@ -39,7 +39,7 @@ class DesConnector @Inject()(
   val http: HttpClient,
   val mode: Mode,
   servicesConfig: ServicesConfig,
-  persistence: SdilPersistence,
+  persistence: SdilMongoPersistence,
   auditing: AuditConnector)(implicit executionContext: ExecutionContext)
     extends DesHelpers(servicesConfig) {
 
@@ -99,10 +99,10 @@ class DesConnector @Inject()(
 
     for {
       sub  <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
-      subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.subscriptions.list(s.utr))
+      subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
             if (!subs.contains(x)) {
-              persistence.subscriptions.insert(x.utr, x)
+              persistence.insert(x.utr, x)
             } else Future(())
           }
     } yield sub

@@ -66,7 +66,7 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
   "ReturnsCorrectorWorker getUtrFromSdil" should {
     implicit val system = ActorSystem()
     val testSdilRef = "someSdilRef"
-    val testReturnsCorrector = TestActorRef(new ReturnsCorrectorWorker(mockDesConnector, mock[SdilPersistence]))
+    val testReturnsCorrector = TestActorRef(new ReturnsCorrectorWorker(mockDesConnector, mock[ReturnsPersistence]))
 
     "getUtrFromSdil with None" in {
 

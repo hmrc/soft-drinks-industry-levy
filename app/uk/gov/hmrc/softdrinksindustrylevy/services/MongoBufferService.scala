@@ -16,49 +16,72 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.Instant
+import java.time.{Instant, LocalDateTime}
 import play.api.libs.json._
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.{BSONDateTime, BSONDocument, BSONString}
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
+import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 import com.google.inject.{Inject, Singleton}
-import play.modules.reactivemongo.ReactiveMongoComponent
-
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Updates}
+import org.mongodb.scala.result.DeleteResult
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.{Implicits, instantFormat, instantReads, instantWrites, localDateTimeReads, localDateTimeWrites}
 @Singleton
-class MongoBufferService @Inject()(implicit mc: ReactiveMongoComponent)
-    extends ReactiveRepository[SubscriptionWrapper, String](
-      "sdil-subscription",
-      mc.mongoConnector.db,
-      SubscriptionWrapper.format,
-      implicitly) {
-
+class MongoBufferService @Inject()(
+  mongoComponent: MongoComponent
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[SubscriptionWrapper](
+      collectionName = "sdil-subscription",
+      mongoComponent = mongoComponent,
+      domainFormat = SubscriptionWrapper.format,
+      indexes = Seq(
+        IndexModel(
+          Indexes.ascending("timestamp"),
+          IndexOptions().name("ttl").expireAfter((30 days).toSeconds, SECONDS)),
+        IndexModel(Indexes.ascending("status")),
+        IndexModel(Indexes.ascending("utr"))
+      )
+    ) {
+  // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] =
-    collection.findAndUpdate(
-      BSONDocument("_id"  -> BSONString(id)),
-      BSONDocument("$set" -> BSONDocument("status" -> BSONString(newStatus)))
-    ) map { _ =>
+    collection
+      .findOneAndUpdate(
+        filter = Filters.equal("_id", id),
+        update = Updates.set("status", newStatus)
+      )
+      .toFuture() map { _ =>
       ()
     }
 
-  def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] = {
-    val bsonDt = BSONDateTime(createdBefore.toEpochMilli)
-    find("status" -> "PENDING", "timestamp" -> Json.obj("$lt" -> bsonDt))
-  }
+  def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+    collection
+      .find(
+        Filters.and(
+          Filters.equal("status", "PENDING"),
+          Filters.lt("timestamp", createdBefore)
+        ))
+      .toFuture()
 
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("timestamp" -> IndexType.Ascending),
-      name = Some("ttl"),
-      options = BSONDocument("expireAfterSeconds" -> (30 days).toSeconds)
-    )
-  )
+  def insert(sub: SubscriptionWrapper)(implicit ec: ExecutionContext): Future[Unit] =
+    collection.insertOne(sub).toFuture() map (_ => ())
+
+  def findByUtr(utr: String)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+    collection.find(Filters.equal("utr", utr)).toFuture()
+
+  def remove(utr: String)(implicit ec: ExecutionContext): Future[DeleteResult] =
+    collection.deleteOne(Filters.equal("utr", utr)).toFuture()
+
+  def findById(id: String)(implicit ec: ExecutionContext): Future[SubscriptionWrapper] =
+    collection.find(Filters.equal("_id", id)).toFuture() map (_.head)
+
+  def removeById(id: String)(implicit ec: ExecutionContext): Future[DeleteResult] =
+    collection.deleteOne(Filters.equal("_id", id)).toFuture()
+
 }
 
 case class SubscriptionWrapper(
@@ -70,16 +93,7 @@ case class SubscriptionWrapper(
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
-
-  implicit val instantFormat: Format[Instant] = new Format[Instant] {
-    override def writes(o: Instant): JsValue =
-      Json.toJson(BSONDateTime(o.toEpochMilli))
-
-    override def reads(json: JsValue): JsResult[Instant] =
-      json.validate[BSONDateTime] map { dt =>
-        Instant.ofEpochMilli(dt.value)
-      }
-  }
+  implicit val inf = instantFormat
 
   val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]
 }
