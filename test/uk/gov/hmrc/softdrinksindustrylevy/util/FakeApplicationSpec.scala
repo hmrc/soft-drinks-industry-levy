@@ -44,18 +44,12 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, ExecutionContext => EC}
 
-trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar with MongoConnectorCustom {
+trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar {
 
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
   lazy val components: ControllerComponents = app.injector.instanceOf[ControllerComponents]
-
-  implicit val mongoComponent: MongoComponent = new MongoComponent {
-    override def client: MongoClient = mongoClient
-
-    override def database: MongoDatabase = mock[MongoDatabase]
-  }
 
   val returns = mock[ReturnsPersistence]
 
