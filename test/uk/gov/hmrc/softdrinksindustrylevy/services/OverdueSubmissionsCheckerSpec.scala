@@ -19,19 +19,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 import akka.actor.ActorSystem
 import org.mockito.ArgumentMatchers.{any, contains, eq => mEq}
 import org.mockito.Mockito.when
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.ExecutionContext
 
-class OverdueSubmissionsCheckerSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
+class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSugar with ScalaFutures {
   val minutesTestVal: Long = 59
 
   "vals" should {

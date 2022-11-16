@@ -30,7 +30,7 @@ import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 class ReturnsPersistenceSpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsWrapper] with MockitoSugar with BeforeAndAfterAll
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsWrapper] with MockitoSugar
     with ScalaCheckPropertyChecks {
 
   implicit val defaultTimeout: FiniteDuration = 5 seconds
