@@ -29,7 +29,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import SubscriptionWrapper._
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, InternalActivity, Site, Subscription, UkAddress}
-import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import scala.concurrent.{Await, Future}

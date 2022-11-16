@@ -27,7 +27,7 @@ import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
-import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, MongoConnectorCustom}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.language.postfixOps
 import scala.concurrent.{Await, Future}
