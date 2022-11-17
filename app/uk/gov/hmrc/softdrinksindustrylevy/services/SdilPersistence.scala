@@ -61,7 +61,7 @@ class SdilMongoPersistence @Inject()(
       mongoComponent = mongoComponent,
       domainFormat = subsWrapperFormat,
       indexes = Seq(
-        IndexModel(Indexes.ascending("utr"), IndexOptions().name("utrIdx").unique(false))
+        IndexModel(Indexes.ascending("utr"))
       )
     ) {
 
