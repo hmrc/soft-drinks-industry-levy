@@ -87,9 +87,9 @@ class ReturnsPersistence @Inject()(
       mongoComponent = mongoComponent,
       domainFormat = returnsWrapperFormat,
       indexes = Seq(
-        IndexModel(Indexes.ascending("utr")),
-        IndexModel(Indexes.descending("period.year")),
-        IndexModel(Indexes.descending("period.quarter"))
+        IndexModel(Indexes.ascending("utr"), IndexOptions().name("utrIdx")),
+        IndexModel(Indexes.descending("period.year"), IndexOptions().name("periodYearIdx")),
+        IndexModel(Indexes.descending("period.quarter"), IndexOptions().name("periodQuarterIdx"))
       )
     ) {
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
