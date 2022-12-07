@@ -46,10 +46,20 @@ class BalanceController @Inject()(
     Action.async { implicit request =>
       desConnector
         .retrieveFinancialData(sdilRef, None)
-        .map { r =>
-          val lineItems =
-            r.fold(List.empty[FinancialLineItem])(if (withAssessment) convert else convertWithoutAssessment)
-          Ok(JsNumber(lineItems.balance))
+        .map {
+          case Some(r) =>
+            val getOutstandingBalanceIfPresent = if (r.financialTransactions.length == 1) {
+              r.financialTransactions.head.outstandingAmount
+            } else {
+              None
+            }
+
+            getOutstandingBalanceIfPresent match {
+              case Some(balance)          => Ok(JsNumber(-balance))
+              case None if withAssessment => Ok(JsNumber(convert(r).balance))
+              case _                      => Ok(JsNumber(convertWithoutAssessment(r).balance))
+            }
+          case None => Ok(JsNumber(0))
         }
     }
 
