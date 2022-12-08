@@ -93,12 +93,11 @@ class ReturnsPersistence @Inject()(
       )
     ) {
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
-  def dropCollection(implicit ec: EC) = collection.drop.toFuture() map (_ => ())
+  def dropCollection(implicit ec: EC): Future[Unit] = collection.drop.toFuture() map (_ => ())
   def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
     val data = ReturnsWrapper(utr, period, value)
     domainFormat.writes(data) match {
-      case j @ JsObject(_) =>
-        val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
+      case _ @JsObject(_) =>
         collection
           .findOneAndReplace(
             filter = Filters.and(

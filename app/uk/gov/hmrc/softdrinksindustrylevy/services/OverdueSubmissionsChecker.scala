@@ -81,7 +81,7 @@ class OverdueSubmissionsChecker @Inject()(
         for {
           _ <- mongoBufferService.updateStatus(sub._id, "OVERDUE")
           _ = logger.warn(s"Overdue submission (safe id ${sub._id}; submitted at ${sub.timestamp})")
-          _ <- contactFrontend.raiseTicket(sub.subscription, sub.formBundleNumber, sub.timestamp)(HeaderCarrier(), ec)
+          _ <- contactFrontend.raiseTicket(sub.subscription, sub.formBundleNumber)(HeaderCarrier(), ec)
         } yield ()
       }
     )
