@@ -70,7 +70,7 @@ class RegistrationController @Inject()(
           } yield {
             Ok(Json.toJson(res))
           }) recoverWith {
-            case e: DuplicateKeyException => {
+            case _: DuplicateKeyException => {
               auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(
                   request.uri,
