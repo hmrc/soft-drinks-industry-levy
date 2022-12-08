@@ -36,7 +36,7 @@ class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val c
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)(
+  def raiseTicket(subscription: Subscription, safeId: String)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] = {
 

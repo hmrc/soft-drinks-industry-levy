@@ -53,7 +53,7 @@ class ReturnsCorrectorWorker @Inject()(
         throw new NoSuchElementException(s"Cannot find subscription with SDIL ref $sdilRef")
     }
 
-  override def receive = {
+  override def receive: PartialFunction[Any, Unit] = {
     case ReturnsCorrection(sdilRefO, utrO, period, data) =>
       logger.info(s"attempting to process $utrO/$sdilRefO")
       val job: Future[Unit] = for {

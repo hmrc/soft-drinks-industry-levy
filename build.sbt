@@ -7,45 +7,43 @@ enablePlugins(
 PlayKeys.playDefaultPort := 8701
 
 libraryDependencies ++= Seq(
-  "com.fasterxml.jackson.core"  %  "jackson-core"        % "2.11.2",
-  "com.fasterxml.jackson.core"  %  "jackson-databind"    % "2.11.2",
-  "com.github.tomakehurst"      %  "wiremock-jre8"       % "2.27.1",
-  "com.typesafe.play"           %% "play-test"           % play.core.PlayVersion.current,
-  "org.jsoup"                   %  "jsoup"               % "1.13.1",
-  "org.mockito"                 %  "mockito-core"        % "3.12.4",
-  "org.pegdown"                 %  "pegdown"             % "1.6.0",
-  "org.scalacheck"              %% "scalacheck"          % "1.15.4",
-  "org.scalatest"               %% "scalatest"           % "3.2.9",
-  "org.scalatest"               %% "scalatest-funsuite" % "3.2.9",
-  "org.scalatestplus.play"      %% "scalatestplus-play"             % "5.1.0",
+  "com.fasterxml.jackson.core"  %  "jackson-core"             % "2.14.1",
+  "com.fasterxml.jackson.core"  %  "jackson-databind"         % "2.14.1",
+  "com.github.tomakehurst"      %  "wiremock-jre8"            % "2.35.0",
+  "com.typesafe.play"           %% "play-test"                % play.core.PlayVersion.current,
+  "org.jsoup"                   %  "jsoup"                    % "1.15.3",
+  "org.mockito"                 %  "mockito-core"             % "4.9.0",
+  "org.pegdown"                 %  "pegdown"                  % "1.6.0",
+  "org.scalacheck"              %% "scalacheck"               % "1.17.0",
+  "org.scalatest"               %% "scalatest"                % "3.2.14",
+  "org.scalatest"               %% "scalatest-funsuite"       % "3.2.14",
+  "org.scalatestplus.play"      %% "scalatestplus-play"       % "6.0.0-M1",
   "org.scalatestplus"           %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
-  "org.scalatestplus"           %% "scalatestplus-mockito"   % "1.0.0-M2",
-  "uk.gov.hmrc"                 %% "hmrctest"            % "3.10.0-play-26",
-  "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
-  "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
+  "org.scalatestplus"           %% "scalatestplus-mockito"    % "1.0.0-M2",
+  "uk.gov.hmrc"                 %% "hmrctest"                 % "3.10.0-play-26",
+  "uk.gov.hmrc"                 %% "stub-data-generator"      % "0.5.3",
+  "com.typesafe.akka"           %% "akka-testkit"             % "2.6.20",
   "uk.gov.hmrc.mongo"           %% "hmrc-mongo-test-play-28"  % "0.73.0",
-  "com.vladsch.flexmark"        % "flexmark-all"         % "0.36.8"
+  "com.vladsch.flexmark"        %  "flexmark-all"             % "0.62.2"
 ).map(_ % "test")
 
 // ================================================================================
 // Dependencies
 // ================================================================================
-scalaVersion := "2.12.13"
+scalaVersion := "2.13.9"
 
 libraryDependencies ++= Seq(
   ws,
   "com.github.fge"            %  "json-schema-validator"         % "2.2.6",
-  "com.github.pureconfig"     %% "pureconfig"                    % "0.13.0",
-  "com.softwaremill.macwire"  %% "macros"                        % "2.3.7" % "provided",
-  "com.softwaremill.macwire"  %% "macrosakka"                    % "2.3.7" % "provided",
-  "com.softwaremill.macwire"  %% "proxy"                         % "2.3.7",
-  "com.softwaremill.macwire"  %% "util"                          % "2.3.7",
-  "org.typelevel"             %% "cats-core"                     % "2.4.0",
-  "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "5.12.0",
-    "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"            % "0.73.0",
-  "org.scala-stm"             %% "scala-stm"                     % "0.9.1",
-  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
-  "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
+  "com.github.pureconfig"     %% "pureconfig"                    % "0.17.2",
+  "com.softwaremill.macwire"  %% "macros"                        % "2.5.8"   % "provided",
+  "com.softwaremill.macwire"  %% "macrosakka"                    % "2.5.8"   % "provided",
+  "com.softwaremill.macwire"  %% "proxy"                         % "2.5.8",
+  "com.softwaremill.macwire"  %% "util"                          % "2.5.8",
+  "org.typelevel"             %% "cats-core"                     % "2.9.0",
+  "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "7.8.0",
+  "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"            % "0.73.0",
+  "org.scala-stm"             %% "scala-stm"                     % "0.11.1"
 )
 
 // ================================================================================

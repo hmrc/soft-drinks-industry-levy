@@ -16,21 +16,21 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.net.URLEncoder.encode
-import java.time.{LocalDate, LocalDateTime}
 import com.google.inject.{Inject, Singleton}
-import play.api.{Logger, Mode}
 import play.api.libs.json.{Json, OWrites}
+import play.api.{Logger, Mode}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilMongoPersistence}
-import uk.gov.hmrc.http.HttpReads.Implicits.{readJsValue, readRaw, readUnit}
 
+import java.net.URLEncoder.encode
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
