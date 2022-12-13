@@ -17,7 +17,6 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import java.time._
-
 import cats.implicits._
 import play.api.Logger
 import play.api.libs.json._
@@ -28,6 +27,7 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import com.google.inject.{Inject, Singleton}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent._
 import scala.util.Random
@@ -36,23 +36,25 @@ import scala.util.Random
 class BalanceController @Inject()(
   val authConnector: AuthConnector,
   desConnector: DesConnector,
-  val cc: ControllerComponents
+  val cc: ControllerComponents,
+  val configuration: ServicesConfig
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
   import BalanceController._
-
   def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector
         .retrieveFinancialData(sdilRef, None)
         .map {
           case Some(r) =>
-            val getOutstandingBalanceIfPresent = if (r.financialTransactions.length == 1) {
-              r.financialTransactions.head.outstandingAmount
-            } else {
-              None
-            }
+            val getOutstandingBalanceIfPresent =
+              if (configuration.getBoolean("balance.useOutstandingAmount") &&
+                  r.financialTransactions.length == 1) {
+                r.financialTransactions.head.outstandingAmount
+              } else {
+                None
+              }
 
             getOutstandingBalanceIfPresent match {
               case Some(balance)          => Ok(JsNumber(-balance))
