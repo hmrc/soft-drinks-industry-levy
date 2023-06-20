@@ -41,7 +41,24 @@ class VariationsController @Inject()(
 
   lazy val logger = Logger(this.getClass)
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
+
     withJsonBody[VariationsRequest] { data =>
+
+      println(Console.YELLOW + "Variations Request ================================================================ " + Console.WHITE)
+      println(Console.YELLOW + "Trading Name          : " + data.tradingName.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "Display Org Name      : " + data.displayOrgName + Console.WHITE)
+      println(Console.YELLOW + "PPOB Address          : " + data.ppobAddress + Console.WHITE)
+      println(Console.YELLOW + "Business Contact      : " + data.businessContact.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "Corespondence Contact : " + data.correspondenceContact.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "Primary Person Contact: " + data.primaryPersonContact.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "SDIL Activity         : " + data.sdilActivity.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "Deregistration text   : " + data.deregistrationText.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "Deregistration date   : " + data.deregistrationDate.getOrElse("N/A") + Console.WHITE)
+      println(Console.YELLOW + "New Sites             : " + data.newSites + Console.WHITE)
+      println(Console.YELLOW + "Amend Sites           : " + data.amendSites + Console.WHITE)
+      println(Console.YELLOW + "Close Sites           : " + data.closeSites+ Console.WHITE)
+      println(Console.YELLOW + "Variations Request =========================  FINISH  ======================================= " + Console.WHITE)
+
       val page = views.html.variations_pdf(data, sdilNumber).toString
       for {
         _ <- gforms.submitToDms(page, sdilNumber)
