@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,9 @@ class VariationsController @Inject()(
 
   lazy val logger = Logger(this.getClass)
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-
     withJsonBody[VariationsRequest] { data =>
-
-      println(Console.YELLOW + "Variations Request ================================================================ " + Console.WHITE)
+      println(
+        Console.YELLOW + "Variations Request ================================================================ " + Console.WHITE)
       println(Console.YELLOW + "Trading Name          : " + data.tradingName.getOrElse("N/A") + Console.WHITE)
       println(Console.YELLOW + "Display Org Name      : " + data.displayOrgName + Console.WHITE)
       println(Console.YELLOW + "PPOB Address          : " + data.ppobAddress + Console.WHITE)
@@ -54,10 +53,20 @@ class VariationsController @Inject()(
       println(Console.YELLOW + "SDIL Activity         : " + data.sdilActivity.getOrElse("N/A") + Console.WHITE)
       println(Console.YELLOW + "Deregistration text   : " + data.deregistrationText.getOrElse("N/A") + Console.WHITE)
       println(Console.YELLOW + "Deregistration date   : " + data.deregistrationDate.getOrElse("N/A") + Console.WHITE)
-      println(Console.YELLOW + "New Sites             : " + data.newSites + Console.WHITE)
-      println(Console.YELLOW + "Amend Sites           : " + data.amendSites + Console.WHITE)
-      println(Console.YELLOW + "Close Sites           : " + data.closeSites+ Console.WHITE)
-      println(Console.YELLOW + "Variations Request =========================  FINISH  ======================================= " + Console.WHITE)
+      println(Console.YELLOW + "New Sites ================================== " + Console.WHITE)
+      data.newSites.map { site =>
+        println(Console.YELLOW + site + Console.WHITE)
+      }
+      println(Console.YELLOW + "Amended Sites ================================== " + Console.WHITE)
+      data.amendSites.map { site =>
+        println(Console.YELLOW + site + Console.WHITE)
+      }
+      println(Console.YELLOW + "Closed Sites ================================== " + Console.WHITE)
+      data.closeSites.map { site =>
+        println(Console.YELLOW + site + Console.WHITE)
+      }
+      println(
+        Console.YELLOW + "Variations Request =========================  FINISH  ======================================= " + Console.WHITE)
 
       val page = views.html.variations_pdf(data, sdilNumber).toString
       for {
