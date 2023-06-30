@@ -33,7 +33,6 @@ import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubI
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, GformConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
@@ -53,10 +52,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   val cc = app.injector.instanceOf[ControllerComponents]
 
-  val serviceConfig = mock[ServicesConfig]
-
-  val testBalanceController: BalanceController =
-    new BalanceController(mockAuthConnector, mockDesConnector, cc, serviceConfig)
+  val testBalanceController: BalanceController = new BalanceController(mockAuthConnector, mockDesConnector, cc)
 
   override def beforeEach() {
     reset(mockDesConnector)
@@ -127,7 +123,6 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "return Status: OK Body: None when checking for balance which has no financial transaction data" in {
     when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
       .thenReturn(Future successful None)
-    when(serviceConfig.getBoolean(any())).thenReturn(true)
     val response = testBalanceController.balance("0000222200", false)(FakeRequest())
 
     status(response) mustBe 200
@@ -153,8 +148,6 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       LocalDateTime.now(),
       List(financialTransactionIncludingOutstandingBalance)
     )
-
-    when(serviceConfig.getBoolean(any())).thenReturn(true)
 
     when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
       .thenReturn(Future successful Some(financialTransactionResponseIncludingOutstandingBalance))
