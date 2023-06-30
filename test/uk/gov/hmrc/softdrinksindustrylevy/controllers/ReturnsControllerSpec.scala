@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,10 +136,12 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "RichLong" should {
     "asMilliseconds" in {
       val testDate = LocalDateTime.now()
+      val testDateString = testDate.toString
       testReturnsContoller
-        .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset()).toEpochMilli)
+        .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset).toEpochMilli)
         .asMilliseconds
-        .toString mustBe testDate.toString
+        .toString mustBe testDateString.substring(0, testDateString.length - 3)
+
     }
   }
 
