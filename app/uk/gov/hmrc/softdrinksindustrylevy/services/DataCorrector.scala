@@ -23,6 +23,7 @@ import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import com.google.inject.{Inject, Singleton}
+import scala.language.postfixOps
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
