@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class ContactFrontendConnectorSpec extends FakeApplicationSpec {
     when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.failed(new Exception("")))
 
-    connector.raiseTicket(sub, "safeid1", Instant.now()) onComplete {
+    connector.raiseTicket(sub, "safeid1") onComplete {
       case Success(_) => fail
       case Failure(_) =>
     }
@@ -51,7 +51,7 @@ class ContactFrontendConnectorSpec extends FakeApplicationSpec {
     when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.successful(HttpResponse(200, "")))
 
-    connector.raiseTicket(sub, "test1", Instant.now()) onComplete {
+    connector.raiseTicket(sub, "test1") onComplete {
       case Success(_) =>
       case Failure(_) => fail
     }

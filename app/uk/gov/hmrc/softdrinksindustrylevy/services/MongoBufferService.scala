@@ -70,16 +70,16 @@ class MongoBufferService @Inject()(
   def insert(sub: SubscriptionWrapper)(implicit ec: ExecutionContext): Future[Unit] =
     collection.insertOne(sub).toFuture() map (_ => ())
 
-  def findByUtr(utr: String)(): Future[Seq[SubscriptionWrapper]] =
+  def findByUtr(utr: String): Future[Seq[SubscriptionWrapper]] =
     collection.find(Filters.equal("utr", utr)).toFuture()
 
-  def remove(utr: String)(): Future[DeleteResult] =
+  def remove(utr: String): Future[DeleteResult] =
     collection.deleteOne(Filters.equal("utr", utr)).toFuture()
 
   def findById(id: String)(implicit ec: ExecutionContext): Future[SubscriptionWrapper] =
     collection.find(Filters.equal("_id", id)).toFuture() map (_.head)
 
-  def removeById(id: String)(): Future[DeleteResult] =
+  def removeById(id: String): Future[DeleteResult] =
     collection.deleteOne(Filters.equal("_id", id)).toFuture()
 
 }
