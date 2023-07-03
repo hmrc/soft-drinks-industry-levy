@@ -23,7 +23,7 @@ import scala.language.implicitConversions
   * Utility class for creating json formatters for enumerations.
   */
 object EnumUtils {
-  def enumReads[E <: Enumeration](enum: E): Reads[E#Value] = new Reads[E#Value] {
+  def enumReads[E <: Enumeration](`enum`: E): Reads[E#Value] = new Reads[E#Value] {
     def reads(json: JsValue): JsResult[E#Value] = json match {
       case JsString(s) =>
         try {
@@ -42,7 +42,7 @@ object EnumUtils {
     def writes(v: E#Value): JsValue = JsString(v.toString)
   }
 
-  implicit def enumFormat[E <: Enumeration](enum: E): Format[E#Value] =
+  implicit def enumFormat[E <: Enumeration](`enum`: E): Format[E#Value] =
     Format(enumReads(enum), enumWrites)
 
 }

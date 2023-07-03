@@ -45,7 +45,7 @@ case class SdilReturn(
   packSmall: List[SmallProducer] = Nil, // zero charge
   importSmall: (Long, Long) = (0, 0), // zero charge
   importLarge: (Long, Long) = (0, 0),
-  export: (Long, Long) = (0, 0), // negative charge
+  `export`: (Long, Long) = (0, 0), // negative charge
   wastage: (Long, Long) = (0, 0), // negative charge
   submittedOn: Option[LocalDateTime]
 ) {

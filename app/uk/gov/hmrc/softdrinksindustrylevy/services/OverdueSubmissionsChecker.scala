@@ -21,12 +21,11 @@ import com.google.inject.{Inject, Singleton}
 import org.joda.time.Duration
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.{LockRepository, MongoLockRepository, TimePeriodLockService}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.ContactFrontendConnector
 
-import java.time.{Instant, LocalDateTime}
-import java.time.temporal.{ChronoUnit, TemporalUnit}
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration.{FiniteDuration, MINUTES}
 import scala.concurrent.{ExecutionContext, Future, duration}
 
@@ -118,7 +117,7 @@ class OverdueSubmissionsChecker @Inject()(
     actorSystem.scheduler.schedule(
       jobStartDelay,
       FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
-    )(run)
+    )(run())
 }
 
 case class MissingConfiguration(key: String) extends RuntimeException(s"Missing configuration value $key")

@@ -20,16 +20,14 @@ import play.api.libs.json._
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import com.google.inject.{Inject, Singleton}
-import org.mongodb.scala.model.{Filters, FindOneAndReplaceOptions, IndexModel, IndexOptions, Indexes, ReturnDocument, Updates}
+import org.mongodb.scala.model.{Filters, FindOneAndReplaceOptions, IndexModel, IndexOptions, Indexes, ReturnDocument}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap._
 
 import java.time._
-import scala.concurrent.{ExecutionContext => EC, _}
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import play.api.libs.functional.syntax._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
 
 case class SubscriptionWrap(
@@ -55,7 +53,7 @@ object ReturnsWrapper {
 @Singleton
 class SdilMongoPersistence @Inject()(
   mongoComponent: MongoComponent
-)(implicit ec: EC)
+)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[SubscriptionWrap](
       collectionName = "sdilsubscriptions",
       mongoComponent = mongoComponent,
@@ -67,9 +65,9 @@ class SdilMongoPersistence @Inject()(
 
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def findAll(): Future[Seq[SubscriptionWrap]] = collection.find().toFuture()
-  def insert(utr: String, value: Subscription)(implicit ec: EC): Future[Unit] =
+  def insert(utr: String, value: Subscription)(implicit ec: ExecutionContext): Future[Unit] =
     collection.insertOne(SubscriptionWrap(utr, value)).toFuture().map(_ => ())
-  def list(utr: String)(implicit ec: EC): Future[List[Subscription]] =
+  def list(utr: String)(implicit ec: ExecutionContext): Future[List[Subscription]] =
     collection
       .find(Filters.equal("utr", utr))
       .collect()
@@ -81,7 +79,7 @@ class SdilMongoPersistence @Inject()(
 @Singleton
 class ReturnsPersistence @Inject()(
   mongoComponent: MongoComponent
-)(implicit ec: EC)
+)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ReturnsWrapper](
       collectionName = "sdilreturns",
       mongoComponent = mongoComponent,
@@ -93,12 +91,11 @@ class ReturnsPersistence @Inject()(
       )
     ) {
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
-  def dropCollection(implicit ec: EC) = collection.drop.toFuture() map (_ => ())
-  def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: EC): Future[Unit] = {
+  def dropCollection(implicit ec: ExecutionContext) = collection.drop().toFuture() map (_ => ())
+  def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: ExecutionContext): Future[Unit] = {
     val data = ReturnsWrapper(utr, period, value)
     domainFormat.writes(data) match {
-      case j @ JsObject(_) =>
-        val selector = Json.obj("utr" -> utr, "period.year" -> period.year, "period.quarter" -> period.quarter)
+      case _ @JsObject(_) =>
         collection
           .findOneAndReplace(
             filter = Filters.and(
@@ -117,7 +114,7 @@ class ReturnsPersistence @Inject()(
 
   }
 
-  def get(utr: String, period: ReturnPeriod)(implicit ec: EC): Future[Option[SdilReturn]] =
+  def get(utr: String, period: ReturnPeriod)(implicit ec: ExecutionContext): Future[Option[SdilReturn]] =
     collection
       .find(
         Filters.and(
@@ -132,7 +129,7 @@ class ReturnsPersistence @Inject()(
         }
       }
 
-  def list(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] =
+  def list(utr: String)(implicit ec: ExecutionContext): Future[Map[ReturnPeriod, SdilReturn]] =
     collection
       .find(
         Filters.equal("utr", utr)
@@ -144,7 +141,7 @@ class ReturnsPersistence @Inject()(
         }.toMap
       }
 
-  def listVariable(utr: String)(implicit ec: EC): Future[Map[ReturnPeriod, SdilReturn]] = {
+  def listVariable(utr: String)(implicit ec: ExecutionContext): Future[Map[ReturnPeriod, SdilReturn]] = {
     val since = LocalDate.now.minusYears(4)
 
     collection

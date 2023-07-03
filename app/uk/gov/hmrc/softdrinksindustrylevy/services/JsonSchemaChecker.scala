@@ -31,7 +31,7 @@ object JsonSchemaChecker {
 
   private def schema(path: String): JsonNode = {
     val stream = getClass.getResourceAsStream(path)
-    val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
+    val schemaText = scala.io.Source.fromInputStream(stream).getLines().mkString
     stream.close()
     JsonLoader.fromString(schemaText)
   }
