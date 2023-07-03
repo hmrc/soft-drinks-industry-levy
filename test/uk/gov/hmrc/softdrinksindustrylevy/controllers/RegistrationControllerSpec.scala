@@ -95,7 +95,7 @@ class RegistrationControllerSpec
       when(mockDesConnector.createSubscription(any(), any(), any())(any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      when(mockBuffer.insert(any())(any()))
+      when(mockBuffer.insert(any()))
         .thenReturn(Future.successful(()))
       when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
         .thenReturn(Future.successful(HttpResponse(418)))
@@ -128,7 +128,7 @@ class RegistrationControllerSpec
       when(mockDesConnector.createSubscription(any(), any(), any())(any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
-      when(mockBuffer.insert(any())(any())).thenReturn(
+      when(mockBuffer.insert(any())).thenReturn(
         Future.failed(
           new DuplicateKeyException(
             BsonDocument(("err", "error E11000")),
@@ -150,7 +150,7 @@ class RegistrationControllerSpec
 
       val testLastError = new WriteConcernException(BsonDocument(("err", "error E21543")), null, null)
 
-      when(mockBuffer.insert(any())(any())).thenReturn(Future.failed(testLastError))
+      when(mockBuffer.insert(any())).thenReturn(Future.failed(testLastError))
 
       the[WriteConcernException] thrownBy contentAsString(
         testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
@@ -159,7 +159,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
 
@@ -175,14 +175,14 @@ class RegistrationControllerSpec
         formBundleNumber)
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
 
       status(response) mustBe ACCEPTED
     }
 
     "return Status: OK for subscription for a sub that is in Des but is not in the pending queue (Mongo)" in {
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
@@ -205,10 +205,10 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any())(any()))
+      when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 
@@ -233,10 +233,10 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any())(any()))
+      when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 
@@ -261,10 +261,10 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any())(any()))
+      when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 
@@ -289,10 +289,10 @@ class RegistrationControllerSpec
             None)
         )
       )
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any())(any()))
+      when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 
@@ -312,7 +312,7 @@ class RegistrationControllerSpec
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.failed(new NotFoundException("foo"))
       )
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(List(wrapper)))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
@@ -321,7 +321,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
-      when(mockBuffer.findByUtr(any())(any())).thenReturn(Future.successful(Nil))
+      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
       val deregisteredSubscription =
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))

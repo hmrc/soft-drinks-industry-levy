@@ -30,7 +30,7 @@ import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Updates}
 import org.mongodb.scala.result.DeleteResult
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.{Implicits, instantFormat, instantReads, instantWrites, localDateTimeReads, localDateTimeWrites}
+
 @Singleton
 class MongoBufferService @Inject()(
   mongoComponent: MongoComponent
@@ -48,7 +48,7 @@ class MongoBufferService @Inject()(
       )
     ) {
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
-  def updateStatus(id: String, newStatus: String)(implicit ec: ExecutionContext): Future[Unit] =
+  def updateStatus(id: String, newStatus: String): Future[Unit] =
     collection
       .findOneAndUpdate(
         filter = Filters.equal("_id", id),
@@ -58,7 +58,7 @@ class MongoBufferService @Inject()(
       ()
     }
 
-  def findOverdue(createdBefore: Instant)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+  def findOverdue(createdBefore: Instant): Future[Seq[SubscriptionWrapper]] =
     collection
       .find(
         Filters.and(
@@ -67,19 +67,19 @@ class MongoBufferService @Inject()(
         ))
       .toFuture()
 
-  def insert(sub: SubscriptionWrapper)(implicit ec: ExecutionContext): Future[Unit] =
+  def insert(sub: SubscriptionWrapper): Future[Unit] =
     collection.insertOne(sub).toFuture() map (_ => ())
 
-  def findByUtr(utr: String)(implicit ec: ExecutionContext): Future[Seq[SubscriptionWrapper]] =
+  def findByUtr(utr: String): Future[Seq[SubscriptionWrapper]] =
     collection.find(Filters.equal("utr", utr)).toFuture()
 
-  def remove(utr: String)(implicit ec: ExecutionContext): Future[DeleteResult] =
+  def remove(utr: String): Future[DeleteResult] =
     collection.deleteOne(Filters.equal("utr", utr)).toFuture()
 
-  def findById(id: String)(implicit ec: ExecutionContext): Future[SubscriptionWrapper] =
+  def findById(id: String): Future[SubscriptionWrapper] =
     collection.find(Filters.equal("_id", id)).toFuture() map (_.head)
 
-  def removeById(id: String)(implicit ec: ExecutionContext): Future[DeleteResult] =
+  def removeById(id: String): Future[DeleteResult] =
     collection.deleteOne(Filters.equal("_id", id)).toFuture()
 
 }
