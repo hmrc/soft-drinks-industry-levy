@@ -20,8 +20,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play"      %% "scalatestplus-play"             % "5.1.0",
   "org.scalatestplus"           %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
   "org.scalatestplus"           %% "scalatestplus-mockito"   % "1.0.0-M2",
-  "uk.gov.hmrc"                 %% "stub-data-generator" % "0.5.3",
-  "com.typesafe.akka"           %% "akka-testkit"        % "2.6.14",
+  "uk.gov.hmrc"                 %% "stub-data-generator" % "1.1.0",
+  "com.typesafe.akka"           %% "akka-testkit"        % "2.6.20",
   "uk.gov.hmrc.mongo"           %% "hmrc-mongo-test-play-28"  % "0.73.0",
   "com.vladsch.flexmark"        % "flexmark-all"         % "0.36.8"
 ).map(_ % "test")
@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
 // ================================================================================
 // Dependencies
 // ================================================================================
-scalaVersion := "2.12.13"
+scalaVersion := "2.13.8"
 
 libraryDependencies ++= Seq(
   ws,
