@@ -40,11 +40,11 @@ libraryDependencies ++= Seq(
   "com.softwaremill.macwire"  %% "proxy"                         % "2.5.8",
   "com.softwaremill.macwire"  %% "util"                          % "2.5.8",
   "org.typelevel"             %% "cats-core"                     % "2.9.0",
-  "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "5.12.0",
+  "uk.gov.hmrc"               %% "bootstrap-backend-play-28"     % "5.21.0",
     "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"            % "0.73.0",
   "org.scala-stm"             %% "scala-stm"                     % "0.11.1",
-  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full),
-  "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
+  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.17.13" cross CrossVersion.full),
+  "com.github.ghik" % "silencer-lib" % "1.17.13" % Provided cross CrossVersion.full
 )
 
 // ================================================================================
