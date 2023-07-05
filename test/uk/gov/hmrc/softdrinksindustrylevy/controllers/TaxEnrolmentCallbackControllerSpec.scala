@@ -84,8 +84,8 @@ class TaxEnrolmentCallbackControllerSpec
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber)
-      when(mockBuffer.findById(matching("safe-id"))(any())).thenReturn(Future.successful(wrapper))
-      when(mockBuffer.removeById(matching("safe-id"))(any()))
+      when(mockBuffer.findById(matching("safe-id"))).thenReturn(Future.successful(wrapper))
+      when(mockBuffer.removeById(matching("safe-id")))
         .thenReturn(Future.successful(new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 
@@ -96,7 +96,7 @@ class TaxEnrolmentCallbackControllerSpec
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
       status(res) mustBe NO_CONTENT
-      verify(mockBuffer, times(1)).removeById(matching("safe-id"))(any())
+      verify(mockBuffer, times(1)).removeById(matching("safe-id"))
     }
 
     "send a notification email on success" in {
@@ -115,8 +115,8 @@ class TaxEnrolmentCallbackControllerSpec
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber)
-      when(mockBuffer.findById(matching("safe-id"))(any())).thenReturn(Future.successful(wrapper))
-      when(mockBuffer.removeById(matching("safe-id"))(any()))
+      when(mockBuffer.findById(matching("safe-id"))).thenReturn(Future.successful(wrapper))
+      when(mockBuffer.removeById(matching("safe-id")))
         .thenReturn(Future.successful(new DeleteResult() {
           override def wasAcknowledged(): Boolean = true
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.google.inject.{Inject, Singleton}
 
-import java.time.{Instant, LocalDateTime, ZoneId}
+import java.time.LocalDateTime
 import play.api.Configuration
 import play.api.Mode
 import play.api.libs.json.Json
@@ -36,7 +36,7 @@ class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val c
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String, timestamp: Instant)(
+  def raiseTicket(subscription: Subscription, safeId: String)(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[Unit] = {
 

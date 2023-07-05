@@ -16,33 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
-import com.mongodb.{ReadConcern, ReadPreference, WriteConcern}
-import com.mongodb.client.model.{CreateCollectionOptions, CreateViewOptions}
-import org.mongodb.scala.{MongoClient, MongoDatabase}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import org.scalatestplus.play.{BaseOneAppPerSuite, FakeApplicationFactory, PlaySpec}
+import org.scalatestplus.play.PlaySpec
 import play.api.i18n.MessagesApi
-import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.ws.WSClient
 import play.api.mvc.ControllerComponents
-import play.api.{Application, ApplicationLoader}
-import play.core.DefaultWebCommands
-import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
-import com.mongodb.reactivestreams.client.{AggregatePublisher, ChangeStreamPublisher, ClientSession, ListCollectionsPublisher, MongoCollection, MongoDatabase => JMongoDatabase}
-import org.bson.Document
-import org.bson.codecs.configuration.CodecRegistry
-import org.bson.conversions.Bson
-import org.reactivestreams.Publisher
-
-import java.util
-import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext => EC}
 
 trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar {
 

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models.json
 
 import play.api.libs.json._
-import sdil.models.SdilReturn
 import uk.gov.hmrc.softdrinksindustrylevy.models.{longTupleFormatter => _, _}
 
 package object internal {

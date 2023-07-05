@@ -20,7 +20,6 @@ import java.time.LocalDateTime
 import cats.Monad
 import cats.implicits._
 import scala.concurrent.stm.{TMap, atomic}
-import scala.language.higherKinds
 
 object Memoized {
 

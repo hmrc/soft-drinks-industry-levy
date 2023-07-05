@@ -55,7 +55,7 @@ If you need to setup SSH, see [the github guide to setting up SSH](https://help.
 
 Run the code from source using 
 
-`sbt run`
+`sbt run -Dplay.http.router=testOnlyDoNotUseInAppConf.Routes`
 
 The APIs are then accessible at `http://localhost:8701`
 

@@ -17,9 +17,8 @@
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import com.google.inject.{Inject, Singleton}
-import org.mongodb.scala.bson.{BsonDateTime, BsonObjectId}
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
-import play.api.libs.json.{Format, JsResult, JsValue, Json}
+import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.softdrinksindustrylevy.models.VariationsRequest
@@ -28,12 +27,10 @@ import java.time.Instant
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.concurrent.{ExecutionContext => EC, _}
-import play.api.libs.json._
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 
 @Singleton
-class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(implicit ec: EC)
+class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[VariationWrapper](
       collectionName = "variations",
       mongoComponent = mongoComponent,
