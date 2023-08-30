@@ -20,7 +20,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
-import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsPersistence, VariationSubmissionService}
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsPersistence, SdilMongoPersistence, VariationSubmissionService}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.google.inject.{Inject, Singleton}
@@ -28,7 +28,8 @@ import com.google.inject.{Inject, Singleton}
 class TestingController @Inject()(
   override val messagesApi: MessagesApi,
   testConnector: TestConnector,
-  buffer: MongoBufferService,
+  pending: MongoBufferService,
+  subscriptions: SdilMongoPersistence,
   fileUpload: FileUploadConnector,
   variationSubmissions: VariationSubmissionService,
   cc: ControllerComponents,
@@ -39,8 +40,12 @@ class TestingController @Inject()(
     testConnector.reset(url) map (r => Status(r.status))
   }
 
-  def resetDb: Action[AnyContent] = Action.async {
-    buffer.collection.drop().toFuture().map(_ => Ok)
+  def resetPendingDb: Action[AnyContent] = Action.async {
+    pending.collection.drop().toFuture().map(_ => Ok)
+  }
+
+  def resetSubscriptionsDb: Action[AnyContent] = Action.async {
+    subscriptions.collection.drop().toFuture().map(_ => Ok)
   }
 
   def getFile(envelopeId: String, fileName: String) = Action.async {
