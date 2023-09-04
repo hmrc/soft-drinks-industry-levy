@@ -11,7 +11,8 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                                              prod.Routes
-GET        /test-only/reset-pending                       uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.resetDb
+GET        /test-only/reset-pending                       uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.resetPendingDb
+GET        /test-only/reset-subscriptions                 uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.resetSubscriptionsDb
 GET        /test-only/sdilReturnsCollectionReset                      uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.getSdilReturnsMongoDrop
 GET        /test-only/:url                                uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.reset(url)
 GET        /test-only/get-file/:envelopeId/:fileId        uk.gov.hmrc.softdrinksindustrylevy.controllers.test.TestingController.getFile(envelopeId, fileId)
