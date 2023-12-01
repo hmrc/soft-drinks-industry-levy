@@ -80,6 +80,13 @@ Ensure your service manager config is up to date, and run the following command:
 
 This will start all the required services
 
+## Running test coverage
+
+To run tests coverage and generate a report use:
+```
+sbt clean coverage test coverageReport
+```
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
