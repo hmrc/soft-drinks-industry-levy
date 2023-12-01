@@ -82,14 +82,9 @@ This will start all the required services
 
 ## Running test coverage
 
-To run tests with coverage use:
+To run tests coverage and generate a report use:
 ```
-sbt clean coverage test
-```
-
-To generate a coverage report: 
-```
-sbt coverageReport
+sbt clean coverage test coverageReport
 ```
 
 ### License
