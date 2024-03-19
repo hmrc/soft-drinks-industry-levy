@@ -10,7 +10,7 @@ PlayKeys.playDefaultPort := 8701
 libraryDependencies ++= Seq(
   "com.fasterxml.jackson.core"  %  "jackson-core"             % "2.14.3",
   "com.fasterxml.jackson.core"  %  "jackson-databind"         % "2.14.3",
-  "com.github.tomakehurst"      %  "wiremock-jre8"            % "3.0.1",
+  "org.wiremock"                %  "wiremock"                 % "3.4.2",
   "org.playframework"           %% "play-test"                % play.core.PlayVersion.current,
   "org.jsoup"                   %  "jsoup"                    % "1.17.2",
   "org.mockito"                 %  "mockito-core"             % "5.11.0",
