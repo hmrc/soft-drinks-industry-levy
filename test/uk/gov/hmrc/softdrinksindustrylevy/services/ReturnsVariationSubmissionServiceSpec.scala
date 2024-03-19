@@ -16,21 +16,17 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.mockito.Mockito.when
-import org.mongodb.scala.MongoDatabase
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress}
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.Instant
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class ReturnsVariationSubmissionServiceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsVariationWrapper] with MockitoSugar

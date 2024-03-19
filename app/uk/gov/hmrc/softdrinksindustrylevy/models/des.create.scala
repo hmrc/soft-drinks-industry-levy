@@ -25,7 +25,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object create {
 
-  implicit val businessContactFormat = new Format[Contact] {
+  implicit val businessContactFormat: Format[Contact] = new Format[Contact] {
     override def writes(contact: Contact): JsValue = Json.obj(
       "name"              -> contact.name,
       "positionInCompany" -> contact.positionInCompany,
@@ -44,7 +44,7 @@ package object create {
   }
 
   // SDIL create and retrieve subscription formatters
-  implicit val addressFormat = new Format[Address] {
+  implicit val addressFormat: Format[Address] = new Format[Address] {
     def reads(json: JsValue): JsResult[Address] = {
 
       val lines = List(

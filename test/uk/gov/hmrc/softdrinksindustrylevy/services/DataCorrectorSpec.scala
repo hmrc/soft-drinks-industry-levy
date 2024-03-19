@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import akka.actor.ActorSystem
-import akka.testkit.TestActorRef
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.TestActorRef
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -36,9 +36,8 @@ import scala.concurrent.Future
 class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
   val mockDesConnector = mock[DesConnector]
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   "ReturnsCorrection" should {
     val testSdilRef = Some("123")

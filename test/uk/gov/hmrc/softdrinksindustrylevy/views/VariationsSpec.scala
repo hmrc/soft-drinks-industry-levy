@@ -26,7 +26,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import views.html.variations_pdf
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class VariationsSpec extends FakeApplicationSpec {
 

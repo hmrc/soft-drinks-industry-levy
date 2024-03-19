@@ -46,9 +46,8 @@ class DirectDebitControllerSpec
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
 

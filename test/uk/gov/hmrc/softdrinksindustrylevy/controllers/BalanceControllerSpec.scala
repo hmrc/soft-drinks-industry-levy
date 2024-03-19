@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time.{LocalDate, LocalDateTime}
-import com.softwaremill.macwire.wire
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -28,15 +26,16 @@ import play.api.libs.json.{JsNumber, Json}
 import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
-import sdil.models.{CentralAssessment, CentralAsstInterest, OfficerAssessment, OfficerAsstInterest, PaymentOnAccount, ReturnChargeInterest, Unknown}
 import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse, SubItem}
+import sdil.models._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, GformConnector}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -58,9 +57,8 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   val testBalanceController: BalanceController =
     new BalanceController(mockAuthConnector, mockDesConnector, cc, serviceConfig)
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
     .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
@@ -300,7 +298,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
             lot.length mustBe 10
             lotItem.length mustBe 10
           }
-          case _ => fail
+          case _ => fail()
         }
       }
     }

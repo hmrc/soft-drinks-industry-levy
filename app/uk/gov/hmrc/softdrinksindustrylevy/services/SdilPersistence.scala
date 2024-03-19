@@ -63,6 +63,8 @@ class SdilMongoPersistence @Inject()(
       )
     ) {
 
+  override lazy val requiresTtlIndex: Boolean = false
+
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def findAll(): Future[Seq[SubscriptionWrap]] = collection.find().toFuture()
   def insert(utr: String, value: Subscription)(implicit ec: ExecutionContext): Future[Unit] =
@@ -90,6 +92,9 @@ class ReturnsPersistence @Inject()(
         IndexModel(Indexes.descending("period.quarter"), IndexOptions().name("periodQuarterIdx"))
       )
     ) {
+
+  override lazy val requiresTtlIndex: Boolean = false
+
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def dropCollection(implicit ec: ExecutionContext) = collection.drop().toFuture() map (_ => ())
   def update(utr: String, period: ReturnPeriod, value: SdilReturn)(implicit ec: ExecutionContext): Future[Unit] = {

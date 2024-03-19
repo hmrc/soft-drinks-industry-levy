@@ -20,18 +20,17 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.{Configuration, Mode}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import com.softwaremill.macwire._
-import org.scalatestplus.mockito.MockitoSugar
-import play.api.{Configuration, Mode}
-import play.api.mvc.ControllerComponents
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.Clock
 import scala.concurrent.Future
@@ -50,9 +49,8 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   val testRosmController =
     new RosmController(mockAuthConnector, mockRosmConnector, mockMode, cc, serviceConfig)
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockRosmConnector)
-  }
 
   when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
   when(serviceConfig.getString(any())).thenReturn("someBaseUrl")

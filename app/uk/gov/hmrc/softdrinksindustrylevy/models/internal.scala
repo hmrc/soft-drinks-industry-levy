@@ -22,9 +22,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.{longTupleFormatter => _, _}
 package object internal {
 
   // SDIL create and retrieve subscription formatters
-  implicit val addressFormat = new Format[Address] {
-    lazy val ukAddressFormat = Json.format[UkAddress]
-    lazy val foreignAddressFormat = Json.format[ForeignAddress]
+  implicit val addressFormat: Format[Address] = new Format[Address] {
+    lazy val ukAddressFormat: OFormat[UkAddress] = Json.format[UkAddress]
+    lazy val foreignAddressFormat: OFormat[ForeignAddress] = Json.format[ForeignAddress]
 
     def reads(json: JsValue): JsResult[Address] =
       (json \ "country").asOpt[String].map(_.toLowerCase) match {

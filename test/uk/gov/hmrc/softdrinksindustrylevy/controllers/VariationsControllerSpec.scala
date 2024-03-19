@@ -21,19 +21,17 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.Play.materializer
-import play.api.i18n.{Messages, MessagesApi}
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import views.html.{returns_variation_pdf, variations_pdf}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -59,7 +57,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     mockReturnsAdjustmentSubmissionService,
     cc)
 
-  override def beforeEach() {
+  override def beforeEach(): Unit = {
     reset(mockGformConnector)
     reset(mockVariationSubmissionService)
     reset(mockReturnsVariationSubmissionService)

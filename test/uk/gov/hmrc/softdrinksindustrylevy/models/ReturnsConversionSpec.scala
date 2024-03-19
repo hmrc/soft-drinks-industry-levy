@@ -32,14 +32,14 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
 //  implicit val clock: Clock = Clock.systemDefaultZone()
   private val zone = ZoneId.systemDefault()
 
-  implicit def period(implicit cl: Clock) = ReturnPeriod(LocalDate.now(cl))
+  implicit def period(implicit cl: Clock): ReturnPeriod = ReturnPeriod(LocalDate.now(cl))
 
   "ReturnsConversion" should {
     "parse Returns as expected" in {
       val validator = JsonSchemaFactory.byDefault.getValidator
 
       val stream = getClass.getResourceAsStream("/test/des-return.schema.json")
-      val schemaText = scala.io.Source.fromInputStream(stream).getLines.mkString
+      val schemaText = scala.io.Source.fromInputStream(stream).getLines().mkString
       stream.close
       val schema = JsonLoader.fromString(schemaText)
       implicit val clock: Clock = Clock.systemDefaultZone()

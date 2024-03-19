@@ -21,8 +21,9 @@ import java.time.LocalDate
 import org.scalacheck._
 import uk.gov.hmrc.smartstub._
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
+import scala.language.implicitConversions
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 package object connectors {
 
@@ -100,12 +101,12 @@ package object connectors {
     } yield RetrievedActivity(isProducer, isLarge, isContractPacker, isImporter)
 
   val genName: Gen[String] = for {
-    fname <- Gen.forename
+    fname <- Gen.forename()
     sname <- Gen.surname
   } yield s"$fname $sname"
 
   val genContact: Gen[Contact] = for {
-    fname             <- Gen.forename
+    fname             <- Gen.forename()
     sname             <- Gen.surname
     positionInCompany <- nonEmptyString
     phoneNumber       <- Gen.ukPhoneNumber
@@ -210,14 +211,15 @@ package object connectors {
 
   }
 
-  implicit val arbSubGet = Arbitrary(genRetrievedSubscription)
-  implicit val arbActivity = Arbitrary(genActivity)
-  implicit val arbAddress = Arbitrary(genUkAddress)
-  implicit val arbContact = Arbitrary(genContact)
-  implicit val arbSite = Arbitrary(genSite)
-  implicit val arbSubRequest = Arbitrary(genSubscription)
-  implicit val arbReturnReq = Arbitrary(genReturnsRequest)
-  implicit val arbDisplayDirectDebitResponse = Arbitrary(genDisplayDirectDebitResponse)
+  implicit val arbSubGet: Arbitrary[Subscription] = Arbitrary(genRetrievedSubscription)
+  implicit val arbActivity: Arbitrary[Activity] = Arbitrary(genActivity)
+  implicit val arbAddress: Arbitrary[Address] = Arbitrary(genUkAddress)
+  implicit val arbContact: Arbitrary[Contact] = Arbitrary(genContact)
+  implicit val arbSite: Arbitrary[Site] = Arbitrary(genSite)
+  implicit val arbSubRequest: Arbitrary[Subscription] = Arbitrary(genSubscription)
+  implicit val arbReturnReq: Arbitrary[ReturnsRequest] = Arbitrary(genReturnsRequest)
+  implicit val arbDisplayDirectDebitResponse: Arbitrary[DisplayDirectDebitResponse] = Arbitrary(
+    genDisplayDirectDebitResponse)
 
   val sub = Subscription(
     "1234567890",

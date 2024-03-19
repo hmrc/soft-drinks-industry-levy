@@ -60,7 +60,7 @@ class RegistrationController @Inject()(
             _   <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _   <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _   <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
-            _   <- auditing.sendExtendedEvent(
+            _ <- auditing.sendExtendedEvent(
                   new SdilSubscriptionEvent(
                     request.uri,
                     buildSubscriptionAudit(data, creds.get.providerId, Some(res.formBundleNumber), "SUCCESS")

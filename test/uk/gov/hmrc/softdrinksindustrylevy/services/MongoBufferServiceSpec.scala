@@ -16,26 +16,18 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
-import org.mongodb.scala.{MongoCollection, MongoDatabase}
 import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-import SubscriptionWrapper._
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, InternalActivity, Site, Subscription, UkAddress}
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, InternalActivity, Site, Subscription, UkAddress}
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
-import scala.concurrent.{Await, Future}
+import java.time.{Instant, LocalDate}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{Await, Future}
 
 class MongoBufferServiceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[SubscriptionWrapper] with MockitoSugar

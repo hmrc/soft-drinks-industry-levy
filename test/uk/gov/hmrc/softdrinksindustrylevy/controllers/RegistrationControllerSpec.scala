@@ -69,9 +69,8 @@ class RegistrationControllerSpec
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))

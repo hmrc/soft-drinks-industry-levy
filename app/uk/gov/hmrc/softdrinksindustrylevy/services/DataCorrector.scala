@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import akka.actor._
+import org.apache.pekko.actor._
 import cats.implicits._
 import play.api.Logger
 import sdil.models._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import com.google.inject.{Inject, Singleton}
-
+import scala.language.postfixOps
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,7 +41,7 @@ class ReturnsCorrectorWorker @Inject()(
 )(implicit ec: ExecutionContext)
     extends Actor {
   import DataCorrector._
-  implicit val hc = new HeaderCarrier()
+  implicit val hc: HeaderCarrier = new HeaderCarrier()
   val logger = Logger("DataCorrector")
 
   def getUtrFromSdil(sdilRef: String): Future[String] =

@@ -92,7 +92,7 @@ case class SubscriptionWrapper(
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)
-  implicit val inf = instantFormat
+  implicit val inf: Format[Instant] = instantFormat
 
   val format: Format[SubscriptionWrapper] = Json.format[SubscriptionWrapper]
 }

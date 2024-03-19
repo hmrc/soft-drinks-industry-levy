@@ -16,25 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.mockito.Mockito.when
-import org.mongodb.scala.MongoDatabase
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.Json
-import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.mongo.MongoComponent
+import play.api.libs.json.{Json, Reads}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.validCreateSubscriptionRequest
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subReads
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
 class SdilPersistenceSpec
@@ -45,7 +39,7 @@ class SdilPersistenceSpec
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  implicit val readsSubscription = subReads
+  implicit val readsSubscription: Reads[Subscription] = subReads
 
   val repository = new SdilMongoPersistence(mongoComponent)
 

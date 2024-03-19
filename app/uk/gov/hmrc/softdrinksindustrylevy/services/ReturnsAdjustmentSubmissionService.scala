@@ -61,6 +61,6 @@ class ReturnsAdjustmentSubmissionService @Inject()(mongo: MongoComponent)(implic
 case class ReturnVariationWrapper(submission: ReturnVariationData, sdilRef: String, timestamp: Instant = Instant.now)
 
 object ReturnVariationWrapper {
-  implicit val inf = instantFormat
+  implicit val inf: Format[Instant] = instantFormat
   val format: Format[ReturnVariationWrapper] = Json.format[ReturnVariationWrapper]
 }

@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
 import java.text.Normalizer
 
 case class OrganisationResponse(
@@ -24,7 +25,7 @@ case class OrganisationResponse(
 )
 
 object OrganisationResponse {
-  implicit val organisationResponseFormat = Json.format[OrganisationResponse]
+  implicit val organisationResponseFormat: OFormat[OrganisationResponse] = Json.format[OrganisationResponse]
 }
 
 case class IndividualResponse(firstName: String, lastName: String)
@@ -46,7 +47,7 @@ abstract case class RosmResponseAddress private[models] (
 )
 
 object RosmResponseAddress {
-  implicit val rosmResponseAddressFormat = Json.format[RosmResponseAddress]
+  implicit val rosmResponseAddressFormat: OFormat[RosmResponseAddress] = Json.format[RosmResponseAddress]
 
   /** ROSM schemas permit any characters, but the SDIL schemas are more
     * restrictive. Convert all non-standard latin characters to their standard
@@ -86,7 +87,8 @@ case class RosmResponseContactDetails(
 )
 
 object RosmResponseContactDetails {
-  implicit val rosmResponseContactDetailsFormat = Json.format[RosmResponseContactDetails]
+  implicit val rosmResponseContactDetailsFormat: OFormat[RosmResponseContactDetails] =
+    Json.format[RosmResponseContactDetails]
 }
 
 case class RosmRegisterResponse(
@@ -102,5 +104,5 @@ case class RosmRegisterResponse(
 )
 
 object RosmRegisterResponse {
-  implicit val rosmRegisterResponseFormat = Json.format[RosmRegisterResponse]
+  implicit val rosmRegisterResponseFormat: OFormat[RosmRegisterResponse] = Json.format[RosmRegisterResponse]
 }

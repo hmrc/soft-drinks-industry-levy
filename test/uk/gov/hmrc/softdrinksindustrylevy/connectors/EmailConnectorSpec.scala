@@ -18,14 +18,14 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
+import play.api.Mode
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import play.api.Mode
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 class EmailConnectorSpec extends FakeApplicationSpec {
 
@@ -48,7 +48,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
     connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
 
       case Success(_) =>
-      case Failure(_) => fail
+      case Failure(_) => fail()
 
     }
   }
@@ -57,7 +57,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
     when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.failed(new Exception("")))
     connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
-      case Success(_) => fail
+      case Success(_) => fail()
       case Failure(_) => // do nothing
     }
   }
@@ -67,7 +67,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
       .thenReturn(Future.successful(HttpResponse(200, "")))
     connector.sendSubmissionReceivedEmail("test", "test") onComplete {
       case Success(_) =>
-      case Failure(_) => fail
+      case Failure(_) => fail()
     }
   }
 
@@ -75,7 +75,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
     when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
       .thenReturn(Future.failed(new Exception("")))
     connector.sendSubmissionReceivedEmail("test", "test") onComplete {
-      case Success(_) => fail
+      case Success(_) => fail()
       case Failure(_) => // do nothing
     }
   }

@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.scalatest.BeforeAndAfterAll
+import org.mongodb.scala.MongoCollection
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
@@ -38,11 +38,11 @@ class ReturnsPersistenceSpec
 
   val repository = new ReturnsPersistence(mongoComponent)
 
-  val sReturnsMongo = repository.collection
-  implicit val nilFormat = Json.format[Nil.type]
-  implicit val listFormat = Json.format[List[SmallProducer]]
-  implicit val sdilFormat = Json.format[SdilReturn]
-  val rFormat = Json.format[ReturnsWrapper]
+  val sReturnsMongo: MongoCollection[ReturnsWrapper] = repository.collection
+  implicit val nilFormat: OFormat[Nil.type] = Json.format[Nil.type]
+  implicit val listFormat: OFormat[List[SmallProducer]] = Json.format[List[SmallProducer]]
+  implicit val sdilFormat: OFormat[SdilReturn] = Json.format[SdilReturn]
+  val rFormat: OFormat[ReturnsWrapper] = Json.format[ReturnsWrapper]
 
   val utr = "7674173564"
 

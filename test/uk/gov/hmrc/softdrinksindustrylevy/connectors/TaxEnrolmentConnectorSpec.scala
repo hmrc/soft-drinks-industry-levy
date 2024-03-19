@@ -44,9 +44,8 @@ class TaxEnrolmentConnectorSpec
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockHttpClient)
-  }
 
   "should get successful response back" in {
 

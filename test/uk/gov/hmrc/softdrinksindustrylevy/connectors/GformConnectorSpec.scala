@@ -16,16 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.util.Base64
-import com.github.tomakehurst.wiremock.client.WireMock._
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
@@ -48,7 +46,6 @@ class GformConnectorSpec
   "Submitting a html to gform" should {
     "base64 encode the html" in {
       val rawHtml = "<p>totally a variation</p>"
-      val encodedHtml = new String(Base64.getEncoder.encode(rawHtml.getBytes))
 
       when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(204, "204")))
