@@ -35,7 +35,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentCallbackControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -46,7 +46,8 @@ class TaxEnrolmentCallbackControllerSpec
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
   val mockConfiguration: ServicesConfig = mock[ServicesConfig]
   val mockMode: Mode = mock[Mode]
-  val cc = app.injector.instanceOf[ControllerComponents]
+  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   lazy val testController = new TaxEnrolmentCallbackController(
     mockBuffer,

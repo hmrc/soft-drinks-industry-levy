@@ -32,8 +32,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscript
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.DuplicateKeyException
 
@@ -46,7 +45,7 @@ class RegistrationController @Inject()(
   emailConnector: EmailConnector,
   auditing: AuditConnector,
   persistence: SdilMongoPersistence,
-  val cc: ControllerComponents)
+  val cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
   lazy val logger = Logger(this.getClass)

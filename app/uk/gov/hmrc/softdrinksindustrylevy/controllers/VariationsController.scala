@@ -27,7 +27,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class VariationsController @Inject()(
@@ -37,7 +37,8 @@ class VariationsController @Inject()(
   returnSubmission: ReturnsVariationSubmissionService,
   returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService,
   val cc: ControllerComponents
-) extends BackendController(cc) with I18nSupport {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with I18nSupport {
 
   lazy val logger = Logger(this.getClass)
   def generateVariations(sdilNumber: String): Action[JsValue] = Action.async(parse.json) { implicit request =>

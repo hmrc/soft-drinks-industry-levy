@@ -21,9 +21,9 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsPersistence, SdilMongoPersistence, VariationSubmissionService}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import com.google.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext
 @Singleton
 class TestingController @Inject()(
   override val messagesApi: MessagesApi,
@@ -33,7 +33,7 @@ class TestingController @Inject()(
   fileUpload: FileUploadConnector,
   variationSubmissions: VariationSubmissionService,
   cc: ControllerComponents,
-  returns: ReturnsPersistence)
+  returns: ReturnsPersistence)(implicit ec: ExecutionContext)
     extends BackendController(cc) with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
