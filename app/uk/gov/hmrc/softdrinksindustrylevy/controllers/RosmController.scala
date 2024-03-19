@@ -28,7 +28,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 import com.google.inject.{Inject, Singleton}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class RosmController @Inject()(
@@ -37,7 +37,8 @@ class RosmController @Inject()(
   val mode: Mode,
   val cc: ControllerComponents,
   val configuration: ServicesConfig
-) extends BackendController(cc) with AuthorisedFunctions {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with AuthorisedFunctions {
 
   //val serviceConfig = new ServicesConfig(configuration)
 

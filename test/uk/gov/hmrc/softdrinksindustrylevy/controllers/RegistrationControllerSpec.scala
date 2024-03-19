@@ -67,7 +67,7 @@ class RegistrationControllerSpec
     cc)
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
-  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   override def beforeEach(): Unit =
     reset(mockDesConnector)

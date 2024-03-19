@@ -33,19 +33,20 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RosmConnector, TaxEnrolmen
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.Clock
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
-  val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
+  val mockTaxEnrolmentConnector: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockRosmConnector: RosmConnector = mock[RosmConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockMode: Mode = mock[Mode]
   val mockConfiguration: Configuration = mock[Configuration]
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
-  val cc = app.injector.instanceOf[ControllerComponents]
-  val serviceConfig = mock[ServicesConfig]
+  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  val serviceConfig: ServicesConfig = mock[ServicesConfig]
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   val testRosmController =
     new RosmController(mockAuthConnector, mockRosmConnector, mockMode, cc, serviceConfig)
 

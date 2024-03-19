@@ -41,7 +41,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   implicit lazy val request: Request[_] = FakeRequest()
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
-  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   val mockGformConnector = mock[GformConnector]
   val mockVariationSubmissionService = mock[VariationSubmissionService]
