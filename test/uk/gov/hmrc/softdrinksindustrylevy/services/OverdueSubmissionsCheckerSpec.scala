@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import org.mockito.ArgumentMatchers.{any, contains, eq => mEq}
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures

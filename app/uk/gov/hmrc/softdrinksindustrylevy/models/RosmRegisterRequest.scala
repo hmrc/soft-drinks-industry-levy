@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class RosmRegisterRequest(
   regime: String,
@@ -24,5 +24,5 @@ case class RosmRegisterRequest(
   isAnAgent: Boolean = false
 )
 object RosmRegisterRequest {
-  implicit val rosmFormatter = Json.format[RosmRegisterRequest]
+  implicit val rosmFormatter: OFormat[RosmRegisterRequest] = Json.format[RosmRegisterRequest]
 }

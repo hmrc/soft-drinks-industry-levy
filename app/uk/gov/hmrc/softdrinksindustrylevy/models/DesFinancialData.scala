@@ -16,6 +16,8 @@
 
 package sdil.models.des
 
+import play.api.libs.json.OFormat
+
 import java.time._
 
 case class FinancialTransaction(
@@ -75,7 +77,7 @@ case class FinancialTransactionResponse(
 object FinancialTransaction {
   import play.api.libs.json.Json
 
-  implicit val subItemFormatter = Json.format[SubItem]
-  implicit val financialTransactionFormatter = Json.format[FinancialTransaction]
-  implicit val responseFormatter = Json.format[FinancialTransactionResponse]
+  implicit val subItemFormatter: OFormat[SubItem] = Json.format[SubItem]
+  implicit val financialTransactionFormatter: OFormat[FinancialTransaction] = Json.format[FinancialTransaction]
+  implicit val responseFormatter: OFormat[FinancialTransactionResponse] = Json.format[FinancialTransactionResponse]
 }

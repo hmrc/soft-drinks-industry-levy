@@ -30,8 +30,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TaxEnrolmentCallbackController @Inject()(
@@ -41,7 +40,7 @@ class TaxEnrolmentCallbackController @Inject()(
   val mode: Mode,
   val cc: ControllerComponents,
   val configuration: ServicesConfig,
-  auditing: AuditConnector)
+  auditing: AuditConnector)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   lazy val logger = Logger(this.getClass)

@@ -62,6 +62,6 @@ case class ReturnsVariationWrapper(
   timestamp: Instant = Instant.now)
 
 object ReturnsVariationWrapper {
-  implicit val inf = instantFormat
+  implicit val inf: Format[Instant] = instantFormat
   val format: Format[ReturnsVariationWrapper] = Json.format[ReturnsVariationWrapper]
 }

@@ -19,24 +19,23 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import com.mongodb.client.result.DeleteResult
 import org.mockito.ArgumentMatchers.{eq => matching, _}
 import org.mockito.Mockito._
-import org.mongodb.scala.MongoCollection
-import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
-import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Mode
+import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class TaxEnrolmentCallbackControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -47,7 +46,8 @@ class TaxEnrolmentCallbackControllerSpec
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
   val mockConfiguration: ServicesConfig = mock[ServicesConfig]
   val mockMode: Mode = mock[Mode]
-  val cc = app.injector.instanceOf[ControllerComponents]
+  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
   lazy val testController = new TaxEnrolmentCallbackController(
     mockBuffer,
@@ -58,7 +58,7 @@ class TaxEnrolmentCallbackControllerSpec
     mockConfiguration,
     mockAuditConnector)
 
-  override def beforeEach() {
+  override def beforeEach(): Unit = {
     reset(mockBuffer)
     reset(mockEmail)
     reset(mockTaxEnrolments)

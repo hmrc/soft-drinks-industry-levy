@@ -61,6 +61,6 @@ class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(impli
 case class VariationWrapper(submission: VariationsRequest, sdilRef: String, timestamp: Instant = Instant.now)
 
 object VariationWrapper {
-  implicit val inf = instantFormat
+  implicit val inf: Format[Instant] = instantFormat
   val format: Format[VariationWrapper] = Json.format[VariationWrapper]
 }

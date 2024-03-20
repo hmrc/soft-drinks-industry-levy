@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.time.{Instant, LocalDateTime}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import play.api.libs.json.JsValue
@@ -42,7 +41,7 @@ class ContactFrontendConnectorSpec extends FakeApplicationSpec {
       .thenReturn(Future.failed(new Exception("")))
 
     connector.raiseTicket(sub, "safeid1") onComplete {
-      case Success(_) => fail
+      case Success(_) => fail()
       case Failure(_) =>
     }
   }
@@ -53,7 +52,7 @@ class ContactFrontendConnectorSpec extends FakeApplicationSpec {
 
     connector.raiseTicket(sub, "test1") onComplete {
       case Success(_) =>
-      case Failure(_) => fail
+      case Failure(_) => fail()
     }
   }
 

@@ -47,7 +47,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class RegistrationControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
-  val mockTaxEnrolmentConnector = mock[TaxEnrolmentConnector]
+  val mockTaxEnrolmentConnector: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
@@ -55,7 +55,7 @@ class RegistrationControllerSpec
   val mockAuditing: AuditConnector = mock[AuditConnector]
   val mockSdilPeristence: SdilMongoPersistence = mock[SdilMongoPersistence]
 
-  val cc = app.injector.instanceOf[ControllerComponents]
+  val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]
   val testSdilController = new RegistrationController(
     mockAuthConnector,
     mockTaxEnrolmentConnector,
@@ -67,11 +67,10 @@ class RegistrationControllerSpec
     cc)
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
-  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import akka.actor.{ActorSystem, Cancellable}
+import org.apache.pekko.actor.{ActorSystem, Cancellable}
 import com.google.inject.{Inject, Singleton}
 import org.joda.time.Duration
 import play.api.{Configuration, Logger}

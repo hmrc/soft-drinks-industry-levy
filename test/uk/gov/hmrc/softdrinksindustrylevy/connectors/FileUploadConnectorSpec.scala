@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, stubFor, urlPathEqualTo}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -42,7 +41,7 @@ class FileUploadConnectorSpec extends FakeApplicationSpec with MockitoSugar with
 
     connector.getFile("1234", "testfile") onComplete {
       case Success(_) =>
-      case Failure(_) => fail
+      case Failure(_) => fail()
     }
   }
 }

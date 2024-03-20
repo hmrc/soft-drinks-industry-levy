@@ -51,9 +51,8 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   val testReturnsContoller =
     new ReturnsController(mockAuthConnector, mockDesConnector, subscriptions, returns, mockAuditing, cc)
 
-  override def beforeEach() {
+  override def beforeEach(): Unit =
     reset(mockDesConnector)
-  }
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
