@@ -127,7 +127,8 @@ object BalanceController {
   def deep(base: FinancialLineItem, in: FinancialTransaction): List[FinancialLineItem] =
     base :: {
       in.items collect {
-        case i: SubItem if i.paymentReference.isDefined && in.contractAccountCategory == "32".some =>
+        case i: SubItem
+            if i.paymentReference.isDefined && i.outgoingPaymentMethod.isEmpty && in.contractAccountCategory == "32".some =>
           PaymentOnAccount(
             i.clearingDate.get,
             i.paymentReference.get,
