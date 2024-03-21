@@ -100,8 +100,11 @@ class BalanceController @Inject()(
 object BalanceController {
   val logger = Logger(this.getClass)
   type Payment = (String, LocalDate, BigDecimal)
+
   def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
-    val (payments, other) = in.partition { _.isInstanceOf[PaymentOnAccount] }
+    val (payments, other) = in.partition {
+      _.isInstanceOf[PaymentOnAccount]
+    }
     other ++ payments.distinct
   }
 
@@ -113,7 +116,9 @@ object BalanceController {
     amount: Option[BigDecimal]
   ): List[FinancialLineItem] =
     amount
-      .filter { _ != 0 }
+      .filter {
+        _ != 0
+      }
       .map { x =>
         f(LocalDate.now, -x)
       }
@@ -133,16 +138,26 @@ object BalanceController {
       }
     }
 
-  def amount(in: FinancialTransaction): BigDecimal = -in.items.map { _.amount }.sum
+  def amount(in: FinancialTransaction): BigDecimal =
+    -in.items.map {
+      _.amount
+    }.sum
+
+  def paymentAmount(items: List[SubItem]): BigDecimal = -items.map { _.amount }.sum
 
   def dueDate(in: FinancialTransaction): LocalDate = in.items.head.dueDate
 
   def convert(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
-    deduplicatePayments(in.flatMap { _.financialTransactions.flatMap(convert) })
-      .sortBy { _.date.toString }
+    deduplicatePayments(in.flatMap {
+      _.financialTransactions.flatMap(convert)
+    }).sortBy {
+      _.date.toString
+    }
 
   def convert(in: FinancialTransactionResponse): List[FinancialLineItem] =
-    deduplicatePayments(in.financialTransactions.flatMap(convert)).sortBy { _.date.toString }.reverse
+    deduplicatePayments(in.financialTransactions.flatMap(convert)).sortBy {
+      _.date.toString
+    }.reverse
 
   private def randomNumbers(stringLength: Int, id: String): String = {
     val n = Seq.fill(stringLength)(Random.nextInt(9)).mkString("")
@@ -155,44 +170,65 @@ object BalanceController {
     default
   }
 
-  def convert(in: FinancialTransaction): List[FinancialLineItem] =
-    (
-      in.mainTransaction >>= parseIntOpt,
-      in.subTransaction >>= parseIntOpt
-    ) match {
-      case (Some(main), Some(sub)) =>
-        (main, sub) match {
-          case (4810, 1540) =>
-            deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(
-              ReturnChargeInterest.apply,
-              in.accruedInterest)
-          case (4815, 2215) => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
-          case (4820, 1540) =>
-            deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(
-              CentralAsstInterest.apply,
-              in.accruedInterest)
-          case (4825, 2215) => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
-          case (4830, 1540) =>
-            deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(
-              OfficerAsstInterest.apply,
-              in.accruedInterest)
-          case (4835, 2215) => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
-          case (60, 100) if in.contractAccountCategory == "32".some =>
-            PaymentOnAccount(
-              dueDate(in),
-              in.items.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
-              in.items.head.paymentAmount.getOrElse(logBigDec(0, "payment amount")),
-              in.items.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
-              in.items.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))
-            ).pure[List]
-          case (a, b) if in.contractAccountCategory == "32".some =>
-            logger.warn(
-              s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
-            Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-          case _ =>
-            logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}")
-            List.empty
-        }
+  def convert(in: FinancialTransaction): List[FinancialLineItem] = {
+    val mainTransaction = in.mainTransaction >>= parseIntOpt
+    val subTransaction = in.subTransaction >>= parseIntOpt
+    (mainTransaction, subTransaction) match {
+      case (Some(main), Some(sub)) if sub == 1540                           => convertReturnOrAssessmentFinancialTransaction(in, main)
+      case (Some(main), Some(sub)) if sub == 2215                           => convertInterestFinancialTransaction(in, main)
+      case (Some(60), Some(100)) if in.contractAccountCategory == "32".some => convertPaymentFinancialTransaction(in)
+      case _                                                                => handleUnrecognisedFinancialTransaction(in, mainTransaction, subTransaction)
+    }
+  }
+
+  private def convertReturnOrAssessmentFinancialTransaction(
+    in: FinancialTransaction,
+    mainTransaction: Int): List[FinancialLineItem] =
+    mainTransaction match {
+      case 4810 =>
+        deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(
+          ReturnChargeInterest.apply,
+          in.accruedInterest)
+      case 4820 =>
+        deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest.apply, in.accruedInterest)
+      case 4830 =>
+        deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest.apply, in.accruedInterest)
+      case _ => handleUnrecognisedFinancialTransaction(in, Some(mainTransaction), Some(1540))
+    }
+  private def convertInterestFinancialTransaction(
+    in: FinancialTransaction,
+    mainTransaction: Int): List[FinancialLineItem] =
+    mainTransaction match {
+      case 4815 => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
+      case 4825 => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
+      case 4835 => deep(OfficerAsstInterest(dueDate(in), amount(in)), in)
+      case _    => handleUnrecognisedFinancialTransaction(in, Some(mainTransaction), Some(2215))
+    }
+
+  private def convertPaymentFinancialTransaction(in: FinancialTransaction): List[FinancialLineItem] = {
+    val incomingPaymentItems = in.items.collect { case item if item.outgoingPaymentMethod.isEmpty => item }
+    if (incomingPaymentItems.nonEmpty) {
+      PaymentOnAccount(
+        dueDate(in),
+        incomingPaymentItems.head.paymentReference.getOrElse(randomNumbers(10, "payment reference")),
+        paymentAmount(incomingPaymentItems),
+        incomingPaymentItems.head.paymentLot.getOrElse(randomNumbers(10, "payment lot")),
+        incomingPaymentItems.head.paymentLotItem.getOrElse(randomNumbers(10, "payment lot item"))
+      ).pure[List]
+    } else {
+      List.empty
+    }
+  }
+
+  private def handleUnrecognisedFinancialTransaction(
+    in: FinancialTransaction,
+    mainTransaction: Option[Int] = None,
+    subTransaction: Option[Int] = None): List[FinancialLineItem] =
+    (mainTransaction, subTransaction) match {
+      case (a, b) if in.contractAccountCategory == "32".some =>
+        logger.warn(
+          s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
+        Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       case _ if in.contractAccountCategory == "32".some =>
         logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]

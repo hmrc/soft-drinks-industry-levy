@@ -277,7 +277,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
         result mustBe expectedResult
       }
 
-      "FinancialTransaction case (60,100)" in {
+      "FinancialTransaction case (60,100) " in {
         val testFinancialTransaction = FinancialTransaction(
           "",
           contractAccountCategory = Some("32"),
@@ -294,12 +294,61 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
           case PaymentOnAccount(date, reference, amount, lot, lotItem) => {
             date mustBe testDate
             reference.length mustBe 10
-            amount mustBe 0
+            amount mustBe -testBigDecimal
             lot.length mustBe 10
             lotItem.length mustBe 10
           }
           case _ => fail()
         }
+      }
+
+      "FinancialTransaction case (60,100) with item for outgoing payment" in {
+        val subItemWithOutgoingPayment = emptySubItem.copy(
+          amount = -321,
+          outgoingPaymentMethod = Some("Payment method")
+        )
+        val testFinancialTransaction = FinancialTransaction(
+          "",
+          contractAccountCategory = Some("32"),
+          mainTransaction = Some("60"),
+          subTransaction = Some("100"),
+          originalAmount = testBigDecimal,
+          items = List(emptySubItem, subItemWithOutgoingPayment)
+        )
+
+        val result = BalanceController.convert(testFinancialTransaction)
+        result.length mustBe 1
+
+        result.head match {
+          case PaymentOnAccount(date, reference, amount, lot, lotItem) => {
+            date mustBe testDate
+            reference.length mustBe 10
+            amount mustBe -testBigDecimal
+            lot.length mustBe 10
+            lotItem.length mustBe 10
+          }
+          case _ => fail()
+        }
+      }
+
+      "FinancialTransaction case (60,100) with item for outgoing payment only" in {
+        val subItemWithOutgoingPayment = emptySubItem.copy(
+          amount = -321,
+          outgoingPaymentMethod = Some("Payment method")
+        )
+        val testFinancialTransaction = FinancialTransaction(
+          "",
+          contractAccountCategory = Some("32"),
+          mainTransaction = Some("60"),
+          subTransaction = Some("100"),
+          originalAmount = testBigDecimal,
+          items = List(subItemWithOutgoingPayment)
+        )
+
+        val result = BalanceController.convert(testFinancialTransaction)
+        result.length mustBe 0
+
+        result.isEmpty mustBe true
       }
     }
 
