@@ -52,7 +52,7 @@ class BalanceController @Inject()(
             val financialTransactions = ftWithCorrectContractAccountCategory(r.financialTransactions)
             val getOutstandingBalanceIfPresent =
               if (configuration.getBoolean("balance.useOutstandingAmount") &&
-                financialTransactions.length == 1) {
+                  financialTransactions.length == 1) {
                 financialTransactions.head.outstandingAmount
               } else {
                 None
@@ -105,9 +105,8 @@ object BalanceController {
 
   private val correctContractAccountCategory: Option[String] = "32".some
 
-  def ftWithCorrectContractAccountCategory(in: List[FinancialTransaction]): List[FinancialTransaction] = {
+  def ftWithCorrectContractAccountCategory(in: List[FinancialTransaction]): List[FinancialTransaction] =
     in.filter(_.contractAccountCategory == correctContractAccountCategory)
-  }
 
   def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
     val (payments, other) = in.partition {
