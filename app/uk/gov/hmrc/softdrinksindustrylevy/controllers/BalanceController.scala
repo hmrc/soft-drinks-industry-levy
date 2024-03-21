@@ -103,10 +103,11 @@ object BalanceController {
   val logger = Logger(this.getClass)
   type Payment = (String, LocalDate, BigDecimal)
 
-  private val correctContractAccountCategory: Option[String] = "32".some
+  def transactionHasCorrectAccountCategory(in: FinancialTransaction): Boolean =
+    in.contractAccountCategory == "32".some
 
   def ftWithCorrectContractAccountCategory(in: List[FinancialTransaction]): List[FinancialTransaction] =
-    in.filter(_.contractAccountCategory == correctContractAccountCategory)
+    in.filter(transactionHasCorrectAccountCategory)
 
   def deduplicatePayments(in: List[FinancialLineItem]): List[FinancialLineItem] = {
     val (payments, other) = in.partition {
@@ -135,7 +136,7 @@ object BalanceController {
     base :: {
       in.items collect {
         case i: SubItem
-            if i.paymentReference.isDefined && i.outgoingPaymentMethod.isEmpty && in.contractAccountCategory == correctContractAccountCategory =>
+            if i.paymentReference.isDefined && i.outgoingPaymentMethod.isEmpty && transactionHasCorrectAccountCategory(in) =>
           PaymentOnAccount(
             i.clearingDate.get,
             i.paymentReference.get,
@@ -182,10 +183,10 @@ object BalanceController {
     val mainTransaction = in.mainTransaction >>= parseIntOpt
     val subTransaction = in.subTransaction >>= parseIntOpt
     (mainTransaction, subTransaction) match {
-      case (Some(main), Some(sub)) if sub == 1540                           => convertReturnOrAssessmentFinancialTransaction(in, main)
-      case (Some(main), Some(sub)) if sub == 2215                           => convertInterestFinancialTransaction(in, main)
-      case (Some(60), Some(100)) if in.contractAccountCategory == correctContractAccountCategory => convertPaymentFinancialTransaction(in)
-      case _                                                                => handleUnrecognisedFinancialTransaction(in, mainTransaction, subTransaction)
+      case (Some(main), Some(sub)) if sub == 1540                            => convertReturnOrAssessmentFinancialTransaction(in, main)
+      case (Some(main), Some(sub)) if sub == 2215                            => convertInterestFinancialTransaction(in, main)
+      case (Some(60), Some(100)) if transactionHasCorrectAccountCategory(in) => convertPaymentFinancialTransaction(in)
+      case _                                                                 => handleUnrecognisedFinancialTransaction(in, mainTransaction, subTransaction)
     }
   }
 
@@ -233,11 +234,11 @@ object BalanceController {
     mainTransaction: Option[Int] = None,
     subTransaction: Option[Int] = None): List[FinancialLineItem] =
     (mainTransaction, subTransaction) match {
-      case (a, b) if in.contractAccountCategory == correctContractAccountCategory =>
+      case (a, b) if transactionHasCorrectAccountCategory(in) =>
         logger.warn(
           s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
-      case _ if in.contractAccountCategory == correctContractAccountCategory =>
+      case _ if transactionHasCorrectAccountCategory(in) =>
         logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       case _ =>
