@@ -131,7 +131,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     status(response) mustBe 200
   }
 
-  "return Status: OK Body: outstandingAmount when checking for balance which has 1 financial transaction data that contains outstandingAmount" in {
+  "return Status: OK Body: outstandingAmount when checking for balance which has only 1 financial transaction with contractAccountCategory of 32 data that contains outstandingAmount - 1 transaction" in {
     val testDate = LocalDate.of(2019, 4, 9)
     val testBigDecimal = BigDecimal(123)
     val emptySubItem = SubItem("", testDate, testBigDecimal)
@@ -142,7 +142,8 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       subTransaction = Some("2215"),
       originalAmount = testBigDecimal,
       items = List(emptySubItem),
-      outstandingAmount = Some(-0.01)
+      outstandingAmount = Some(-0.01),
+      contractAccountCategory = Some("32")
     )
     val financialTransactionResponseIncludingOutstandingBalance = FinancialTransactionResponse(
       "",
@@ -150,6 +151,50 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       "",
       LocalDateTime.now(),
       List(financialTransactionIncludingOutstandingBalance)
+    )
+
+    when(serviceConfig.getBoolean(any())).thenReturn(true)
+
+    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+      .thenReturn(Future successful Some(financialTransactionResponseIncludingOutstandingBalance))
+    val response = testBalanceController.balance("0000222200", false)(FakeRequest())
+
+    status(response) mustBe 200
+    contentAsJson(response) mustBe JsNumber(0.01)
+  }
+
+  "return Status: OK Body: outstandingAmount when checking for balance which has only 1 financial transaction with contractAccountCategory of 32 data that contains outstandingAmount - multiple transactions" in {
+    val testDate = LocalDate.of(2019, 4, 9)
+    val testBigDecimal = BigDecimal(123)
+    val emptySubItem = SubItem("", testDate, testBigDecimal)
+
+    val financialTransactionIncludingOutstandingBalance = FinancialTransaction(
+      "",
+      mainTransaction = Some("4815"),
+      subTransaction = Some("2215"),
+      originalAmount = testBigDecimal,
+      items = List(emptySubItem),
+      outstandingAmount = Some(-0.01),
+      contractAccountCategory = Some("32")
+    )
+    val financialTransactionIncludingOutstandingBalanceWithIncorrectAccountCategory = FinancialTransaction(
+      "",
+      mainTransaction = Some("0060"),
+      subTransaction = Some("0100"),
+      originalAmount = testBigDecimal,
+      items = List(emptySubItem),
+      outstandingAmount = Some(10000),
+      contractAccountCategory = Some("48")
+    )
+    val financialTransactionResponseIncludingOutstandingBalance = FinancialTransactionResponse(
+      "",
+      "",
+      "",
+      LocalDateTime.now(),
+      List(
+        financialTransactionIncludingOutstandingBalance,
+        financialTransactionIncludingOutstandingBalanceWithIncorrectAccountCategory
+      )
     )
 
     when(serviceConfig.getBoolean(any())).thenReturn(true)
