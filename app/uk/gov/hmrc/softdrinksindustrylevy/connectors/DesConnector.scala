@@ -30,6 +30,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilMongoPersistence}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -72,6 +73,7 @@ class DesConnector @Inject() (
     val formattedAddress = request.address match {
       case a: UkAddress      => a.copy(lines = formattedLines)
       case b: ForeignAddress => b.copy(lines = formattedLines)
+      case _                 => throw new Exception("Cannot format address with params supplied")
     }
     val submission = request.copy(address = formattedAddress)
 
@@ -162,7 +164,6 @@ class DesConnector @Inject() (
           encodePair
         }
         .mkString("&")
-
     http
       .GET[Option[des.FinancialTransactionResponse]](uri, headers = desHeaders)(implicitly, hc, implicitly)
       .flatMap { x =>

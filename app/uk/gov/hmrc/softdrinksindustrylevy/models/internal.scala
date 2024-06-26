@@ -35,6 +35,7 @@ package object internal {
     def writes(address: Address): JsValue = address match {
       case uk: UkAddress           => ukAddressFormat.writes(uk)
       case foreign: ForeignAddress => foreignAddressFormat.writes(foreign)
+      case _                       => throw new Exception("Cannot format address with params supplied")
     }
   }
 

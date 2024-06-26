@@ -88,6 +88,7 @@ package object get {
                 "notUKAddress" -> JsBoolean(true),
                 "country"      -> JsString(country)
               )
+            case _ => throw new Exception("Cannot format address with params supplied")
           }
         } ::: jsLines
       )
