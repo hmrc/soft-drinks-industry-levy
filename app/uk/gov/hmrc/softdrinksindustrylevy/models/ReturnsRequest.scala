@@ -21,7 +21,6 @@ import cats.instances.option._
 import cats.kernel.Monoid
 import sdil.models._
 
-@deprecated("use SdilReturn", "0.36")
 case class ReturnsRequest(
   packaged: Option[ReturnsPackaging],
   imported: Option[ReturnsImporting],
@@ -37,15 +36,13 @@ case class ReturnsRequest(
   private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
 
 }
-@deprecated("use SdilReturn", "0.36")
+
 case class ReturnsPackaging(smallProducerVolumes: Seq[SmallProducerVolume], largeProducerVolumes: LitreBands) {
   lazy val totalSmallProdVolumes: LitreBands = smallProducerVolumes.foldLeft(Monoid[LitreBands].empty)(_ |+| _.volumes)
 }
 
-@deprecated("use SdilReturn", "0.36")
 case class ReturnsImporting(smallProducerVolumes: LitreBands, largeProducerVolumes: LitreBands)
 
-@deprecated("use SdilReturn", "0.36")
 case class SmallProducerVolume(producerRef: String, volumes: LitreBands)
 
 object ReturnsRequest {

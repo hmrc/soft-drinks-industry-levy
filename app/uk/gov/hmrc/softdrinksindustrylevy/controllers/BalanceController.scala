@@ -230,9 +230,8 @@ object BalanceController {
 
   private def handleUnrecognisedFinancialTransaction(
     in: FinancialTransaction,
-    mainTransaction: Option[Int] = None,
-    subTransaction: Option[Int] = None
-  ): List[FinancialLineItem] =
+    mainTransaction: Option[Int],
+    subTransaction: Option[Int]): List[FinancialLineItem] =
     (mainTransaction, subTransaction) match {
       case (a, b) if transactionHasCorrectAccountCategory(in) =>
         logger.warn(

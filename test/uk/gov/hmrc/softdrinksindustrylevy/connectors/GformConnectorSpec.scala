@@ -56,8 +56,6 @@ class GformConnectorSpec
     "send the correct metadata to gform" in {
 
       val sdilNumber = "XZSDIL0009999"
-      val expectedMetadataJson =
-        """{"dmsFormId":"SDIL-VAR-1","customerId":"XZSDIL0009999","classificationType":"BT-NRU-SDIL","businessArea":"BT"}"""
 
       when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(204, "204")))
