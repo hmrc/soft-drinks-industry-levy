@@ -56,7 +56,8 @@ class TaxEnrolmentCallbackControllerSpec
     mockMode,
     cc,
     mockConfiguration,
-    mockAuditConnector)
+    mockAuditConnector
+  )
 
   override def beforeEach(): Unit = {
     reset(mockBuffer)
@@ -74,7 +75,9 @@ class TaxEnrolmentCallbackControllerSpec
               Some(Seq(Identifier("SdilRegistrationNumber", "XXSDIL0009999"))),
               "safe-id",
               "SUCCEEDED",
-              None))
+              None
+            )
+          )
       )
 
       when(mockConfiguration.baseUrl(any())).thenReturn("urlString")
@@ -83,7 +86,8 @@ class TaxEnrolmentCallbackControllerSpec
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockBuffer.findById(matching("safe-id"))).thenReturn(Future.successful(wrapper))
       when(mockBuffer.removeById(matching("safe-id")))
         .thenReturn(Future.successful(new DeleteResult() {
@@ -106,7 +110,9 @@ class TaxEnrolmentCallbackControllerSpec
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
             "safe-id",
             "SUCCEEDED",
-            None))
+            None
+          )
+        )
       )
       when(mockConfiguration.baseUrl(any())).thenReturn("urlString")
       when(mockAuditConnector.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
@@ -114,7 +120,8 @@ class TaxEnrolmentCallbackControllerSpec
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockBuffer.findById(matching("safe-id"))).thenReturn(Future.successful(wrapper))
       when(mockBuffer.removeById(matching("safe-id")))
         .thenReturn(Future.successful(new DeleteResult() {

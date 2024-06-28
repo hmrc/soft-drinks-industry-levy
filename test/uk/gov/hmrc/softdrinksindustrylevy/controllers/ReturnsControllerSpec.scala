@@ -71,7 +71,9 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val response = testReturnsContoller.variable(testUtr)(FakeRequest())
 
       status(response) mustBe OK
-      contentAsString(response) mustBe s"""[{\"year\":${testReturnPeriod.year},\"quarter\":${testReturnPeriod.quarter}}]"""
+      contentAsString(
+        response
+      ) mustBe s"""[{\"year\":${testReturnPeriod.year},\"quarter\":${testReturnPeriod.quarter}}]"""
     }
   }
 
@@ -91,7 +93,8 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testQuarter = 1
 
       when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        None)
+        None
+      )
       when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
       val response =
         testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
@@ -121,7 +124,10 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
             Nil,
             mock[Contact],
             None,
-            None)))
+            None
+          )
+        )
+      )
 
       returns.update(testUtr, ReturnPeriod(2018, 1), SdilReturn(submittedOn = None))
       val response =

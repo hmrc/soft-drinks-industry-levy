@@ -30,43 +30,40 @@ import scala.concurrent.duration.{FiniteDuration, MINUTES}
 import scala.concurrent.{ExecutionContext, Future, duration}
 
 @Singleton
-class OverdueSubmissionsChecker @Inject()(
+class OverdueSubmissionsChecker @Inject() (
   val mongoLockRepository: MongoLockRepository,
   mongoBufferService: MongoBufferService,
   val config: Configuration,
   val actorSystem: ActorSystem,
-  contactFrontend: ContactFrontendConnector)(implicit ec: ExecutionContext) {
+  contactFrontend: ContactFrontendConnector
+)(implicit ec: ExecutionContext) {
   val logger = Logger(this.getClass)
 
   val jobName: String = "overdueSubmissions"
 
-  val jobEnabled: Boolean = {
+  val jobEnabled: Boolean =
     config.getOptional[Boolean](s"$jobName.enabled") match {
       case Some(value) => value
       case None        => throw MissingConfiguration(s"$jobName.enabled")
     }
-  }
 
-  val jobStartDelay: FiniteDuration = {
+  val jobStartDelay: FiniteDuration =
     config.getOptional[Long](s"$jobName.startDelayMinutes") match {
       case Some(d) => FiniteDuration(d, MINUTES)
       case None    => throw MissingConfiguration(s"$jobName.startDelayMinutes")
     }
-  }
 
-  val overduePeriod: Duration = {
+  val overduePeriod: Duration =
     config.getOptional[Long](s"$jobName.overduePeriodMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.overduePeriodMinutes")
     }
-  }
 
-  val jobInterval: Duration = {
+  val jobInterval: Duration =
     config.getOptional[Long](s"$jobName.jobIntervalMinutes") match {
       case Some(d) => Duration.standardMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }
-  }
 
   protected def runJob()(implicit ec: ExecutionContext): Future[Unit] =
     for {
@@ -102,10 +99,9 @@ class OverdueSubmissionsChecker @Inject()(
     logger.info(s"Running job $jobName")
 
     lock.withRenewedLock {
-      runJob() recoverWith {
-        case e: Exception =>
-          logger.error(s"Job $jobName failed", e)
-          Future.failed(e)
+      runJob() recoverWith { case e: Exception =>
+        logger.error(s"Job $jobName failed", e)
+        Future.failed(e)
       }
     } map {
       _.getOrElse(logger.info(s"Unable to run job $jobName"))

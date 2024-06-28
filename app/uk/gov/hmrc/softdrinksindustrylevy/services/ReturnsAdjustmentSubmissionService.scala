@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ReturnsAdjustmentSubmissionService @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+class ReturnsAdjustmentSubmissionService @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ReturnVariationWrapper](
       collectionName = "returnadjustments",
       mongoComponent = mongo,
@@ -38,7 +38,8 @@ class ReturnsAdjustmentSubmissionService @Inject()(mongo: MongoComponent)(implic
       indexes = Seq(
         IndexModel(
           Indexes.ascending("timestamp"),
-          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)),
+          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)
+        ),
         IndexModel(Indexes.ascending("sdilRef"))
       )
     ) {

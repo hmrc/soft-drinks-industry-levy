@@ -27,13 +27,14 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class EmailConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class EmailConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val emailUrl: String = servicesConfig.baseUrl("email")
 
-  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
     val params = Json.obj(
       "to"         -> Seq(email),
       "templateId" -> "sdil_registration_accepted",
@@ -50,9 +51,10 @@ class EmailConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig:
   }
 
   // TODO find out if we need to verify...
-  def sendSubmissionReceivedEmail(email: String, orgName: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def sendSubmissionReceivedEmail(email: String, orgName: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
     val params = Json.obj(
       "to"         -> Seq(email),
       "templateId" -> "sdil_registration_received",

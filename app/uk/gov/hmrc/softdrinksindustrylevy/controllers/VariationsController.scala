@@ -30,7 +30,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionS
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class VariationsController @Inject()(
+class VariationsController @Inject() (
   override val messagesApi: MessagesApi,
   gforms: GformConnector,
   variationSubmissions: VariationSubmissionService,

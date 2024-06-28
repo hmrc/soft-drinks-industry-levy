@@ -33,14 +33,15 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TaxEnrolmentCallbackController @Inject()(
+class TaxEnrolmentCallbackController @Inject() (
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   taxEnrolments: TaxEnrolmentConnector,
   val mode: Mode,
   val cc: ControllerComponents,
   val configuration: ServicesConfig,
-  auditing: AuditConnector)(implicit ec: ExecutionContext)
+  auditing: AuditConnector
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   lazy val logger = Logger(this.getClass)
@@ -54,10 +55,11 @@ class TaxEnrolmentCallbackController @Inject()(
           pendingSub <- buffer.findById(teSub.etmpId)
           _          <- buffer.removeById(teSub.etmpId)
           _ <- sendNotificationEmail(
-                pendingSub.subscription.orgName,
-                pendingSub.subscription.contact.email,
-                getSdilNumber(teSub),
-                formBundleNumber)
+                 pendingSub.subscription.orgName,
+                 pendingSub.subscription.contact.email,
+                 getSdilNumber(teSub),
+                 formBundleNumber
+               )
           _ <- auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber))
         } yield {
           logger.info("Tax-enrolments callback successful")
@@ -65,7 +67,8 @@ class TaxEnrolmentCallbackController @Inject()(
         }
       } else {
         logger.error(
-          s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]")
+          s"Got error from tax-enrolments callback for $formBundleNumber: [${body.errorResponse.getOrElse("")}]"
+        )
         auditing.sendExtendedEvent(buildAuditEvent(body, request.uri, formBundleNumber)) map { _ =>
           NoContent
         }
@@ -77,7 +80,8 @@ class TaxEnrolmentCallbackController @Inject()(
     orgName: String,
     email: String,
     sdilNumber: Option[String],
-    formBundleNumber: String)(implicit hc: HeaderCarrier): Future[Unit] =
+    formBundleNumber: String
+  )(implicit hc: HeaderCarrier): Future[Unit] =
     (orgName, email) match {
       case (o, e) if StringUtils.isNoneEmpty(o) && StringUtils.isNoneEmpty(e) =>
         sdilNumber match {
@@ -85,11 +89,14 @@ class TaxEnrolmentCallbackController @Inject()(
           case None =>
             Future.successful(
               logger.error(
-                s"Unable to send email for form bundle $formBundleNumber as enrolment is missing SDIL Number"))
+                s"Unable to send email for form bundle $formBundleNumber as enrolment is missing SDIL Number"
+              )
+            )
         }
       case _ =>
         Future.successful(
-          logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists"))
+          logger.error(s"Received callback for form bundle number $formBundleNumber, but no pending record exists")
+        )
     }
 
   private def getSdilNumber(taxEnrolmentsSubscription: TaxEnrolmentsSubscription): Option[String] =
@@ -97,8 +104,9 @@ class TaxEnrolmentCallbackController @Inject()(
       case Identifier(_, value) if value.slice(2, 4) == "SD" => value
     }
 
-  private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String)(
-    implicit hc: HeaderCarrier) = {
+  private def buildAuditEvent(callback: CallbackNotification, path: String, subscriptionId: String)(implicit
+    hc: HeaderCarrier
+  ) = {
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,
       "url"            -> s"${serviceConfig.baseUrl("tax-enrolments")}/tax-enrolments/subscriptions/$subscriptionId",

@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class ReturnsController @Inject()(
+class ReturnsController @Inject() (
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val persistence: SdilMongoPersistence,
@@ -60,8 +60,10 @@ class ReturnsController @Inject()(
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
-          b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
-            y.isAfter(period.end) && b.activity.isSmallProducer))
+                        b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
+                          y.isAfter(period.end) && b.activity.isSmallProducer
+                        )
+                      )
       } yield Ok(Json.toJson(isSmallProd))
     }
   }
@@ -108,31 +110,29 @@ class ReturnsController @Inject()(
             ref = subscription.get.sdilRef.get
             _ <- desConnector.submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
-                  new SdilReturnEvent(
-                    request.uri,
-                    buildReturnAuditDetail(
-                      sdilReturn,
-                      returnsReq,
-                      creds.get.providerId,
-                      period,
-                      subscription,
-                      utr,
-                      "SUCCESS")
-                  )
-                )
+                   new SdilReturnEvent(
+                     request.uri,
+                     buildReturnAuditDetail(
+                       sdilReturn,
+                       returnsReq,
+                       creds.get.providerId,
+                       period,
+                       subscription,
+                       utr,
+                       "SUCCESS"
+                     )
+                   )
+                 )
             _ <- returns(utr, period) = sdilReturn
-          } yield {
-            Ok(Json.toJson(returnsReq))
-          }).recoverWith {
-            case e =>
-              auditing.sendExtendedEvent(
-                new SdilReturnEvent(
-                  request.uri,
-                  buildReturnAuditDetail(sdilReturn, returnsReq, creds.get.providerId, period, None, utr, "ERROR")
-                )
-              ) map {
-                throw e
-              }
+          } yield Ok(Json.toJson(returnsReq))).recoverWith { case e =>
+            auditing.sendExtendedEvent(
+              new SdilReturnEvent(
+                request.uri,
+                buildReturnAuditDetail(sdilReturn, returnsReq, creds.get.providerId, period, None, utr, "ERROR")
+              )
+            ) map {
+              throw e
+            }
           }
         }
       }
@@ -141,7 +141,7 @@ class ReturnsController @Inject()(
   def get(utr: String, year: Int, quarter: Int): Action[AnyContent] =
     Action.async {
       returns.get(utr, ReturnPeriod(year, quarter)).map {
-        case Some((record)) =>
+        case Some(record) =>
           Ok(Json.toJson(record))
         case None => NotFound
       }
@@ -160,20 +160,18 @@ class ReturnsController @Inject()(
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
         val start = subscription match {
           case Some(x) => x.liabilityDate
-          case None => {
+          case None =>
             logger.error(s"Error occurred while retrieving subscriptionDetails for utr =  $utr")
             throw new NoSuchElementException(s"No subscription details found for the user utr= $utr")
-          }
         }
 
         val all = {
           ReturnPeriod(start).count to ReturnPeriod(LocalDate.now()).count
         }.map {
-            ReturnPeriod.apply
-          }
-          .filter {
-            _.end.isBefore(LocalDate.now())
-          }
+          ReturnPeriod.apply
+        }.filter {
+          _.end.isBefore(LocalDate.now())
+        }
         returns.list(utr).map { posted: Map[ReturnPeriod, SdilReturn] =>
           Ok(Json.toJson(all.toList diff posted.keys.toList))
         }

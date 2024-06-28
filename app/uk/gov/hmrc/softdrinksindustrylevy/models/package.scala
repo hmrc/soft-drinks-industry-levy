@@ -45,9 +45,12 @@ package object models {
   implicit val longTupleFormatter: Format[(Long, Long)] = (
     (JsPath \ "lower").format[Long] and
       (JsPath \ "higher").format[Long]
-  )((a: Long, b: Long) => (a, b), unlift({ x: (Long, Long) =>
-    Tuple2.unapply(x)
-  }))
+  )(
+    (a: Long, b: Long) => (a, b),
+    unlift { x: (Long, Long) =>
+      Tuple2.unapply(x)
+    }
+  )
 
   implicit val ukAddressFormat: OFormat[UkAddress] = Json.format[UkAddress]
   implicit val formatSP: OFormat[SmallProducer] = Json.format[SmallProducer]
@@ -59,10 +62,10 @@ package object models {
     new Format[Option[A]] {
       def reads(json: JsValue): JsResult[Option[A]] = json match {
         case JsNull => JsSuccess(none[A])
-        case a      => innerFormatter.reads(a).map { _.some }
+        case a      => innerFormatter.reads(a).map(_.some)
       }
       def writes(o: Option[A]): JsValue =
-        o.map { innerFormatter.writes }.getOrElse(JsNull)
+        o.map(innerFormatter.writes).getOrElse(JsNull)
     }
 
 }

@@ -64,7 +64,8 @@ class RegistrationControllerSpec
     mockEmailConnector,
     mockAuditing,
     mockSdilPeristence,
-    cc)
+    cc
+  )
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
@@ -102,7 +103,8 @@ class RegistrationControllerSpec
 
       val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(
         FakeRequest()
-          .withBody(validCreateSubscriptionRequest))
+          .withBody(validCreateSubscriptionRequest)
+      )
 
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any())
@@ -118,7 +120,9 @@ class RegistrationControllerSpec
                 |"test": "bad"
                 |}
           """.stripMargin
-            )))
+            )
+          )
+      )
 
       status(result) mustBe BAD_REQUEST
     }
@@ -133,11 +137,14 @@ class RegistrationControllerSpec
             BsonDocument(("err", "error E11000")),
             null,
             null
-          )))
+          )
+        )
+      )
 
       val response = testSdilController.submitRegistration("UTR", "00002222", "foo")(
         FakeRequest()
-          .withBody(validCreateSubscriptionRequest))
+          .withBody(validCreateSubscriptionRequest)
+      )
 
       status(response) mustBe CONFLICT
       contentAsJson(response) mustBe Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED")
@@ -152,8 +159,11 @@ class RegistrationControllerSpec
       when(mockBuffer.insert(any())).thenReturn(Future.failed(testLastError))
 
       the[WriteConcernException] thrownBy contentAsString(
-        testSdilController.submitRegistration("UTR", "00002222", "foo")(FakeRequest()
-          .withBody(validCreateSubscriptionRequest)))
+        testSdilController.submitRegistration("UTR", "00002222", "foo")(
+          FakeRequest()
+            .withBody(validCreateSubscriptionRequest)
+        )
+      )
 
     }
 
@@ -171,7 +181,8 @@ class RegistrationControllerSpec
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
         .thenReturn(Future successful None)
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
@@ -191,45 +202,49 @@ class RegistrationControllerSpec
 
     "return Status: OK for subscription for a sub that has an enrolment and is in the pending queue (Mongo)" +
       " and delete from the queue" in {
-      val wrapper = SubscriptionWrapper(
-        "safe-id",
-        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
-      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
-        Future.successful(
-          TaxEnrolmentsSubscription(
-            Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
-            "safe-id",
-            "SUCCEEDED",
-            None)
+        val wrapper = SubscriptionWrapper(
+          "safe-id",
+          Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+          formBundleNumber
         )
-      )
-      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
-        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
-      when(mockBuffer.remove(any()))
-        .thenReturn(Future successful (new DeleteResult() {
-          override def wasAcknowledged(): Boolean = true
+        when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+          Future.successful(
+            TaxEnrolmentsSubscription(
+              Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
+              "safe-id",
+              "SUCCEEDED",
+              None
+            )
+          )
+        )
+        when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
+        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+          .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+        when(mockBuffer.remove(any()))
+          .thenReturn(Future successful (new DeleteResult() {
+            override def wasAcknowledged(): Boolean = true
 
-          override def getDeletedCount: Litres = 1
-        }))
+            override def getDeletedCount: Litres = 1
+          }))
 
-      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
-      status(response) mustBe OK
-    }
+        val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+        status(response) mustBe OK
+      }
 
     "Returns OK for TaxEnrolmentsSubscription state of ERROR" in {
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
             "safe-id",
             "ERROR",
-            None)
+            None
+          )
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
@@ -250,14 +265,16 @@ class RegistrationControllerSpec
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
             "safe-id",
             "PENDING",
-            None)
+            None
+          )
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
@@ -278,14 +295,16 @@ class RegistrationControllerSpec
       val wrapper = SubscriptionWrapper(
         "safe-id",
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
+        formBundleNumber
+      )
       when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
             "safe-id",
             "INVALIDSTRING",
-            None)
+            None
+          )
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
@@ -304,20 +323,21 @@ class RegistrationControllerSpec
 
     "return Status: OK for subscription for a sub that doesn't have an enrolment but is in the pending queue (Mongo)" +
       " n.b. an error should be logged" in {
-      val wrapper = SubscriptionWrapper(
-        "safe-id",
-        Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
-        formBundleNumber)
-      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
-        Future.failed(new NotFoundException("foo"))
-      )
-      when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
-        .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
+        val wrapper = SubscriptionWrapper(
+          "safe-id",
+          Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
+          formBundleNumber
+        )
+        when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+          Future.failed(new NotFoundException("foo"))
+        )
+        when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
+        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+          .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
-      val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
-      status(response) mustBe OK
-    }
+        val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
+        status(response) mustBe OK
+      }
 
     "return Status: NOT_FOUND for a subscription that has been deregistered" in {
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))

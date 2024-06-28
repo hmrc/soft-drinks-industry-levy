@@ -29,13 +29,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 /** Actor which creates/updates missing/erroneous SdilReturns in mongo
   *
-  * When passed a [[DataCorrector.ReturnsCorrection]] object will look up the UTR (if not
-  * provided) from the SDIL reference and then create the [[sdil.models.SdilReturn]] in
-  * mongo. Called from [[DataCorrector.DataCorrectorSupervisor]].
+  * When passed a [[DataCorrector.ReturnsCorrection]] object will look up the UTR (if not provided) from the SDIL
+  * reference and then create the [[sdil.models.SdilReturn]] in mongo. Called from
+  * [[DataCorrector.DataCorrectorSupervisor]].
   */
 
 @Singleton
-class ReturnsCorrectorWorker @Inject()(
+class ReturnsCorrectorWorker @Inject() (
   connector: DesConnector,
   returns: ReturnsPersistence
 )(implicit ec: ExecutionContext)
@@ -58,12 +58,10 @@ class ReturnsCorrectorWorker @Inject()(
       logger.info(s"attempting to process $utrO/$sdilRefO")
       val job: Future[Unit] = for {
         utr <- utrO.fold(getUtrFromSdil(sdilRefO.get))(_.pure[Future])
-      } yield {
-        returns(utr, period) = data
-      }
+      } yield returns(utr, period) = data
       job.onComplete {
-        case a if (a.isSuccess) => logger.info(s"done processing $utrO/$sdilRefO")
-        case e                  => logger.warn(s"Don't understand $e")
+        case a if a.isSuccess => logger.info(s"done processing $utrO/$sdilRefO")
+        case e                => logger.warn(s"Don't understand $e")
       }
 
     case e => logger.warn(s"Don't understand $e")
@@ -72,8 +70,7 @@ class ReturnsCorrectorWorker @Inject()(
 
 /** Corrects local (MDTP) mongo data with records read from configuration
   *
-  * Reads in any pending correction records from the system configuration and
-  * schedules corrective action.
+  * Reads in any pending correction records from the system configuration and schedules corrective action.
   */
 class DataCorrector(
   system: ActorSystem,
@@ -96,7 +93,8 @@ class DataCorrector(
       Props(
         new ReturnsCorrectorWorker(connector, returnsPersistence)
       ),
-      name = "worker")
+      name = "worker"
+    )
 
     override def receive: PartialFunction[Any, Unit] = {
       case "next" =>
@@ -136,8 +134,8 @@ object DataCorrector {
 
   /** Details of the record to be created/altered
     *
-    * Returs are keyed on  the UTR, if no UTR is provided  but an SDIL Reference
-    * is then a HoD call will be made to determine the UTR
+    * Returs are keyed on the UTR, if no UTR is provided but an SDIL Reference is then a HoD call will be made to
+    * determine the UTR
     */
   case class ReturnsCorrection(
     sdilRef: Option[String] = None,

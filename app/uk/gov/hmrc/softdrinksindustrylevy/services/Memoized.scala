@@ -42,16 +42,15 @@ object Memoized {
     }
   }
 
-  /**
-    *  There's something odd about ScalaStm that means if you define the cache in the functinon call like this..
+  /** There's something odd about ScalaStm that means if you define the cache in the functinon call like this..
     *
-    *  val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](TMap[String, (Option[LocalDateTime], LocalDateTime)](), 60 * 60)(_,_)
+    * val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](TMap[String, (Option[LocalDateTime],
+    * LocalDateTime)](), 60 * 60)(_,_)
     *
-    *  Instead you must define cache as a val and then pass that in to the function call like this..
+    * Instead you must define cache as a val and then pass that in to the function call like this..
     *
-    *  val cache: TMap[String, (Option[LocalDateTime], LocalDateTime)] = TMap[String, (Option[LocalDateTime], LocalDateTime)]()
-    *  val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](cache, 60 * 60)(_,_)
-    *
+    * val cache: TMap[String, (Option[LocalDateTime], LocalDateTime)] = TMap[String, (Option[LocalDateTime],
+    * LocalDateTime)]() val memoized = Memoized.memoizedWithStm[Future, String, LocalDateTime](cache, 60 * 60)(_,_)
     */
   def memoizedCache[F[_]: Monad, A, B](
     underlyingCache: TMap[A, (B, LocalDateTime)],

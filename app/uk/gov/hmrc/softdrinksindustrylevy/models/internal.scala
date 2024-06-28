@@ -44,7 +44,8 @@ package object internal {
         (
           (json \ "lower").as[Litres],
           (json \ "upper").as[Litres]
-        ))
+        )
+      )
     def writes(value: LitreBands): JsValue = JsObject(
       List("lower" -> JsNumber(value._1), "upper" -> JsNumber(value._2))
     )
@@ -55,13 +56,16 @@ package object internal {
 
   implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
-      try {
-        InternalActivity(ActivityType.values.flatMap { at =>
-          (json \ at.toString).asOpt[LitreBands].map {
-            at -> _
-          }
-        }.toMap, (json \ "isLarge").as[Boolean])
-      } catch {
+      try
+        InternalActivity(
+          ActivityType.values.flatMap { at =>
+            (json \ at.toString).asOpt[LitreBands].map {
+              at -> _
+            }
+          }.toMap,
+          (json \ "isLarge").as[Boolean]
+        )
+      catch {
         case _: JsResultException =>
           val smallProducer = (json \ "smallProducer").asOpt[Boolean]
           val largeProducer = (json \ "largeProducer").asOpt[Boolean]
@@ -79,9 +83,8 @@ package object internal {
     def writes(activity: Activity): JsValue = JsObject(
       activity match {
         case InternalActivity(a, lg) =>
-          a.map {
-            case (t, lb) =>
-              t.toString -> litreBandsFormat.writes(lb)
+          a.map { case (t, lb) =>
+            t.toString -> litreBandsFormat.writes(lb)
           } ++ Map("isLarge" -> JsBoolean(lg))
         case a: RetrievedActivity =>
           Map(
@@ -109,7 +112,7 @@ package object internal {
       "warehouseSites"  -> o.warehouseSites,
       "contact"         -> o.contact,
       "_id"             -> o.utr
-  )
+    )
 
   implicit val subscriptionFormat: OFormat[Subscription] = Json.format[Subscription]
 

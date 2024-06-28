@@ -51,7 +51,7 @@ object ReturnsWrapper {
 }
 
 @Singleton
-class SdilMongoPersistence @Inject()(
+class SdilMongoPersistence @Inject() (
   mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[SubscriptionWrap](
@@ -79,7 +79,7 @@ class SdilMongoPersistence @Inject()(
 }
 
 @Singleton
-class ReturnsPersistence @Inject()(
+class ReturnsPersistence @Inject() (
   mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ReturnsWrapper](
@@ -108,7 +108,7 @@ class ReturnsPersistence @Inject()(
               Filters.equal("period.year", period.year),
               Filters.equal("period.quarter", period.quarter)
             ),
-            replacement = data, //How to convert data to Bson
+            replacement = data, // How to convert data to Bson
             options = FindOneAndReplaceOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
           )
           .toFuture()
@@ -126,7 +126,8 @@ class ReturnsPersistence @Inject()(
           Filters.equal("utr", utr),
           Filters.equal("period.year", period.year),
           Filters.equal("period.quarter", period.quarter)
-        ))
+        )
+      )
       .toFuture()
       .map {
         _.headOption.map { x =>
@@ -157,7 +158,7 @@ class ReturnsPersistence @Inject()(
             Filters.gt("period.year", since.getYear),
             Filters.and(
               Filters.equal("period.year", since.getYear),
-              Filters.gte("period.quarter", ((since.getMonthValue - 1) / 3)),
+              Filters.gte("period.quarter", (since.getMonthValue - 1) / 3)
             )
           )
         )

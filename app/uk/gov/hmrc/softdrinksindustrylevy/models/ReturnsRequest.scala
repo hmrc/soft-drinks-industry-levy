@@ -26,7 +26,8 @@ case class ReturnsRequest(
   packaged: Option[ReturnsPackaging],
   imported: Option[ReturnsImporting],
   exported: Option[LitreBands],
-  wastage: Option[LitreBands]) {
+  wastage: Option[LitreBands]
+) {
 
   lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 

@@ -19,20 +19,20 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import play.api.libs.json._
 import scala.language.implicitConversions
 
-/**
-  * Utility class for creating json formatters for enumerations.
+/** Utility class for creating json formatters for enumerations.
   */
 object EnumUtils {
   def enumReads[E <: Enumeration](`enum`: E): Reads[E#Value] = new Reads[E#Value] {
     def reads(json: JsValue): JsResult[E#Value] = json match {
       case JsString(s) =>
-        try {
+        try
           JsSuccess(enum.withName(s))
-        } catch {
+        catch {
           case _: NoSuchElementException =>
             JsError(
               s"Enumeration expected of type: '${enum.getClass}'," ++
-                s" but it does not appear to contain the value: '$s'")
+                s" but it does not appear to contain the value: '$s'"
+            )
         }
       case _ => JsError("String value expected")
     }

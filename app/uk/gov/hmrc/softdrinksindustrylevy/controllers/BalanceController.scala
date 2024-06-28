@@ -33,7 +33,7 @@ import scala.concurrent._
 import scala.util.Random
 
 @Singleton
-class BalanceController @Inject()(
+class BalanceController @Inject() (
   val authConnector: AuthConnector,
   desConnector: DesConnector,
   val cc: ControllerComponents,
@@ -51,8 +51,10 @@ class BalanceController @Inject()(
           case Some(r) =>
             val financialTransactions = ftWithCorrectContractAccountCategory(r.financialTransactions)
             val getOutstandingBalanceIfPresent =
-              if (configuration.getBoolean("balance.useOutstandingAmount") &&
-                  financialTransactions.length == 1) {
+              if (
+                configuration.getBoolean("balance.useOutstandingAmount") &&
+                financialTransactions.length == 1
+              ) {
                 financialTransactions.head.outstandingAmount
               } else {
                 None
@@ -70,23 +72,20 @@ class BalanceController @Inject()(
   def balanceHistoryAll(sdilRef: String, withAssessment: Boolean): Action[AnyContent] =
     Action.async { implicit request =>
       val r: Future[List[FinancialLineItem]] = for {
-        subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map { _.get }
+        subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map(_.get)
         years = (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         responses <- years.map { y =>
-                      desConnector.retrieveFinancialData(sdilRef, y.some)
-                    }.sequence
-      } yield {
-        deduplicatePayments(
-          if (withAssessment)
-            convert(responses.flatten)
-          else
-            convertWithoutAssessment(responses.flatten)
-        ).sortBy(_.date.toString)
-
-      }
+                       desConnector.retrieveFinancialData(sdilRef, y.some)
+                     }.sequence
+      } yield deduplicatePayments(
+        if (withAssessment)
+          convert(responses.flatten)
+        else
+          convertWithoutAssessment(responses.flatten)
+      ).sortBy(_.date.toString)
 
       r.map { x =>
-        Ok(JsArray(x.map { Json.toJson(_) }))
+        Ok(JsArray(x.map(Json.toJson(_))))
       }
     }
 
@@ -94,7 +93,7 @@ class BalanceController @Inject()(
     Action.async { implicit request =>
       desConnector.retrieveFinancialData(sdilRef, Some(year)).map { r =>
         val data: List[FinancialLineItem] = r.fold(List.empty[FinancialLineItem])(convert)
-        Ok(JsArray(data.map { Json.toJson(_) }))
+        Ok(JsArray(data.map(Json.toJson(_))))
       }
     }
 }
@@ -136,7 +135,9 @@ object BalanceController {
     base :: {
       in.items collect {
         case i: SubItem
-            if i.paymentReference.isDefined && i.outgoingPaymentMethod.isEmpty && transactionHasCorrectAccountCategory(in) =>
+            if i.paymentReference.isDefined && i.outgoingPaymentMethod.isEmpty && transactionHasCorrectAccountCategory(
+              in
+            ) =>
           PaymentOnAccount(
             i.clearingDate.get,
             i.paymentReference.get,
@@ -152,7 +153,7 @@ object BalanceController {
       _.amount
     }.sum
 
-  def paymentAmount(items: List[SubItem]): BigDecimal = -items.map { _.amount }.sum
+  def paymentAmount(items: List[SubItem]): BigDecimal = -items.map(_.amount).sum
 
   def dueDate(in: FinancialTransaction): LocalDate = in.items.head.dueDate
 
@@ -183,21 +184,23 @@ object BalanceController {
     val mainTransaction = in.mainTransaction >>= parseIntOpt
     val subTransaction = in.subTransaction >>= parseIntOpt
     (mainTransaction, subTransaction) match {
-      case (Some(main), Some(sub)) if sub == 1540                            => convertReturnOrAssessmentFinancialTransaction(in, main)
-      case (Some(main), Some(sub)) if sub == 2215                            => convertInterestFinancialTransaction(in, main)
+      case (Some(main), Some(sub)) if sub == 1540 => convertReturnOrAssessmentFinancialTransaction(in, main)
+      case (Some(main), Some(sub)) if sub == 2215 => convertInterestFinancialTransaction(in, main)
       case (Some(60), Some(100)) if transactionHasCorrectAccountCategory(in) => convertPaymentFinancialTransaction(in)
-      case _                                                                 => handleUnrecognisedFinancialTransaction(in, mainTransaction, subTransaction)
+      case _ => handleUnrecognisedFinancialTransaction(in, mainTransaction, subTransaction)
     }
   }
 
   private def convertReturnOrAssessmentFinancialTransaction(
     in: FinancialTransaction,
-    mainTransaction: Int): List[FinancialLineItem] =
+    mainTransaction: Int
+  ): List[FinancialLineItem] =
     mainTransaction match {
       case 4810 =>
         deep(ReturnCharge(ReturnPeriod.fromPeriodKey(in.periodKey.get), -in.originalAmount), in) ++ interest(
           ReturnChargeInterest.apply,
-          in.accruedInterest)
+          in.accruedInterest
+        )
       case 4820 =>
         deep(CentralAssessment(dueDate(in), amount(in)), in) ++ interest(CentralAsstInterest.apply, in.accruedInterest)
       case 4830 =>
@@ -206,7 +209,8 @@ object BalanceController {
     }
   private def convertInterestFinancialTransaction(
     in: FinancialTransaction,
-    mainTransaction: Int): List[FinancialLineItem] =
+    mainTransaction: Int
+  ): List[FinancialLineItem] =
     mainTransaction match {
       case 4815 => deep(ReturnChargeInterest(dueDate(in), amount(in)), in)
       case 4825 => deep(CentralAsstInterest(dueDate(in), amount(in)), in)
@@ -232,11 +236,13 @@ object BalanceController {
   private def handleUnrecognisedFinancialTransaction(
     in: FinancialTransaction,
     mainTransaction: Option[Int] = None,
-    subTransaction: Option[Int] = None): List[FinancialLineItem] =
+    subTransaction: Option[Int] = None
+  ): List[FinancialLineItem] =
     (mainTransaction, subTransaction) match {
       case (a, b) if transactionHasCorrectAccountCategory(in) =>
         logger.warn(
-          s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32")
+          s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, mainTransaction: $a, subTransaction: $b, contractAccountCategory 32"
+        )
         Unknown(dueDate(in), in.mainType.getOrElse("Unknown"), amount(in)).pure[List]
       case _ if transactionHasCorrectAccountCategory(in) =>
         logger.warn(s"Unknown ${in.mainType} of ${amount(in)} at ${dueDate(in)}, contractAccountCategory 32")
@@ -247,11 +253,11 @@ object BalanceController {
     }
 
   def convertWithoutAssessment(in: List[FinancialTransactionResponse]): List[FinancialLineItem] =
-    deduplicatePayments(in.flatMap { _.financialTransactions.flatMap(convertWithoutAssessment) })
-      .sortBy { _.date.toString }
+    deduplicatePayments(in.flatMap(_.financialTransactions.flatMap(convertWithoutAssessment)))
+      .sortBy(_.date.toString)
 
   def convertWithoutAssessment(in: FinancialTransactionResponse): List[FinancialLineItem] =
-    deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment)).sortBy { _.date.toString }.reverse
+    deduplicatePayments(in.financialTransactions.flatMap(convertWithoutAssessment)).sortBy(_.date.toString).reverse
 
   def convertWithoutAssessment(in: FinancialTransaction): List[FinancialLineItem] =
     convert(in).filterNot {

@@ -56,7 +56,8 @@ class SdilPersistenceSpec
       val result = await(sSubscriptionsMongo.find().toFuture()).toString
 
       Seq(utr, subscription.orgName, subscription.utr, "Wrap").foreach(testFor =>
-        result.contains(testFor.toString) mustBe true)
+        result.contains(testFor.toString) mustBe true
+      )
     }
 
     "insert => allow for duplicate submissions" in {

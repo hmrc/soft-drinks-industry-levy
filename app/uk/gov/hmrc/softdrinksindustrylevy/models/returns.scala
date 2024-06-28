@@ -83,7 +83,8 @@ package object returns {
             returnsImporting,
             volumeBlock(ActivityType.Exporting),
             volumeBlock(ActivityType.Wastage)
-          ))
+          )
+        )
       }
 
       override def writes(o: ReturnsRequest): JsValue = {

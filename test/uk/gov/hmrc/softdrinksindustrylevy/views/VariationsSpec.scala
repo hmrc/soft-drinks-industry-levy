@@ -35,7 +35,8 @@ class VariationsSpec extends FakeApplicationSpec {
       "contain the updated trading name" in {
         val page = variations_pdf(
           VariationsRequest(tradingName = Some(tradingName), displayOrgName = tradingName, ppobAddress = address),
-          sdilNumber)
+          sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text())
 
@@ -60,8 +61,10 @@ class VariationsSpec extends FakeApplicationSpec {
           VariationsRequest(
             displayOrgName = tradingName,
             ppobAddress = address,
-            businessContact = Some(contactDetails)),
-          sdilNumber)
+            businessContact = Some(contactDetails)
+          ),
+          sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -95,8 +98,10 @@ class VariationsSpec extends FakeApplicationSpec {
           VariationsRequest(
             displayOrgName = tradingName,
             ppobAddress = address,
-            correspondenceContact = Some(contactDetails)),
-          sdilNumber)
+            correspondenceContact = Some(contactDetails)
+          ),
+          sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -129,8 +134,10 @@ class VariationsSpec extends FakeApplicationSpec {
           VariationsRequest(
             displayOrgName = tradingName,
             ppobAddress = address,
-            primaryPersonContact = Some(personalDetails)),
-          sdilNumber)
+            primaryPersonContact = Some(personalDetails)
+          ),
+          sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 
@@ -163,7 +170,8 @@ class VariationsSpec extends FakeApplicationSpec {
 
         val page = variations_pdf(
           VariationsRequest(displayOrgName = tradingName, ppobAddress = address, sdilActivity = Some(activity)),
-          sdilNumber)
+          sdilNumber
+        )
         val html = Jsoup.parse(page.toString)
         val rows = html.select("tr").asScala.map(_.text)
 

@@ -43,32 +43,32 @@ class DesConnectorSpecPropertyBased
 
     "parse Activity as expected" in {
       forAll { r: Activity =>
-        Json.toJson(r).as[Activity] mustBe (r)
+        Json.toJson(r).as[Activity] mustBe r
       }
     }
   }
 
   "parse UkAddress as expected" in {
     forAll { r: Address =>
-      Json.toJson(r).as[Address] mustBe (r)
+      Json.toJson(r).as[Address] mustBe r
     }
   }
 
   "parse Contact as expected" in {
     forAll { r: Contact =>
-      Json.toJson(r).as[Contact] mustBe (r)
+      Json.toJson(r).as[Contact] mustBe r
     }
   }
 
   "parse Subscription as expected" in {
     forAll { r: Subscription =>
-      Json.toJson(r).as[Subscription] mustBe (r)
+      Json.toJson(r).as[Subscription] mustBe r
     }
   }
 
   "parse DisplayDirectDebitResponse as expected" in {
     forAll { r: DisplayDirectDebitResponse =>
-      Json.toJson(r).as[DisplayDirectDebitResponse] mustBe (r)
+      Json.toJson(r).as[DisplayDirectDebitResponse] mustBe r
     }
   }
 }
@@ -172,23 +172,24 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
 
     "displayDirectDebit should return Failed future when Des returns a 404" in {
       when(mockHttpClient.GET[DisplayDirectDebitResponse](any(), any(), any())(any(), any(), any()))
-      //.thenThrow(new RuntimeException("Exception"))
+        // .thenThrow(new RuntimeException("Exception"))
         .thenReturn(
-          Future.failed(new Exception("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")))
+          Future.failed(new Exception("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException"))
+        )
       val response: Future[DisplayDirectDebitResponse] = desConnector
         .displayDirectDebit("XMSDIL000000001")
 
-      //Await.result(response, timeout)
+      // Await.result(response, timeout)
 
-      //await(desConnector
-      //.displayDirectDebit("XMSDIL000000001")).status mustBe 202
+      // await(desConnector
+      // .displayDirectDebit("XMSDIL000000001")).status mustBe 202
 
       response onComplete {
         case Success(x) => println(x)
         case Failure(y) => println(s"The failure is Caught by Mohan  ${y.getMessage}")
       }
 
-      //response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
+      // response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
     }
     /*"429 response" should {
       "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {

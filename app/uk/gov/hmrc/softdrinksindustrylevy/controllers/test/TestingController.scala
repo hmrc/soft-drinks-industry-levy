@@ -25,7 +25,7 @@ import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 @Singleton
-class TestingController @Inject()(
+class TestingController @Inject() (
   override val messagesApi: MessagesApi,
   testConnector: TestConnector,
   pending: MongoBufferService,
@@ -33,7 +33,8 @@ class TestingController @Inject()(
   fileUpload: FileUploadConnector,
   variationSubmissions: VariationSubmissionService,
   cc: ControllerComponents,
-  returns: ReturnsPersistence)(implicit ec: ExecutionContext)
+  returns: ReturnsPersistence
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>

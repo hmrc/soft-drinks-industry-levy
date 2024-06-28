@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class ReturnsVariationSubmissionService @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+class ReturnsVariationSubmissionService @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[ReturnsVariationWrapper](
       collectionName = "returns-variations",
       mongoComponent = mongo,
@@ -38,7 +38,8 @@ class ReturnsVariationSubmissionService @Inject()(mongo: MongoComponent)(implici
       indexes = Seq(
         IndexModel(
           Indexes.ascending("timestamp"),
-          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)),
+          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)
+        ),
         IndexModel(Indexes.ascending("sdilRef"))
       )
     ) {
@@ -59,7 +60,8 @@ class ReturnsVariationSubmissionService @Inject()(mongo: MongoComponent)(implici
 case class ReturnsVariationWrapper(
   submission: ReturnsVariationRequest,
   sdilRef: String,
-  timestamp: Instant = Instant.now)
+  timestamp: Instant = Instant.now
+)
 
 object ReturnsVariationWrapper {
   implicit val inf: Format[Instant] = instantFormat

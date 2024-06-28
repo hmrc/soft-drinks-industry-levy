@@ -37,7 +37,7 @@ import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.DuplicateKeyException
 
 @Singleton
-class RegistrationController @Inject()(
+class RegistrationController @Inject() (
   val authConnector: AuthConnector,
   taxEnrolmentConnector: TaxEnrolmentConnector,
   desConnector: DesConnector,
@@ -45,7 +45,8 @@ class RegistrationController @Inject()(
   emailConnector: EmailConnector,
   auditing: AuditConnector,
   persistence: SdilMongoPersistence,
-  val cc: ControllerComponents)(implicit ec: ExecutionContext)
+  val cc: ControllerComponents
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
   lazy val logger = Logger(this.getClass)
@@ -53,42 +54,43 @@ class RegistrationController @Inject()(
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
-        withJsonBody[Subscription](data => {
+        withJsonBody[Subscription] { data =>
           (for {
             res <- desConnector.createSubscription(data, idType, idNumber)
             _   <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _   <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _   <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
             _ <- auditing.sendExtendedEvent(
-                  new SdilSubscriptionEvent(
-                    request.uri,
-                    buildSubscriptionAudit(data, creds.get.providerId, Some(res.formBundleNumber), "SUCCESS")
-                  )
-                )
+                   new SdilSubscriptionEvent(
+                     request.uri,
+                     buildSubscriptionAudit(data, creds.get.providerId, Some(res.formBundleNumber), "SUCCESS")
+                   )
+                 )
           } yield {
             logger.info("SDIL Subscription submission successfully sent to DES")
             Ok(Json.toJson(res))
           }) recoverWith {
-            case _: DuplicateKeyException => {
+            case _: DuplicateKeyException =>
               auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(
                   request.uri,
-                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR")
+                )
               ) map { _ =>
                 logger.info("Duplicate UTR, User already subscribed")
                 Conflict(Json.obj("status" -> "UTR_ALREADY_SUBSCRIBED"))
               }
-            }
             case e =>
               auditing.sendExtendedEvent(
                 new SdilSubscriptionEvent(
                   request.uri,
-                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR"))
+                  buildSubscriptionAudit(data, creds.get.providerId, None, "ERROR")
+                )
               ) map {
                 throw e
               }
           }
-        })
+        }
       }
     }
 
@@ -105,8 +107,10 @@ class RegistrationController @Inject()(
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
-          b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
-            y.isAfter(period.end) && b.activity.isSmallProducer))
+                        b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
+                          y.isAfter(period.end) && b.activity.isSmallProducer
+                        )
+                      )
       } yield Ok(Json.toJson(isSmallProd))
     }
   }
@@ -136,11 +140,10 @@ class RegistrationController @Inject()(
               logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
               taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
                 checkEnrolmentState(utr, s)
-              } recover {
-                case e: NotFoundException =>
-                  logger.info("NotFoundException from TE, returning OK and the subscription json")
-                  logger.error(e.message)
-                  Ok(Json.toJson(s))
+              } recover { case e: NotFoundException =>
+                logger.info("NotFoundException from TE, returning OK and the subscription json")
+                logger.error(e.message)
+                Ok(Json.toJson(s))
               }
           }
         case _ =>
@@ -176,15 +179,15 @@ class RegistrationController @Inject()(
     subscription: Subscription,
     providerId: String,
     formBundleNumber: Option[String],
-    outcome: String)(implicit hc: HeaderCarrier): JsValue = {
+    outcome: String
+  )(implicit hc: HeaderCarrier): JsValue = {
     import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
       def writes(activity: Activity): JsValue = JsObject(
         activity match {
           case InternalActivity(a, lg) =>
-            a.map {
-              case (t, lb) =>
-                (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
+            a.map { case (t, lb) =>
+              (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
             } ++ Map("isLarge" -> JsBoolean(lg))
         }
       )

@@ -31,7 +31,7 @@ import org.mongodb.scala.result.DeleteResult
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 @Singleton
-class MongoBufferService @Inject()(
+class MongoBufferService @Inject() (
   mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[SubscriptionWrapper](
@@ -41,7 +41,8 @@ class MongoBufferService @Inject()(
       indexes = Seq(
         IndexModel(
           Indexes.ascending("timestamp"),
-          IndexOptions().name("ttl").expireAfter((30 days).toSeconds, SECONDS)),
+          IndexOptions().name("ttl").expireAfter((30 days).toSeconds, SECONDS)
+        ),
         IndexModel(Indexes.ascending("status")),
         IndexModel(Indexes.ascending("utr"))
       )
@@ -63,7 +64,8 @@ class MongoBufferService @Inject()(
         Filters.and(
           Filters.equal("status", "PENDING"),
           Filters.lt("timestamp", createdBefore)
-        ))
+        )
+      )
       .toFuture()
 
   def insert(sub: SubscriptionWrapper): Future[Unit] =
@@ -88,7 +90,8 @@ case class SubscriptionWrapper(
   subscription: Subscription,
   formBundleNumber: String,
   timestamp: Instant = Instant.now,
-  status: String = "PENDING")
+  status: String = "PENDING"
+)
 
 object SubscriptionWrapper {
   implicit val subFormat: Format[Subscription] = Format(subReads, subWrites)

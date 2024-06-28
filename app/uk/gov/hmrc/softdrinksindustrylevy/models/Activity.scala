@@ -56,16 +56,16 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
         activity.get(ProducedOwnBrand),
         activity.get(Imported),
         activity.get(CopackerAll)
-      ).flatten)
+      ).flatten
+    )
 
-  lazy val totalProduced: Option[LitreBands] = {
+  lazy val totalProduced: Option[LitreBands] =
     (activity.get(ProducedOwnBrand), activity.get(Copackee)) match {
       case (Some(p), Some(c)) => Some(p |+| c)
       case (Some(pob), None)  => Some(pob)
       case (None, Some(c))    => Some(c)
       case (None, None)       => None
     }
-  }
 
   def isProducer: Boolean = activity.contains(ProducedOwnBrand) || activity.contains(Copackee) || isLarge
 

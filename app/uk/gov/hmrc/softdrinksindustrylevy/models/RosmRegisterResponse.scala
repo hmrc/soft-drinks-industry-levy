@@ -49,10 +49,10 @@ abstract case class RosmResponseAddress private[models] (
 object RosmResponseAddress {
   implicit val rosmResponseAddressFormat: OFormat[RosmResponseAddress] = Json.format[RosmResponseAddress]
 
-  /** ROSM schemas permit any characters, but the SDIL schemas are more
-    * restrictive. Convert all non-standard latin characters to their standard
-    * equivalent (e.g. 'é' becomes 'e') and remove any non-permitted symbols
-    * such as parenthesis */
+  /** ROSM schemas permit any characters, but the SDIL schemas are more restrictive. Convert all non-standard latin
+    * characters to their standard equivalent (e.g. 'é' becomes 'e') and remove any non-permitted symbols such as
+    * parenthesis
+    */
   implicit class RichStr(i: String) {
     def clean =
       Normalizer

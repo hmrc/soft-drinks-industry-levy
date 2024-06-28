@@ -35,12 +35,13 @@ import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector @Inject()(
+class DesConnector @Inject() (
   val http: HttpClient,
   val mode: Mode,
   servicesConfig: ServicesConfig,
   persistence: SdilMongoPersistence,
-  auditing: AuditConnector)(implicit executionContext: ExecutionContext)
+  auditing: AuditConnector
+)(implicit executionContext: ExecutionContext)
     extends DesHelpers(servicesConfig) {
 
   val logger: Logger = Logger(this.getClass)
@@ -60,8 +61,9 @@ class DesConnector @Inject()(
     }
   }
 
-  def createSubscription(request: Subscription, idType: String, idNumber: String)(
-    implicit hc: HeaderCarrier): Future[CreateSubscriptionResponse] = {
+  def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit
+    hc: HeaderCarrier
+  ): Future[CreateSubscriptionResponse] = {
     import json.des.create._
     import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
     val formattedLines = request.address.lines.map { line =>
@@ -78,16 +80,17 @@ class DesConnector @Inject()(
       .POST[Subscription, CreateSubscriptionResponse](
         s"$desURL/$serviceURL/subscription/$idType/$idNumber",
         submission,
-        headers = desHeaders)
-      .recover {
-        case UpstreamErrorResponse(_, 429, _, _) =>
-          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+        headers = desHeaders
+      )
+      .recover { case UpstreamErrorResponse(_, 429, _, _) =>
+        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       }
   }
 
-  def retrieveSubscriptionDetails(idType: String, idNumber: String)(
-    implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
+  def retrieveSubscriptionDetails(idType: String, idNumber: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Subscription]] = {
 
     lazy val memoized: String => Future[Option[Subscription]] =
       Memoized.memoizedCache[Future, String, Option[Subscription]](cache, 60 * 60)(getSubscriptionFromDES)
@@ -101,35 +104,36 @@ class DesConnector @Inject()(
       sub  <- memoized(s"$desURL/$serviceURL/subscription/details/$idType/$idNumber")
       subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
       _ <- sub.fold(Future(())) { x =>
-            if (!subs.contains(x)) {
-              persistence.insert(x.utr, x)
-            } else Future(())
-          }
+             if (!subs.contains(x)) {
+               persistence.insert(x.utr, x)
+             } else Future(())
+           }
     } yield sub
   }
 
-  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(
-    implicit hc: HeaderCarrier,
-    period: ReturnPeriod): Future[HttpResponse] =
+  def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit
+    hc: HeaderCarrier,
+    period: ReturnPeriod
+  ): Future[HttpResponse] =
     http
       .POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest, headers = desHeaders)
-      .recover {
-        case UpstreamErrorResponse(_, 429, _, _) =>
-          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+      .recover { case UpstreamErrorResponse(_, 429, _, _) =>
+        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       }
 
   /** Calls API#1166: Get Financial Data.
     *
     * Attempts to retrieve a list of financial line items.
     *
-    * @param year If provided will show all items for that year, if omitted will only show 'open' items
+    * @param year
+    *   If provided will show all items for that year, if omitted will only show 'open' items
     */
   def retrieveFinancialData(
     sdilRef: String,
     year: Option[Int] = Some(LocalDate.now.getYear)
-  )(
-    implicit hc: HeaderCarrier
+  )(implicit
+    hc: HeaderCarrier
   ): Future[Option[des.FinancialTransactionResponse]] = {
     import des.FinancialTransaction._
 
@@ -174,8 +178,9 @@ class DesConnector @Inject()(
     http.GET[DisplayDirectDebitResponse](uri, headers = desHeaders)(implicitly, hc, implicitly)
   }
 
-  private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(
-    implicit hc: HeaderCarrier) = {
+  private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(implicit
+    hc: HeaderCarrier
+  ) = {
     implicit val callbackFormat: OWrites[FinancialTransactionResponse] = Json.writes[FinancialTransactionResponse]
     val detailJson = Json.obj(
       "subscriptionId" -> subscriptionId,

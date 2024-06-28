@@ -42,14 +42,14 @@ class FinancialLineItemSpec
       val paymentOnAccount: FinancialLineItem = PaymentOnAccount(date, "blah", bigDecimal, "one", "two")
       val unknown: FinancialLineItem = Unknown(date, "someTitle", bigDecimal)
 
-      Json.toJson(returnCharge).as[FinancialLineItem] mustBe (returnCharge)
-      Json.toJson(returnChargeInterest).as[FinancialLineItem] mustBe (returnChargeInterest)
-      Json.toJson(centralAssessment).as[FinancialLineItem] mustBe (centralAssessment)
-      Json.toJson(centralAsstInterest).as[FinancialLineItem] mustBe (centralAsstInterest)
-      Json.toJson(officerAssessment).as[FinancialLineItem] mustBe (officerAssessment)
-      Json.toJson(officerAsstInterest).as[FinancialLineItem] mustBe (officerAsstInterest)
-      Json.toJson(paymentOnAccount).as[FinancialLineItem] mustBe (paymentOnAccount)
-      Json.toJson(unknown).as[FinancialLineItem] mustBe (unknown)
+      Json.toJson(returnCharge).as[FinancialLineItem] mustBe returnCharge
+      Json.toJson(returnChargeInterest).as[FinancialLineItem] mustBe returnChargeInterest
+      Json.toJson(centralAssessment).as[FinancialLineItem] mustBe centralAssessment
+      Json.toJson(centralAsstInterest).as[FinancialLineItem] mustBe centralAsstInterest
+      Json.toJson(officerAssessment).as[FinancialLineItem] mustBe officerAssessment
+      Json.toJson(officerAsstInterest).as[FinancialLineItem] mustBe officerAsstInterest
+      Json.toJson(paymentOnAccount).as[FinancialLineItem] mustBe paymentOnAccount
+      Json.toJson(unknown).as[FinancialLineItem] mustBe unknown
     }
   }
 }

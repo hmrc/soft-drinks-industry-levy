@@ -49,7 +49,8 @@ class ReturnsAdjustmentSubmissionSpec
     importLarge = (3, 3),
     export = (3, 3),
     wastage = (3, 3),
-    submittedOn = None)
+    submittedOn = None
+  )
 
   val returnVariationData =
     ReturnVariationData(
@@ -59,7 +60,8 @@ class ReturnsAdjustmentSubmissionSpec
       orgName = "testOrg",
       address = address,
       reason = "",
-      repaymentMethod = None)
+      repaymentMethod = None
+    )
   val sdilRef = "XCSDIL000000000"
   val sdilRef1 = "XCSDIL000000001"
 
