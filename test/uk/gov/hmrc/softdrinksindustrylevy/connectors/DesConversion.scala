@@ -51,7 +51,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((100L, 100L)),
             Copackee         -> ((100L, 100L))
           ),
-          isLarge = false))
+          isLarge = false
+        )
+      )
 
       val transformedJson = Json.toJson(copackeeSmallProd)
       val details = (transformedJson \\ "details").head
@@ -73,7 +75,9 @@ class DesConversionSpec
           Map(
             ProducedOwnBrand -> ((1000000L, 1000000L))
           ),
-          isLarge = true))
+          isLarge = true
+        )
+      )
 
       val transformedJson = Json.toJson(largeProducer)
       val details = (transformedJson \\ "details").head
@@ -96,7 +100,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((1000000L, 1000000L)),
             Imported         -> ((1L, 1L))
           ),
-          isLarge = true))
+          isLarge = true
+        )
+      )
 
       val transformedJson = Json.toJson(largeProducerImport)
       val details = (transformedJson \\ "details").head
@@ -119,7 +125,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((1000000L, 1000000L)),
             CopackerAll      -> ((1L, 1L))
           ),
-          isLarge = true))
+          isLarge = true
+        )
+      )
 
       val transformedJson = Json.toJson(largeProducerCopacker)
       val details = (transformedJson \\ "details").head
@@ -143,7 +151,9 @@ class DesConversionSpec
             CopackerAll      -> ((1L, 1L)),
             Imported         -> ((1L, 1L))
           ),
-          isLarge = true))
+          isLarge = true
+        )
+      )
 
       val transformedJson = Json.toJson(largeProducerCopackerImport)
       val details = (transformedJson \\ "details").head
@@ -166,7 +176,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((1000000L, 1000000L)),
             Copackee         -> ((1L, 1L))
           ),
-          isLarge = true))
+          isLarge = true
+        )
+      )
 
       val transformedJson = Json.toJson(largeProducerCopackerImport)
       val details = (transformedJson \\ "details").head
@@ -189,7 +201,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((1L, 1L)),
             CopackerAll      -> ((1L, 1L))
           ),
-          isLarge = false))
+          isLarge = false
+        )
+      )
 
       val transformedJson = Json.toJson(smallProducerCopacker)
       val details = (transformedJson \\ "details").head
@@ -212,7 +226,9 @@ class DesConversionSpec
             ProducedOwnBrand -> ((1L, 1L)),
             Imported         -> ((1L, 1L))
           ),
-          isLarge = false))
+          isLarge = false
+        )
+      )
 
       val transformedJson = Json.toJson(smallProducerImport)
       val details = (transformedJson \\ "details").head
@@ -236,7 +252,9 @@ class DesConversionSpec
             Imported         -> ((1L, 1L)),
             CopackerAll      -> ((1L, 1L))
           ),
-          isLarge = false))
+          isLarge = false
+        )
+      )
 
       val transformedJson = Json.toJson(smallProducerCopackerImport)
       val details = (transformedJson \\ "details").head
@@ -260,7 +278,9 @@ class DesConversionSpec
             Imported         -> ((1L, 1L)),
             Copackee         -> ((1L, 1L))
           ),
-          isLarge = false))
+          isLarge = false
+        )
+      )
 
       val transformedJson = Json.toJson(smallProducerCopackeeImport)
       val details = (transformedJson \\ "details").head

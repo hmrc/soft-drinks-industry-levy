@@ -65,7 +65,8 @@ class ActivitySpec extends PlaySpec with AppendedClues {
     produced: LitreBands = zero,
     copackedAll: LitreBands = zero,
     imported: LitreBands = zero,
-    copackedByOthers: LitreBands = zero) =
+    copackedByOthers: LitreBands = zero
+  ) =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,

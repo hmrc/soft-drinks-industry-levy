@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class TestConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class TestConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val resetURL: String = servicesConfig.baseUrl("des")
 

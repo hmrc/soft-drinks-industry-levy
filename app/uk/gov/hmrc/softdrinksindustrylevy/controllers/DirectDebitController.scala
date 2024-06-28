@@ -26,10 +26,11 @@ import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 @Singleton
-class DirectDebitController @Inject()(
+class DirectDebitController @Inject() (
   desConnector: DesConnector,
   val cc: ControllerComponents,
-  val authConnector: AuthConnector)(implicit ec: ExecutionContext)
+  val authConnector: AuthConnector
+)(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
   def checkDirectDebitStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>

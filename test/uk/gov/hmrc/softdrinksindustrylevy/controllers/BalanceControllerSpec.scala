@@ -78,12 +78,12 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "financial data with 1 payment with contractAccountCategory of 32, one with contractAccountCategory of 33 and" +
     " one charge should be converted using 'convert' to 2 line items" in {
 
-    val stream = getClass.getResourceAsStream("/des-financial-data-32-one-payment.json")
-    import FinancialTransaction._
-    val obj = Json.parse(stream).as[FinancialTransactionResponse]
+      val stream = getClass.getResourceAsStream("/des-financial-data-32-one-payment.json")
+      import FinancialTransaction._
+      val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convert(obj).length must be(2)
-  }
+      BalanceController.convert(obj).length must be(2)
+    }
 
   "financial data with 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convertWithoutAssessment' to 3 line items" in {
 
@@ -97,12 +97,12 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "financial data with 1 payment with contractAccountCategory of 32, one with contractAccountCategory of 33 and" +
     " one charge should be converted using 'convertWithoutAssessment' to 2 line items" in {
 
-    val stream = getClass.getResourceAsStream("/des-financial-data-32-one-payment.json")
-    import FinancialTransaction._
-    val obj = Json.parse(stream).as[FinancialTransactionResponse]
+      val stream = getClass.getResourceAsStream("/des-financial-data-32-one-payment.json")
+      import FinancialTransaction._
+      val obj = Json.parse(stream).as[FinancialTransactionResponse]
 
-    BalanceController.convertWithoutAssessment(obj).length must be(2)
-  }
+      BalanceController.convertWithoutAssessment(obj).length must be(2)
+    }
 
   "financial data with unknown type, 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convertWithoutAssessment' to 4 line items" in {
 
@@ -336,13 +336,12 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
         result.length mustBe 1
 
         result.head match {
-          case PaymentOnAccount(date, reference, amount, lot, lotItem) => {
+          case PaymentOnAccount(date, reference, amount, lot, lotItem) =>
             date mustBe testDate
             reference.length mustBe 10
             amount mustBe -testBigDecimal
             lot.length mustBe 10
             lotItem.length mustBe 10
-          }
           case _ => fail()
         }
       }
@@ -365,13 +364,12 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
         result.length mustBe 1
 
         result.head match {
-          case PaymentOnAccount(date, reference, amount, lot, lotItem) => {
+          case PaymentOnAccount(date, reference, amount, lot, lotItem) =>
             date mustBe testDate
             reference.length mustBe 10
             amount mustBe -testBigDecimal
             lot.length mustBe 10
             lotItem.length mustBe 10
-          }
           case _ => fail()
         }
       }
@@ -474,11 +472,13 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
           List(
             FinancialTransactionResponse("", "", "", LocalDateTime.now(), List(testFinancialTransaction1)),
             FinancialTransactionResponse("", "", "", LocalDateTime.now(), List(testFinancialTransaction2))
-          ))
+          )
+        )
 
         result mustBe List(
           CentralAssessment(testDate, -testBigDecimal * 2),
-          CentralAssessment(testNowDate, -testBigDecimal))
+          CentralAssessment(testNowDate, -testBigDecimal)
+        )
       }
       "convertWithoutAssessment(in: List[FinancialTransactionResponse]) returns order non-duplicates and without assessment" in {
 
@@ -490,12 +490,15 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
               "",
               "",
               LocalDateTime.now(),
-              List(testFinancialTransaction2, testFinancialTransaction4))
-          ))
+              List(testFinancialTransaction2, testFinancialTransaction4)
+            )
+          )
+        )
 
         result mustBe List(
           ReturnChargeInterest(testDate, -testBigDecimal),
-          ReturnChargeInterest(testNowDate, -testBigDecimal))
+          ReturnChargeInterest(testNowDate, -testBigDecimal)
+        )
       }
     }
   }
@@ -516,7 +519,9 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
           testCentralAssessment,
           testCentralAsstInterest,
           testOfficerAssessment,
-          testOfficerAsstInterest))
+          testOfficerAsstInterest
+        )
+      )
       .balance mustBe testAmount * 5
   }
 }

@@ -38,9 +38,7 @@ package object connectors {
     prefix <- nonEmptyString.map(_.take(10))
     domain <- nonEmptyString.map(_.take(10))
     tld    <- Gen.oneOf("com", "co.uk")
-  } yield {
-    s"$prefix@$domain.$tld"
-  }
+  } yield s"$prefix@$domain.$tld"
 
   val genUkAddress: Gen[Address] = Gen.ukAddress
     .map { stubAddr =>
@@ -61,31 +59,30 @@ package object connectors {
     h <- Gen.choose(0, 1000000L)
   } yield l -> h
 
-  val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] = {
+  val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] =
     Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map { x: ActivityType.Value =>
       Gen.sequence[Seq[Option[ActivityType.Value]], Option[ActivityType.Value]](
         Seq(
           Gen.const(x).sometimes,
           Gen.const(ActivityType.Imported).sometimes,
-          Gen.const(ActivityType.CopackerAll).sometimes)
+          Gen.const(ActivityType.CopackerAll).sometimes
+        )
       )
     }
-  }
 
   val genActivity: Gen[Activity] = for {
     types <- genActivityTypes flatMap (s =>
-              s map { t =>
-                t.flatten
-              })
+               s map { t =>
+                 t.flatten
+               }
+             )
     typeTuples <- Gen.sequence(types.map { typeL =>
-                   genLitreBands.flatMap {
-                     typeL -> _
-                   }
-                 })
+                    genLitreBands.flatMap {
+                      typeL -> _
+                    }
+                  })
     isLarge <- Gen.boolean
-  } yield {
-    InternalActivity(typeTuples.asScala.toMap, isLarge)
-  }
+  } yield InternalActivity(typeTuples.asScala.toMap, isLarge)
 
   def genIsProducer(isLarge: Boolean) =
     Gen.boolean map { y =>
@@ -123,19 +120,19 @@ package object connectors {
     productionSites <- Gen.listOf(genSite)
     warehouseSites  <- Gen.listOf(genSite)
     contact         <- genContact
-  } yield
-    Subscription(
-      utr,
-      None,
-      orgName,
-      Some(orgType),
-      address,
-      activity,
-      liabilityDate,
-      productionSites,
-      warehouseSites,
-      contact,
-      None)
+  } yield Subscription(
+    utr,
+    None,
+    orgName,
+    Some(orgType),
+    address,
+    activity,
+    liabilityDate,
+    productionSites,
+    warehouseSites,
+    contact,
+    None
+  )
 
   val genSite: Gen[Site] = for {
     ref         <- Gen.oneOf("a", "b")
@@ -153,63 +150,56 @@ package object connectors {
       productionSites <- Gen.listOf(genUkAddress map addressToSite)
       warehouseSites  <- Gen.listOf(genUkAddress map addressToSite)
       contact         <- genContact
-    } yield
-      Subscription(
-        utr,
-        None,
-        orgName,
-        None,
-        address,
-        activity,
-        liabilityDate,
-        productionSites,
-        warehouseSites,
-        contact,
-        Some(liabilityDate.plusYears(1)))
+    } yield Subscription(
+      utr,
+      None,
+      orgName,
+      None,
+      address,
+      activity,
+      liabilityDate,
+      productionSites,
+      warehouseSites,
+      contact,
+      Some(liabilityDate.plusYears(1))
+    )
 
-  val genSdil: Gen[String] = {
+  val genSdil: Gen[String] =
     for {
       char   <- Gen.alphaUpperChar
       suffix <- pattern"999999"
     } yield s"X${char}SDIL000$suffix"
-  }
 
-  val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] = {
+  val genReturnsSmallProducerVolume: Gen[SmallProducerVolume] =
     for {
       ref    <- genSdil
       litres <- genLitreBands
     } yield SmallProducerVolume(ref, litres)
-  }
 
-  val genReturnsPackaging: Gen[ReturnsPackaging] = {
+  val genReturnsPackaging: Gen[ReturnsPackaging] =
     for {
       smallProds <- Gen.listOf(genReturnsSmallProducerVolume)
       litres     <- genLitreBands
     } yield ReturnsPackaging(smallProds, litres)
-  }
 
-  val genReturnsImporting: Gen[ReturnsImporting] = {
+  val genReturnsImporting: Gen[ReturnsImporting] =
     for {
       smallVols <- genLitreBands
       largeVols <- genLitreBands
     } yield ReturnsImporting(smallVols, largeVols)
-  }
 
-  val genReturnsRequest: Gen[ReturnsRequest] = {
+  val genReturnsRequest: Gen[ReturnsRequest] =
     for {
       packaged <- genReturnsPackaging.sometimes
       imported <- genReturnsImporting.sometimes
       exported <- genLitreBands.sometimes
       wastage  <- genLitreBands.sometimes
     } yield ReturnsRequest(packaged, imported, exported, wastage)
-  }
 
-  val genDisplayDirectDebitResponse: Gen[DisplayDirectDebitResponse] = {
+  val genDisplayDirectDebitResponse: Gen[DisplayDirectDebitResponse] =
     for {
       directDebitMandateFound <- Gen.boolean
     } yield DisplayDirectDebitResponse(directDebitMandateFound)
-
-  }
 
   implicit val arbSubGet: Arbitrary[Subscription] = Arbitrary(genRetrievedSubscription)
   implicit val arbActivity: Arbitrary[Activity] = Arbitrary(genActivity)
@@ -219,7 +209,8 @@ package object connectors {
   implicit val arbSubRequest: Arbitrary[Subscription] = Arbitrary(genSubscription)
   implicit val arbReturnReq: Arbitrary[ReturnsRequest] = Arbitrary(genReturnsRequest)
   implicit val arbDisplayDirectDebitResponse: Arbitrary[DisplayDirectDebitResponse] = Arbitrary(
-    genDisplayDirectDebitResponse)
+    genDisplayDirectDebitResponse
+  )
 
   val sub = Subscription(
     "1234567890",
@@ -240,7 +231,8 @@ package object connectors {
     produced: LitreBands = zero,
     copackedAll: LitreBands = zero,
     imported: LitreBands = zero,
-    copackedByOthers: LitreBands = zero) =
+    copackedByOthers: LitreBands = zero
+  ) =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,

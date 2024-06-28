@@ -106,7 +106,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         "testOrg",
         UkAddress(Nil, ""),
         "",
-        None).changedLitreages
+        None
+      ).changedLitreages
 
       for ((_, (x, y)) <- result) {
         x shouldBe 3
@@ -122,7 +123,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         "testOrg",
         UkAddress(Nil, ""),
         "",
-        None).removedSmallProducers
+        None
+      ).removedSmallProducers
 
       result.length shouldBe 1
       result.head shouldBe removedSmallPack
@@ -136,7 +138,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         "testOrg",
         UkAddress(Nil, ""),
         "",
-        None).addedSmallProducers
+        None
+      ).addedSmallProducers
 
       result.length shouldBe 1
       result.head shouldBe addedSmallPack

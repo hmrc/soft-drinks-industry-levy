@@ -35,7 +35,8 @@ package object get {
           positionInCompany = (json \ "subscriptionDetails" \ "primaryPositionInCompany").asOpt[String],
           phoneNumber = (json \ "subscriptionDetails" \ "primaryTelephone").as[String],
           email = (json \ "subscriptionDetails" \ "primaryEmail").as[String]
-        ))
+        )
+      )
 
     override def writes(o: Contact): JsObject =
       Json.obj(
@@ -70,9 +71,8 @@ package object get {
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map {
-        case (v, i) =>
-          s"line${i + 1}" -> JsString(v)
+      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
+        s"line${i + 1}" -> JsString(v)
       }
 
       JsObject(
@@ -186,7 +186,8 @@ package object get {
           contact = json.as[Contact],
           endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate],
           deregDate = (json \ "subscriptionDetails" \ "deregistrationDate").asOpt[LocalDate]
-        ))
+        )
+      )
     }
 
   }

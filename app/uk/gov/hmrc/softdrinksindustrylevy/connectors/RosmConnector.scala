@@ -26,23 +26,24 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class RosmConnector @Inject()(val http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig)
+class RosmConnector @Inject() (val http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig)
     extends DesHelpers(servicesConfig) {
   lazy val logger = Logger(this.getClass)
   val desURL: String = servicesConfig.baseUrl("des")
   val serviceURL: String = "registration/organisation"
 
-  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Option[RosmRegisterResponse]] =
+  def retrieveROSMDetails(utr: String, request: RosmRegisterRequest)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Option[RosmRegisterResponse]] =
     http
       .POST[RosmRegisterRequest, Option[RosmRegisterResponse]](
         s"$desURL/$serviceURL/utr/$utr",
         request,
-        headers = desHeaders)
-      .recover {
-        case UpstreamErrorResponse(_, 429, _, _) =>
-          logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-          throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+        headers = desHeaders
+      )
+      .recover { case UpstreamErrorResponse(_, 429, _, _) =>
+        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
+        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       }
 }

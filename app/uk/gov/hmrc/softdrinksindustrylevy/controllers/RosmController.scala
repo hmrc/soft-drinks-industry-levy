@@ -31,7 +31,7 @@ import com.google.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RosmController @Inject()(
+class RosmController @Inject() (
   val authConnector: AuthConnector,
   rosmConnector: RosmConnector,
   val mode: Mode,
@@ -40,7 +40,7 @@ class RosmController @Inject()(
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
-  //val serviceConfig = new ServicesConfig(configuration)
+  // val serviceConfig = new ServicesConfig(configuration)
 
   def lookupRegistration(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {

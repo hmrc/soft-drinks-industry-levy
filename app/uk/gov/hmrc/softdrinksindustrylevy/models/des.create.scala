@@ -40,7 +40,8 @@ package object create {
           (json \ "positionInCompany").asOpt[String],
           (json \ "telephone").as[String],
           (json \ "email").as[String]
-        ))
+        )
+      )
   }
 
   // SDIL create and retrieve subscription formatters
@@ -67,9 +68,8 @@ package object create {
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map {
-        case (v, i) =>
-          s"line${i + 1}" -> JsString(v)
+      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
+        s"line${i + 1}" -> JsString(v)
       }
 
       JsObject(
@@ -139,7 +139,8 @@ package object create {
           warehouseSites = sites(warehouses.toSeq),
           contact = (regJson \ "primaryPersonContact").as[Contact],
           endDate = None
-        ))
+        )
+      )
 
     }
 
@@ -178,21 +179,20 @@ package object create {
         }
 
       def siteList(sites: List[Site], isWarehouse: Boolean, offset: Int = 0): List[JsObject] =
-        sites.zipWithIndex map {
-          case (site, idx) =>
-            Json.obj(
-              "action"      -> "1",
-              "tradingName" -> JsString(site.tradingName.getOrElse(s.orgName)),
-              "newSiteRef"  -> JsString(site.ref.getOrElse(s"${idx + offset}")),
-              "siteAddress" -> Json.obj(
-                "addressDetails" -> site.address,
-                "contactDetails" -> Json.obj(
-                  "telephone" -> s.contact.phoneNumber,
-                  "email"     -> s.contact.email
-                )
-              ),
-              "siteType" -> (if (isWarehouse) "1" else "2")
-            )
+        sites.zipWithIndex map { case (site, idx) =>
+          Json.obj(
+            "action"      -> "1",
+            "tradingName" -> JsString(site.tradingName.getOrElse(s.orgName)),
+            "newSiteRef"  -> JsString(site.ref.getOrElse(s"${idx + offset}")),
+            "siteAddress" -> Json.obj(
+              "addressDetails" -> site.address,
+              "contactDetails" -> Json.obj(
+                "telephone" -> s.contact.phoneNumber,
+                "email"     -> s.contact.email
+              )
+            ),
+            "siteType" -> (if (isWarehouse) "1" else "2")
+          )
         }
 
       Json.obj(

@@ -73,7 +73,7 @@ class MongoBufferServiceSpec
     _id = "SubscriptionWrapperId1",
     subscription = subscription,
     formBundleNumber = "formBundle1",
-    timestamp = Instant.ofEpochMilli(1666262385) //20 oct 2022 10:39:45
+    timestamp = Instant.ofEpochMilli(1666262385) // 20 oct 2022 10:39:45
   )
 
   "update status method" should {
@@ -99,48 +99,59 @@ class MongoBufferServiceSpec
 
   "find overdue method" should {
     "retrieve no records if  created Before criteria is not met" in {
-      await(repository.insert(subscriptionWrapper)) //created date 20 oct
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+      await(repository.insert(subscriptionWrapper)) // created date 20 oct
+      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve no records if  created Before criteria is met but status is not pending" in {
       await(
-        repository.insert(subscriptionWrapper
-          .copy(status = "finished", timestamp = Instant.ofEpochMilli(1666089585)))) //created date 18 oct
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+        repository.insert(
+          subscriptionWrapper
+            .copy(status = "finished", timestamp = Instant.ofEpochMilli(1666089585))
+        )
+      ) // created date 18 oct
+      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve one record if  created Before criteria is  met" in {
-      await(repository.insert(subscriptionWrapper)) //created date of 20 oct
+      await(repository.insert(subscriptionWrapper)) // created date of 20 oct
       await(
         repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1666089585), //created date 18 oct
+            timestamp = Instant.ofEpochMilli(1666089585), // created date 18 oct
             _id = "SubscriptionWrapperId2",
             subscription = subscription.copy(sdilRef = Some(sdilRef1))
-          )))
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+          )
+        )
+      )
+      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items.size mustBe 1
       items.head.subscription.sdilRef.get mustBe sdilRef1
     }
 
     "retrieve more  record if  created Before criteria is  met" in {
-      await(repository.insert(subscriptionWrapper)) //created date of 20 oct
+      await(repository.insert(subscriptionWrapper)) // created date of 20 oct
       await(
         repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1666089585), //created date 18 oct
+            timestamp = Instant.ofEpochMilli(1666089585), // created date 18 oct
             _id = "SubscriptionWrapperId2",
-            subscription = subscription.copy(sdilRef = Some(sdilRef1)))))
+            subscription = subscription.copy(sdilRef = Some(sdilRef1))
+          )
+        )
+      )
       await(
         repository.insert(
           subscriptionWrapper.copy(
-            timestamp = Instant.ofEpochMilli(1665484785), //created date 11 oct
+            timestamp = Instant.ofEpochMilli(1665484785), // created date 11 oct
             _id = "SubscriptionWrapperId3",
-            subscription = subscription.copy(sdilRef = Some(sdilRef2)))))
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) //find before 19 oct
+            subscription = subscription.copy(sdilRef = Some(sdilRef2))
+          )
+        )
+      )
+      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items.size mustBe 2
       items.map(_._id) mustBe Seq("SubscriptionWrapperId3", "SubscriptionWrapperId2")
       items.map(_.subscription.sdilRef.get) mustBe Seq(sdilRef2, sdilRef1)

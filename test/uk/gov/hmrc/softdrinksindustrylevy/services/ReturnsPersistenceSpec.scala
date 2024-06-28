@@ -66,7 +66,8 @@ class ReturnsPersistenceSpec
       result.size mustBe 1
 
       Seq(utr, returnPeriod, sdilReturn, "Wrapper").foreach(testFor =>
-        result.toString.contains(testFor.toString) mustBe true)
+        result.toString.contains(testFor.toString) mustBe true
+      )
     }
 
     "get => successfully get Tuple(sdilReturn, BsonObjectId) when matching utr & returnPeriod" in {

@@ -97,7 +97,6 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // ================================================================================
 // Testing
 // ================================================================================
-  import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
   import scoverage.ScoverageKeys._
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""

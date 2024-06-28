@@ -32,19 +32,19 @@ class GetConnectorSpec
   "GetConnector" should {
     "parse Site as expected" in {
       forAll { r: Site =>
-        Json.toJson(r).as[Site] mustBe (r)
+        Json.toJson(r).as[Site] mustBe r
       }
     }
 
     "parse Address as expected" in {
       forAll { r: Address =>
-        Json.toJson(r).as[Address] mustBe (r)
+        Json.toJson(r).as[Address] mustBe r
       }
     }
 
     "parse Subscription as expected" in {
       forAll { r: Subscription =>
-        Json.toJson(r).as[Subscription] mustBe (r)
+        Json.toJson(r).as[Subscription] mustBe r
       }
     }
   }

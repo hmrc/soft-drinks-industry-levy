@@ -27,16 +27,17 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class TaxEnrolmentConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class TaxEnrolmentConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val logger: Logger = Logger(this.getClass)
   val callbackUrl: String = servicesConfig.getConfString("tax-enrolments.callback", "")
   val serviceName: String = servicesConfig.getConfString("tax-enrolments.serviceName", "")
   lazy val taxEnrolmentsUrl: String = servicesConfig.baseUrl("tax-enrolments")
 
-  def subscribe(safeId: String, formBundleNumber: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[HttpResponse] =
+  def subscribe(safeId: String, formBundleNumber: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[HttpResponse] =
     http.PUT[JsObject, HttpResponse](subscribeUrl(formBundleNumber), requestBody(safeId, formBundleNumber)) map {
       Result =>
         Result
@@ -46,7 +47,8 @@ class TaxEnrolmentConnector @Inject()(http: HttpClient, val mode: Mode, services
     }
 
   def getSubscription(
-    subscriptionId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] =
+    subscriptionId: String
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[TaxEnrolmentsSubscription] =
     http.GET[TaxEnrolmentsSubscription](s"$taxEnrolmentsUrl/tax-enrolments/subscriptions/$subscriptionId")
 
   private def handleError(e: HttpException, formBundleNumber: String): HttpResponse = {
@@ -70,7 +72,8 @@ case class TaxEnrolmentsSubscription(
   identifiers: Option[Seq[Identifier]],
   etmpId: String,
   state: String,
-  errorResponse: Option[String])
+  errorResponse: Option[String]
+)
 
 object TaxEnrolmentsSubscription {
   implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]

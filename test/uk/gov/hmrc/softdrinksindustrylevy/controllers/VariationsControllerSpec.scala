@@ -55,7 +55,8 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     mockVariationSubmissionService,
     mockReturnsVariationSubmissionService,
     mockReturnsAdjustmentSubmissionService,
-    cc)
+    cc
+  )
 
   override def beforeEach(): Unit = {
     reset(mockGformConnector)
@@ -71,14 +72,16 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     addressLine2 = Some("line 2"),
     postCode = Some("AA11 1AA"),
     telephoneNumber = Some("999"),
-    emailAddress = Some("aa@bb.cc"))
+    emailAddress = Some("aa@bb.cc")
+  )
   val sdilNumber = "XCSDIL000000000"
 
   "generateVariations" should {
     val variationRequest = VariationsRequest(
       displayOrgName = tradingName,
       ppobAddress = address,
-      correspondenceContact = Some(contactDetails))
+      correspondenceContact = Some(contactDetails)
+    )
 
     "204 successfully generate Variations" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
@@ -121,9 +124,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
 
-      whenReady(result.failed)(e => {
-        e mustBe a[RuntimeException]
-      })
+      whenReady(result.failed)(e => e mustBe a[RuntimeException])
     }
   }
 
@@ -137,7 +138,8 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
       Nil,
       "",
       "email",
-      BigDecimal("1.1"))
+      BigDecimal("1.1")
+    )
 
     "204 when successfully" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnsVariationRequest))
@@ -179,9 +181,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
       val result = controller.returnsVariation(sdilNumber)(requestInput)
 
-      whenReady(result.failed)(e => {
-        e mustBe a[RuntimeException]
-      })
+      whenReady(result.failed)(e => e mustBe a[RuntimeException])
     }
   }
 
@@ -232,9 +232,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
       val result = controller.varyReturn(sdilNumber)(requestInput)
 
-      whenReady(result.failed)(e => {
-        e mustBe a[RuntimeException]
-      })
+      whenReady(result.failed)(e => e mustBe a[RuntimeException])
     }
   }
 }

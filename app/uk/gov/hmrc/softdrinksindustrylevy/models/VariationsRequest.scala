@@ -35,7 +35,8 @@ case class ReturnsVariationRequest(
   packingSites: List[Site] = Nil,
   phoneNumber: String,
   email: String,
-  taxEstimation: BigDecimal)
+  taxEstimation: BigDecimal
+)
 object ReturnsVariationRequest {
   implicit val ukAddressFormat: Format[UkAddress] = Json.format[UkAddress]
   implicit val bllFormat: Format[(Boolean, (Long, Long))] = Json.format[(Boolean, (Long, Long))]
@@ -68,7 +69,8 @@ case class VariationsContact(
   addressLine4: Option[String] = None,
   postCode: Option[String] = None,
   telephoneNumber: Option[String] = None,
-  emailAddress: Option[String] = None)
+  emailAddress: Option[String] = None
+)
 
 object VariationsPersonalDetails {
   implicit val format: Format[VariationsPersonalDetails] = Json.format[VariationsPersonalDetails]
@@ -89,7 +91,7 @@ object SdilActivity {
 case class SdilActivity(
   activity: Option[Activity],
   produceLessThanOneMillionLitres: Option[Boolean] = None,
-  smallProducerExemption: Option[Boolean] = None, //If true then the user does not have to file returns
+  smallProducerExemption: Option[Boolean] = None, // If true then the user does not have to file returns
   usesContractPacker: Option[Boolean] = None,
   voluntarilyRegistered: Option[Boolean] = None,
   reasonForAmendment: Option[String] = None,

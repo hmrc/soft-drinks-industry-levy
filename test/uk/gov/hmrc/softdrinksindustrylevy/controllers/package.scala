@@ -97,7 +97,8 @@ package object controllers {
       Some("vclmtrtcivhcjldlfeysrttlpfykeolmkpcikccignlvyvghp"),
       None,
       "GB",
-      "SM32 5IA"),
+      "SM32 5IA"
+    ),
     RosmResponseContactDetails(
       Some("08926 167394"),
       None,
@@ -125,7 +126,8 @@ package object controllers {
     produced: LitreBands = zero,
     copackedAll: LitreBands = zero,
     imported: LitreBands = zero,
-    copackedByOthers: LitreBands = zero) =
+    copackedByOthers: LitreBands = zero
+  ) =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,

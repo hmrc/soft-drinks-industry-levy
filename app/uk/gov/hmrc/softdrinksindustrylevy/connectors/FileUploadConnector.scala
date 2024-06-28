@@ -25,8 +25,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class FileUploadConnector @Inject()(ws: WSClient, val mode: Mode, servicesConfig: ServicesConfig)(
-  implicit ec: ExecutionContext) {
+class FileUploadConnector @Inject() (ws: WSClient, val mode: Mode, servicesConfig: ServicesConfig)(implicit
+  ec: ExecutionContext
+) {
 
   val url: String = servicesConfig.baseUrl("file-upload")
 

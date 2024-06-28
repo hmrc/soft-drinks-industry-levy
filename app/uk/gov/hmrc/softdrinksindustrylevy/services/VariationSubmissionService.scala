@@ -30,7 +30,7 @@ import scala.language.postfixOps
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 
 @Singleton
-class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
+class VariationSubmissionService @Inject() (mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[VariationWrapper](
       collectionName = "variations",
       mongoComponent = mongoComponent,
@@ -38,7 +38,8 @@ class VariationSubmissionService @Inject()(mongoComponent: MongoComponent)(impli
       indexes = Seq(
         IndexModel(
           Indexes.ascending("timestamp"),
-          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)),
+          IndexOptions().name("ttl").expireAfter((90 days).toSeconds, SECONDS)
+        ),
         IndexModel(Indexes.ascending("sdilRef"))
       )
     ) {

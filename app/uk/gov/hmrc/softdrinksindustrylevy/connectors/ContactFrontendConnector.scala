@@ -31,18 +31,19 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionForma
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ContactFrontendConnector @Inject()(http: HttpClient, val mode: Mode, val configuration: Configuration)
+class ContactFrontendConnector @Inject() (http: HttpClient, val mode: Mode, val configuration: Configuration)
     extends ServicesConfig(configuration) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
 
-  def raiseTicket(subscription: Subscription, safeId: String)(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[Unit] = {
+  def raiseTicket(subscription: Subscription, safeId: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
 
     val headers = hc.withExtraHeaders("Csrf-Token" -> "nocheck")
 
-    //nothing useful we can do with this
+    // nothing useful we can do with this
     val resubmitUrl = "/"
 
     val payload = Map(

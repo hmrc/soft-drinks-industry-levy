@@ -29,7 +29,7 @@ import com.google.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GformConnector @Inject()(http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class GformConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val gformUrl: String = servicesConfig.baseUrl("gform")
 
