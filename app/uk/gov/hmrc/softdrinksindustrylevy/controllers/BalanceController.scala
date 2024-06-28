@@ -175,11 +175,6 @@ object BalanceController {
     n
   }
 
-  private def logBigDec(default: BigDecimal, id: String): BigDecimal = {
-    logger.warn(s"$id not retrieved from get financial data api, replaced with $default")
-    default
-  }
-
   def convert(in: FinancialTransaction): List[FinancialLineItem] = {
     val mainTransaction = in.mainTransaction >>= parseIntOpt
     val subTransaction = in.subTransaction >>= parseIntOpt
@@ -235,9 +230,8 @@ object BalanceController {
 
   private def handleUnrecognisedFinancialTransaction(
     in: FinancialTransaction,
-    mainTransaction: Option[Int] = None,
-    subTransaction: Option[Int] = None
-  ): List[FinancialLineItem] =
+    mainTransaction: Option[Int],
+    subTransaction: Option[Int]): List[FinancialLineItem] =
     (mainTransaction, subTransaction) match {
       case (a, b) if transactionHasCorrectAccountCategory(in) =>
         logger.warn(

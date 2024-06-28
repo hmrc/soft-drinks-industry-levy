@@ -80,7 +80,9 @@ scalacOptions ++= Seq(
   "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
   "-Ywarn-numeric-widen",              // Warn when numerics are widened.
   "-Ywarn-unused",                     // Warn if an import selector is not referenced.
-  "-Ywarn-value-discard"                // Warn when non-Unit expression results are unused.
+  "-Ywarn-value-discard",                // Warn when non-Unit expression results are unused.
+  "-Wconf:src=html/.*:s",
+  "-Wconf:src=routes/.*:s"
 )
 
 

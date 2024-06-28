@@ -191,7 +191,6 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
     val returnVariationData =
       ReturnVariationData(testOriginal, testRevised, ReturnPeriod(2018, 1), "testOrg", address, "", None)
 
-    val page = views.html.return_variation_pdf(returnVariationData, sdilNumber).toString()
     "204 when successfully" in {
       val requestInput = FakeRequest().withBody(Json.toJson(returnVariationData))
 
