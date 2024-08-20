@@ -35,13 +35,13 @@ object AppDependencies {
     "org.mockito" % "mockito-core" % "5.11.0",
     "org.pegdown" % "pegdown" % "1.6.0",
     "org.scalacheck" %% "scalacheck" % "1.17.0",
-    "org.scalatest" %% "scalatest" % "3.2.18",
+//    "org.scalatest" %% "scalatest" % "3.2.18",
     "org.scalatest" %% "scalatest-funsuite" % "3.2.18",
-    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0",
+//    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0",
     "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
     "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2",
-    "org.apache.pekko" %% "pekko-testkit" % "1.0.2",
-    "com.vladsch.flexmark" % "flexmark-all" % "0.64.8"
+    "org.apache.pekko" %% "pekko-testkit" % "1.0.3"
+//    "com.vladsch.flexmark" % "flexmark-all" % "0.64.8"
   ).map(_ % "test")
 
   val all: Seq[ModuleID] = compile ++ test

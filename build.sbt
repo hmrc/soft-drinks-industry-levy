@@ -1,4 +1,3 @@
-import sbt.compilerPlugin
 import scoverage.ScoverageKeys
 enablePlugins(
   play.sbt.PlayScala,
@@ -11,7 +10,8 @@ libraryDependencies ++= AppDependencies.all
 
 dependencyOverrides ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.3",
-  "com.fasterxml.jackson.core" % "jackson-core" % "2.14.3")
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.14.3"
+)
 
 // ================================================================================
 // Dependencies
