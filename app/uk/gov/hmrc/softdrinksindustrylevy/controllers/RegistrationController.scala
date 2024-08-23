@@ -149,20 +149,6 @@ class RegistrationController @Inject() (
                 Ok(Json.toJson(s))
               }
             })
-//          buffer.findByUtr(utr) flatMap {
-//            case Nil =>
-//              logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
-//              Future successful Ok(Json.toJson(s))
-//            case l :: _ =>
-//              logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
-//              taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
-//                checkEnrolmentState(utr, s)
-//              } recover { case e: NotFoundException =>
-//                logger.info("NotFoundException from TE, returning OK and the subscription json")
-//                logger.error(e.message)
-//                Ok(Json.toJson(s))
-//              }
-        // }
         case _ =>
           buffer
             .findByUtr(utr)
