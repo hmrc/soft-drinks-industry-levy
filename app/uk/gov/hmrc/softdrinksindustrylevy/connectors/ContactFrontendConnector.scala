@@ -40,8 +40,6 @@ class ContactFrontendConnector @Inject() (http: HttpClientV2, val mode: Mode, va
     ec: ExecutionContext
   ): Future[Unit] = {
 
-//    val headers = hc.withExtraHeaders("Csrf-Token" -> "nocheck")
-
     // nothing useful we can do with this
     val resubmitUrl = "/"
 
@@ -73,9 +71,5 @@ class ContactFrontendConnector @Inject() (http: HttpClientV2, val mode: Mode, va
       .withBody(payload)
       .execute[HttpResponse]
       .map(_ => ())
-
-//    http.POSTForm[HttpResponse](submitUrl, payload)(implicitly, headers, ec) map { _ =>
-//      ()
-//    }
   }
 }
