@@ -29,14 +29,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TaxEnrolmentConnectorSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
-
-  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
+class TaxEnrolmentConnectorSpec extends HttpClientV2Helper {
 
   val mode = mock[Mode]
-
-  val mockHttpClient = mock[HttpClient]
 
   val connector = new TaxEnrolmentConnector(mockHttpClient, mode, mockServicesConfig)
 
@@ -44,12 +39,9 @@ class TaxEnrolmentConnectorSpec
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  override def beforeEach(): Unit =
-    reset(mockHttpClient)
-
   "should get successful response back" in {
 
-    when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
 
     connector.getSubscription("1234567890").map { response =>
@@ -59,7 +51,7 @@ class TaxEnrolmentConnectorSpec
 
   "should subscribe successfully" in {
 
-    when(mockHttpClient.PUT[JsObject, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
 
     connector.subscribe("safe1", "1234").map { res =>
@@ -68,7 +60,7 @@ class TaxEnrolmentConnectorSpec
   }
 
   "should handle errors for create subscribtion" in {
-    when(mockHttpClient.PUT[JsObject, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(400, "400")))
 
     connector.subscribe("safe1", "1234").map { res =>

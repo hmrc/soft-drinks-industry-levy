@@ -103,8 +103,10 @@ object ReturnPeriod {
   def quarter(date: LocalDate): Int = { date.getMonthValue - 1 } / 3
 
   def fromPeriodKey(in: String): ReturnPeriod = {
-    val (y :: q :: _) = in.split("C").toList
-    ReturnPeriod(2000 + y.toInt, q.toInt - 1)
+    val splitString = in.split("C").toList
+    val year = splitString.head.toInt
+    val quarter = splitString.tail.head.toInt - 1
+    ReturnPeriod(2000 + year, quarter)
   }
 
   implicit val format: Format[ReturnPeriod] = Json.format[ReturnPeriod]

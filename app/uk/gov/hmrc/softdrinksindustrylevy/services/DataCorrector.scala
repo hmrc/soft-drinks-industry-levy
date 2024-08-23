@@ -56,15 +56,20 @@ class ReturnsCorrectorWorker @Inject() (
   override def receive: PartialFunction[Any, Unit] = {
     case ReturnsCorrection(sdilRefO, utrO, period, data) =>
       logger.info(s"attempting to process $utrO/$sdilRefO")
-      val job: Future[Unit] = for {
+      val job = for {
         utr <- utrO.fold(getUtrFromSdil(sdilRefO.get))(_.pure[Future])
-      } yield returns(utr, period) = data
+        _   <- returns(utr, period) = data
+      } yield ()
+
       job.onComplete {
-        case a if a.isSuccess => logger.info(s"done processing $utrO/$sdilRefO")
-        case e                => logger.warn(s"Don't understand $e")
+        case a if a.isSuccess =>
+          logger.info(s"done processing $utrO/$sdilRefO")
+        case e =>
+          logger.warn(s"Don't understand $e")
       }
 
-    case e => logger.warn(s"Don't understand $e")
+    case e =>
+      logger.warn(s"Don't understand $e")
   }
 }
 

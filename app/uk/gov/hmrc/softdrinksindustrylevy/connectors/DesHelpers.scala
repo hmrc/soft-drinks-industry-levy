@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 abstract class DesHelpers(servicesConfig: ServicesConfig) {
 
-  val http: HttpClient
+  val http: HttpClientV2
 
   val serviceKey: String = s"Bearer ${servicesConfig.getConfString("des.token", "")}"
   val serviceEnvironment: String = servicesConfig.getConfString("des.environment", "")

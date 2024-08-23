@@ -73,7 +73,7 @@ class DesConnectorSpecPropertyBased
   }
 }
 
-class DesConnectorSpecBehavioural extends FakeApplicationSpec {
+class DesConnectorSpecBehavioural extends HttpClientV2Helper {
 
   import scala.concurrent.Future
 
@@ -81,18 +81,12 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val mockHttpClient = mock[HttpClient]
-
   val desConnector = app.injector.instanceOf[DesConnector]
 
   "DesConnector" should {
     "return : None when DES returns 503 for an unknown UTR" in {
 
-      /*stubFor(
-        get(urlEqualTo("/soft-drinks/subscription/details/utr/11111111119"))
-          .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))*/
-
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(503, "503")))
 
       val response: Future[Option[Subscription]] = desConnector.retrieveSubscriptionDetails("utr", "11111111119")
@@ -103,7 +97,7 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
 
     "return : None financial data when nothing is returned" in {
 
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(503, "503")))
 
       val response: Future[Option[des.FinancialTransactionResponse]] =
@@ -152,7 +146,7 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
     }*/
 
     "displayDirectDebit should return Future true when des returns directDebitMandateResponse set to true" in {
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
 
       val response = desConnector.displayDirectDebit("XMSDIL000000001")
@@ -162,7 +156,7 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
     }
 
     "displayDirectDebit should return Future false when des returns directDebitMandateResponse set to false" in {
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : false }""")))
       val response = desConnector.displayDirectDebit("XMSDIL000000001")
       response.map { directDebitMandateFound =>
@@ -171,7 +165,7 @@ class DesConnectorSpecBehavioural extends FakeApplicationSpec {
     }
 
     "displayDirectDebit should return Failed future when Des returns a 404" in {
-      when(mockHttpClient.GET[DisplayDirectDebitResponse](any(), any(), any())(any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         // .thenThrow(new RuntimeException("Exception"))
         .thenReturn(
           Future.failed(new Exception("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException"))

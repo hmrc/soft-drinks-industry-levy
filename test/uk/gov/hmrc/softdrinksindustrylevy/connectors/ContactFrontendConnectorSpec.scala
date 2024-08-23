@@ -16,28 +16,23 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import play.api.libs.json.JsValue
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors._
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class ContactFrontendConnectorSpec extends FakeApplicationSpec {
+class ContactFrontendConnectorSpec extends HttpClientV2Helper {
 
   val connector = app.injector.instanceOf[ContactFrontendConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val mockHttpClient = mock[HttpClient]
-
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "attempted contact form should fail if contact service is not available" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.failed(new Exception("")))
 
     connector.raiseTicket(sub, "safeid1") onComplete {
@@ -47,7 +42,7 @@ class ContactFrontendConnectorSpec extends FakeApplicationSpec {
   }
 
   "attempted contact form should succeed if contact service is available" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, "")))
 
     connector.raiseTicket(sub, "test1") onComplete {

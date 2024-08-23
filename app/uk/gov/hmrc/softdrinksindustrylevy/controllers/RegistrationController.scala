@@ -35,6 +35,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.services._
 import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.DuplicateKeyException
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
 
 @Singleton
 class RegistrationController @Inject() (
@@ -132,26 +133,44 @@ class RegistrationController @Inject() (
         case Some(s) if !s.isDeregistered =>
           logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
           logger.info("isDeregistered for subscription is " + s.isDeregistered)
-          buffer.findByUtr(utr) flatMap {
-            case Nil =>
+
+          buffer
+            .findByUtr(utr)
+            .flatMap(_.headOption.fold {
               logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
               Future successful Ok(Json.toJson(s))
-            case l :: _ =>
+            } { subscriptionWrapper =>
               logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
-              taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
+              taxEnrolmentConnector.getSubscription(subscriptionWrapper.formBundleNumber) flatMap {
                 checkEnrolmentState(utr, s)
               } recover { case e: NotFoundException =>
                 logger.info("NotFoundException from TE, returning OK and the subscription json")
                 logger.error(e.message)
                 Ok(Json.toJson(s))
               }
-          }
+            })
+//          buffer.findByUtr(utr) flatMap {
+//            case Nil =>
+//              logger.info("there is a NO record for this subscription in our buffer, returning OK & subscription json")
+//              Future successful Ok(Json.toJson(s))
+//            case l :: _ =>
+//              logger.info("this is a record for this subscription in our buffer, checking Tax Enrolments")
+//              taxEnrolmentConnector.getSubscription(l.formBundleNumber) flatMap {
+//                checkEnrolmentState(utr, s)
+//              } recover { case e: NotFoundException =>
+//                logger.info("NotFoundException from TE, returning OK and the subscription json")
+//                logger.error(e.message)
+//                Ok(Json.toJson(s))
+//              }
+        // }
         case _ =>
-          buffer.findByUtr(utr) map {
-            case Nil => NotFound
-            case l :: _ =>
-              Accepted(Json.toJson(l.subscription))
-          }
+          buffer
+            .findByUtr(utr)
+            .map(
+              _.headOption.fold[Result](NotFound)(subscriptionWrapper =>
+                Accepted(Json.toJson(subscriptionWrapper.subscription))
+              )
+            )
       }
     }
   }
@@ -183,14 +202,16 @@ class RegistrationController @Inject() (
   )(implicit hc: HeaderCarrier): JsValue = {
     import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
-      def writes(activity: Activity): JsValue = JsObject(
-        activity match {
-          case InternalActivity(a, lg) =>
+      def writes(activity: Activity): JsValue = activity match {
+        case InternalActivity(a, lg) =>
+          JsObject(
             a.map { case (t, lb) =>
               (t.toString.head.toLower +: t.toString.tail) -> litreBandsFormat.writes(lb)
             } ++ Map("isLarge" -> JsBoolean(lg))
-        }
-      )
+          )
+        case _ => internal.activityMapFormat.writes(activity)
+      }
+
     }
 
     implicit val subWrites: Writes[Subscription] = new Writes[Subscription] {

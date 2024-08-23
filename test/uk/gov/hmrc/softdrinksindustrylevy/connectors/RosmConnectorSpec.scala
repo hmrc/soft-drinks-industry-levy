@@ -16,28 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RosmConnectorSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
-
-  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
+class RosmConnectorSpec extends HttpClientV2Helper with ScalaCheckPropertyChecks {
 
   val mode = mock[Mode]
-
-  val mockHttpClient = mock[HttpClient]
 
   val connector = new RosmConnector(mockHttpClient, mode, mockServicesConfig)
 
@@ -59,7 +50,7 @@ class RosmConnectorSpec
 
   "should get no response back if des is not available" in {
 
-    when(mockHttpClient.POST[RosmRegisterRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(500, "500")))
 
     val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
@@ -77,7 +68,7 @@ class RosmConnectorSpec
   }*/
 
   "should get a response back if des available" in {
-    when(mockHttpClient.POST[RosmRegisterRequest, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
 
     val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
