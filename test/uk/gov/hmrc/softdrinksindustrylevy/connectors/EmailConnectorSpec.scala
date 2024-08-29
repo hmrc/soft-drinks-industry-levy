@@ -27,13 +27,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class EmailConnectorSpec extends FakeApplicationSpec {
-
-  val mockServicesConfig: ServicesConfig = app.injector.instanceOf[ServicesConfig]
+class EmailConnectorSpec extends HttpClientV2Helper {
 
   val mode = mock[Mode]
-
-  val mockHttpClient = mock[HttpClient]
 
   val connector = app.injector.instanceOf[EmailConnector]
 
@@ -42,7 +38,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "attempted email should succeed" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, "")))
 
     connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
@@ -54,7 +50,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
   }
 
   "attempted email should fail when the response from email service is a failure" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.failed(new Exception("")))
     connector.sendConfirmationEmail("test", "test", "dfg") onComplete {
       case Success(_) => fail()
@@ -63,7 +59,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
   }
 
   "attempted submission email should succeed" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, "")))
     connector.sendSubmissionReceivedEmail("test", "test") onComplete {
       case Success(_) =>
@@ -72,7 +68,7 @@ class EmailConnectorSpec extends FakeApplicationSpec {
   }
 
   "attempted submission email should fail if email service fails" in {
-    when(mockHttpClient.POST[JsValue, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.failed(new Exception("")))
     connector.sendSubmissionReceivedEmail("test", "test") onComplete {
       case Success(_) => fail()

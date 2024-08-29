@@ -16,28 +16,28 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import java.net.URLEncoder.encode
-import java.time.{LocalDate, LocalDateTime}
 import com.google.inject.{Inject, Singleton}
-import play.api.{Logger, Mode}
 import play.api.libs.json.{Json, OWrites}
+import play.api.{Logger, Mode}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
+import uk.gov.hmrc.http.HttpReads.Implicits.{readFromJson, readRaw}
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{JsonSchemaChecker, Memoized, SdilMongoPersistence}
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
-import uk.gov.hmrc.http.HttpReads.Implicits.readFromJson
 
+import java.net.URLEncoder.encode
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DesConnector @Inject() (
-  val http: HttpClient,
+  val http: HttpClientV2,
   val mode: Mode,
   servicesConfig: ServicesConfig,
   persistence: SdilMongoPersistence,
@@ -78,12 +78,12 @@ class DesConnector @Inject() (
     val submission = request.copy(address = formattedAddress)
 
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
+    val subscriptionUrl = s"$desURL/$serviceURL/subscription/$idType/$idNumber"
     http
-      .POST[Subscription, CreateSubscriptionResponse](
-        s"$desURL/$serviceURL/subscription/$idType/$idNumber",
-        submission,
-        headers = desHeaders
-      )
+      .post(url"$subscriptionUrl")
+      .transform(_.addHttpHeaders(desHeaders: _*))
+      .withBody(Json.toJson(submission))
+      .execute[CreateSubscriptionResponse]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>
         logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
         throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
@@ -97,9 +97,12 @@ class DesConnector @Inject() (
     lazy val memoized: String => Future[Option[Subscription]] =
       Memoized.memoizedCache[Future, String, Option[Subscription]](cache, 60 * 60)(getSubscriptionFromDES)
 
-    def getSubscriptionFromDES(url: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
+    def getSubscriptionFromDES(subscriptionUrl: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
       import json.des.get._
-      http.GET[Option[Subscription]](url, headers = desHeaders)(implicitly, hc, implicitly)
+      http
+        .get(url"$subscriptionUrl")
+        .transform(_.addHttpHeaders(desHeaders: _*))
+        .execute[Option[Subscription]]
     }
 
     for {
@@ -116,13 +119,18 @@ class DesConnector @Inject() (
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit
     hc: HeaderCarrier,
     period: ReturnPeriod
-  ): Future[HttpResponse] =
+  ): Future[HttpResponse] = {
+    val returnUrl = s"$desURL/$serviceURL/$sdilRef/return"
     http
-      .POST[ReturnsRequest, HttpResponse](s"$desURL/$serviceURL/$sdilRef/return", returnsRequest, headers = desHeaders)
+      .post(url"$returnUrl")
+      .transform(_.addHttpHeaders(desHeaders: _*))
+      .withBody(Json.toJson(returnsRequest))
+      .execute[HttpResponse]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>
         logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
         throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
       }
+  }
 
   /** Calls API#1166: Get Financial Data.
     *
@@ -165,7 +173,9 @@ class DesConnector @Inject() (
         }
         .mkString("&")
     http
-      .GET[Option[des.FinancialTransactionResponse]](uri, headers = desHeaders)(implicitly, hc, implicitly)
+      .get(url"$uri")
+      .transform(_.addHttpHeaders(desHeaders: _*))
+      .execute[Option[des.FinancialTransactionResponse]]
       .flatMap { x =>
         x.map { y =>
           auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
@@ -176,7 +186,10 @@ class DesConnector @Inject() (
 
   def displayDirectDebit(sdilRef: String)(implicit hc: HeaderCarrier): Future[DisplayDirectDebitResponse] = {
     val uri = s"$desDirectDebitUrl/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
-    http.GET[DisplayDirectDebitResponse](uri, headers = desHeaders)(implicitly, hc, implicitly)
+    http
+      .get(url"$uri")
+      .transform(_.addHttpHeaders(desHeaders: _*))
+      .execute[DisplayDirectDebitResponse]
   }
 
   private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(implicit

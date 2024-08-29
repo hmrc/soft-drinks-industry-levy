@@ -95,10 +95,10 @@ class OverdueSubmissionsChecker @Inject() (
     override val ttl: duration.Duration = FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
   }
 
-  private def run()(implicit ec: ExecutionContext): Future[Unit] = {
+  private def run()(implicit ec: ExecutionContext): Unit = {
     logger.info(s"Running job $jobName")
 
-    lock.withRenewedLock {
+    val result = lock.withRenewedLock {
       runJob() recoverWith { case e: Exception =>
         logger.error(s"Job $jobName failed", e)
         Future.failed(e)
@@ -107,13 +107,14 @@ class OverdueSubmissionsChecker @Inject() (
       _.getOrElse(logger.info(s"Unable to run job $jobName"))
     }
 
+    result.onComplete(_ => ())
   }
 
   def start()(implicit ec: ExecutionContext): Cancellable =
-    actorSystem.scheduler.schedule(
+    actorSystem.scheduler.scheduleWithFixedDelay(
       jobStartDelay,
       FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
-    )(run())
+    )(() => run())
 }
 
 case class MissingConfiguration(key: String) extends RuntimeException(s"Missing configuration value $key")

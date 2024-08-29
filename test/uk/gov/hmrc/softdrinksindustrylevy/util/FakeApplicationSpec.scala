@@ -23,13 +23,14 @@ import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
 
 trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar {
 
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
-  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
   lazy val components: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   val returns = mock[ReturnsPersistence]

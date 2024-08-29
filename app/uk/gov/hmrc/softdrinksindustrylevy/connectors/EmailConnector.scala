@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Mode
-import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import com.google.inject.{Inject, Singleton}
-
 @Singleton
-class EmailConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class EmailConnector @Inject() (http: HttpClientV2, val mode: Mode, servicesConfig: ServicesConfig) {
 
-  val emailUrl: String = servicesConfig.baseUrl("email")
+  val emailBaseUrl: String = servicesConfig.baseUrl("email")
 
   def sendConfirmationEmail(orgName: String, email: String, sdilNumber: String)(implicit
     hc: HeaderCarrier,
@@ -45,9 +45,13 @@ class EmailConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig
       "force" -> false
     )
 
-    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ =>
-      ()
-    }
+    val emailUrl = s"$emailBaseUrl/hmrc/email"
+
+    http
+      .post(url"$emailUrl")
+      .withBody(params)
+      .execute[HttpResponse]
+      .map(_ => ())
   }
 
   // TODO find out if we need to verify...
@@ -63,9 +67,12 @@ class EmailConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig
       ),
       "force" -> false
     )
+    val emailUrl = s"$emailBaseUrl/hmrc/email"
 
-    http.POST[JsValue, HttpResponse](s"$emailUrl/hmrc/email", params) map { _ =>
-      ()
-    }
+    http
+      .post(url"$emailUrl")
+      .withBody(params)
+      .execute[HttpResponse]
+      .map(_ => ())
   }
 }

@@ -17,21 +17,20 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.google.inject.{Inject, Singleton}
-
-import java.time.LocalDateTime
-import play.api.Configuration
-import play.api.Mode
+import play.api.{Configuration, Mode}
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subscriptionFormat
 
+import java.time.LocalDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ContactFrontendConnector @Inject() (http: HttpClient, val mode: Mode, val configuration: Configuration)
+class ContactFrontendConnector @Inject() (http: HttpClientV2, val mode: Mode, val configuration: Configuration)
     extends ServicesConfig(configuration) {
 
   lazy val contactFrontendUrl: String = baseUrl("contact-frontend")
@@ -40,8 +39,6 @@ class ContactFrontendConnector @Inject() (http: HttpClient, val mode: Mode, val 
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[Unit] = {
-
-    val headers = hc.withExtraHeaders("Csrf-Token" -> "nocheck")
 
     // nothing useful we can do with this
     val resubmitUrl = "/"
@@ -68,9 +65,11 @@ class ContactFrontendConnector @Inject() (http: HttpClient, val mode: Mode, val 
     )
 
     val submitUrl = s"$contactFrontendUrl/contact/contact-hmrc/form?resubmitUrl=$resubmitUrl"
-
-    http.POSTForm[HttpResponse](submitUrl, payload)(implicitly, headers, ec) map { _ =>
-      ()
-    }
+    http
+      .post(url"$submitUrl")
+      .transform(_.addHttpHeaders("Csrf-Token" -> "nocheck"))
+      .withBody(payload)
+      .execute[HttpResponse]
+      .map(_ => ())
   }
 }

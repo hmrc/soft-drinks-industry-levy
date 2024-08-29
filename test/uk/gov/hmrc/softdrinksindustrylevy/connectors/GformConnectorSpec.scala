@@ -16,28 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class GformConnectorSpec
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks
-    with FutureAwaits with DefaultAwaitTimeout {
-
-  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
+    extends HttpClientV2Helper with ScalaCheckPropertyChecks with FutureAwaits with DefaultAwaitTimeout {
 
   val mode = mock[Mode]
-
-  val mockHttpClient = mock[HttpClient]
 
   val connector = new GformConnector(mockHttpClient, mode, mockServicesConfig)
 
@@ -47,7 +38,7 @@ class GformConnectorSpec
     "base64 encode the html" in {
       val rawHtml = "<p>totally a variation</p>"
 
-      when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(204, "204")))
 
       await(connector.submitToDms(rawHtml, "totally an sdil number"))
@@ -57,7 +48,7 @@ class GformConnectorSpec
 
       val sdilNumber = "XZSDIL0009999"
 
-      when(mockHttpClient.POST[DmsHtmlSubmission, HttpResponse](any(), any(), any())(any(), any(), any(), any()))
+      when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(204, "204")))
 
       await(connector.submitToDms("", sdilNumber))

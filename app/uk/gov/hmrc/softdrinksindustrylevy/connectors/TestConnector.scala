@@ -16,19 +16,24 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Mode
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
-import com.google.inject.{Inject, Singleton}
 
 @Singleton
-class TestConnector @Inject() (http: HttpClient, val mode: Mode, servicesConfig: ServicesConfig) {
+class TestConnector @Inject() (http: HttpClientV2, val mode: Mode, servicesConfig: ServicesConfig) {
 
-  val resetURL: String = servicesConfig.baseUrl("des")
+  val resetBaseURL: String = servicesConfig.baseUrl("des")
 
-  def reset(url: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
-    http.GET(s"$resetURL/$url")
+  def reset(path: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val resetUrl = s"$resetBaseURL/$path"
+    http
+      .get(url"$resetUrl")
+      .execute[HttpResponse]
+  }
 }

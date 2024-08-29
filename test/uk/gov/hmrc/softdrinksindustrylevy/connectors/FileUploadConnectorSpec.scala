@@ -26,17 +26,15 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class FileUploadConnectorSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach {
+class FileUploadConnectorSpec extends HttpClientV2Helper {
 
   val connector = app.injector.instanceOf[FileUploadConnector]
-
-  val mockHttpClient = mock[HttpClient]
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "attempted get of file should succeed if the file is returned" in {
 
-    when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
+    when(requestBuilderExecute[HttpResponse])
       .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
 
     connector.getFile("1234", "testfile") onComplete {
