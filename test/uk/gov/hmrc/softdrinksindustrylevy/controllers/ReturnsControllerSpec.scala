@@ -97,7 +97,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       )
       when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
       val response =
-        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+        testReturnsContoller.checkSmallProducerStatus("SDIL0001", testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
@@ -131,7 +131,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
       returns.update(testUtr, ReturnPeriod(2018, 1), SdilReturn(submittedOn = None))
       val response =
-        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+        testReturnsContoller.checkSmallProducerStatus(testSdilRef, testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
