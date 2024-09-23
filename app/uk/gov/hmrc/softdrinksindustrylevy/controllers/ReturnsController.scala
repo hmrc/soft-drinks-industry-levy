@@ -48,17 +48,14 @@ class ReturnsController @Inject() (
   lazy val logger = Logger(this.getClass)
 
   def checkSmallProducerStatus(
-    idType: String,
-    idNumber: String,
+    sdilRef: String,
     year: Int,
     quarter: Int
   ): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
-        subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
-        byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
+        byRef  <- desConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(sdilRef)
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
                         b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
                           y.isAfter(period.end) && b.activity.isSmallProducer

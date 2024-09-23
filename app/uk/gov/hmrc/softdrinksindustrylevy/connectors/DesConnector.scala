@@ -90,6 +90,18 @@ class DesConnector @Inject() (
       }
   }
 
+  def retrieveSmallProducerSubscriptionDetailsBySDILRef(sdilRef: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[SubscriptionWithUtrOptional]] = {
+
+    val subscriptionUrl = s"$desURL/$serviceURL/subscription/details/sdil/$sdilRef"
+
+    http
+      .get(url"$subscriptionUrl")
+      .transform(_.addHttpHeaders(desHeaders: _*))
+      .execute[Option[SubscriptionWithUtrOptional]]
+  }
+
   def retrieveSubscriptionDetails(idType: String, idNumber: String)(implicit
     hc: HeaderCarrier
   ): Future[Option[Subscription]] = {
