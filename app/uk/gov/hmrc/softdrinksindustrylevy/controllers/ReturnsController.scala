@@ -55,7 +55,7 @@ class ReturnsController @Inject() (
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        byRef  <- desConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(sdilRef)
+        byRef <- desConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(sdilRef)
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
                         b.deregDate.fold(b.activity.isSmallProducer && b.liabilityDate.isBefore(period.end))(y =>
                           y.isAfter(period.end) && b.activity.isSmallProducer

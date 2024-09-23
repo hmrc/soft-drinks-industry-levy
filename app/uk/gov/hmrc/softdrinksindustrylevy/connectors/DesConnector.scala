@@ -96,6 +96,7 @@ class DesConnector @Inject() (
 
     val subscriptionUrl = s"$desURL/$serviceURL/subscription/details/sdil/$sdilRef"
 
+    import json.des.get._
     http
       .get(url"$subscriptionUrl")
       .transform(_.addHttpHeaders(desHeaders: _*))

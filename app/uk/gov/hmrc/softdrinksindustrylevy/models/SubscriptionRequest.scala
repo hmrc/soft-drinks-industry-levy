@@ -50,27 +50,23 @@ case class Subscription(
 }
 
 case class SubscriptionWithUtrOptional(
-                         utr: Option[String],
-                         sdilRef: String,
-                         orgName: String,
-                         orgType: Option[String],
-                         address: Address,
-                         activity: Activity,
-                         liabilityDate: LocalDate,
-                         productionSites: List[Site],
-                         warehouseSites: List[Site],
-                         contact: Contact,
-                         endDate: Option[LocalDate],
-                         deregDate: Option[LocalDate] = None
-                       ) {
+  utr: Option[String],
+  sdilRef: String,
+  orgName: String,
+  orgType: Option[String],
+  address: Address,
+  activity: Activity,
+  liabilityDate: LocalDate,
+  productionSites: List[Site],
+  warehouseSites: List[Site],
+  contact: Contact,
+  endDate: Option[LocalDate],
+  deregDate: Option[LocalDate] = None
+) {
 
   def isDeregistered: Boolean = deregDate.fold(false) { x =>
     x.isBefore(LocalDate.now) || x.isEqual(LocalDate.now)
   }
-}
-
-object SubscriptionWithUtrOptional {
-  implicit val format = Json.format[SubscriptionWithUtrOptional]
 }
 
 /* Probably overkill */
