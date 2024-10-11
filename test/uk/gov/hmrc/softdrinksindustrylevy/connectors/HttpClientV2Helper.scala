@@ -29,10 +29,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import java.net.URL
 import scala.concurrent.ExecutionContext
 
-trait HttpClientV2Helper extends FakeApplicationSpec with MockitoSugar with ScalaFutures{
+trait HttpClientV2Helper extends FakeApplicationSpec with MockitoSugar with ScalaFutures {
 
   val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
-
 
   val mockHttpClient: HttpClientV2 = mock[HttpClientV2]
   val requestBuilder: RequestBuilder = mock[RequestBuilder]
