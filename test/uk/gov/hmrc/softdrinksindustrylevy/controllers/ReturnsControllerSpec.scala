@@ -142,13 +142,11 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     "asMilliseconds" in {
       val testDate = LocalDateTime.now()
       val testDateString = testDate.toString
-      println("testDateString " + testDateString.substring(0, 23))
       testReturnsContoller
         .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset).toEpochMilli)
         .asMilliseconds
         .toString
         .substring(0, 23) mustBe testDateString.substring(0, 23)
-      println("comparisonString" + testReturnsContoller)
     }
   }
 
