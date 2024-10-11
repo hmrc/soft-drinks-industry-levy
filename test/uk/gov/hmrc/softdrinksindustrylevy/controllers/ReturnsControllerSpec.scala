@@ -145,7 +145,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       testReturnsContoller
         .RichLong(testDate.toInstant(OffsetDateTime.now().getOffset).toEpochMilli)
         .asMilliseconds
-        .toString mustBe testDateString.substring(0, testDateString.length - 6)
+        .toString mustBe testDateString.substring(0, testDateString.length - 3)
 
     }
   }
