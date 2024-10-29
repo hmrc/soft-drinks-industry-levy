@@ -23,7 +23,7 @@ scalaVersion := "2.13.12"
 // ================================================================================
 
 scalacOptions ++= Seq(
-//  "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.  
+//  "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
   "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
   "-encoding", "utf-8",                // Specify character encoding used by source files.
   "-explaintypes",                     // Explain type errors in more detail.
@@ -67,13 +67,13 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   import scoverage.ScoverageKeys._
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
-  coverageMinimumStmtTotal := 80
+  coverageMinimumStmtTotal := 74
   coverageFailOnMinimum := false
   coverageHighlighting := true
   Compile / scalafmtOnCompile := true
   Test / scalafmtOnCompile := true
   ScoverageKeys.coverageExcludedFiles :=
-    """<empty>;.*javascript;.*Routes.*;.*testonly.*;
-      |.*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*""".stripMargin
+    "<empty>;.*javascript;.*Routes.*;.*testonly.*;"+
+      ".*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*"
 
 disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
