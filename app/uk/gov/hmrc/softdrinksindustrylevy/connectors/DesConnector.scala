@@ -64,11 +64,6 @@ class DesConnector @Inject() (
 
   private def formatAddress(address: Address): Address = {
     import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
-//    val linesOfAtLeastLengthTwo: List[String] = address.lines.length match {
-//      case 0 => throw new Exception("Cannot format address with params supplied")
-//      case 1 => address.lines :+ " "
-//      case _ => address.lines
-//    }
     address match {
       case a: UkAddress      => a.copy(lines = address.lines.map(_.clean))
       case b: ForeignAddress => b.copy(lines = address.lines.map(_.clean))
