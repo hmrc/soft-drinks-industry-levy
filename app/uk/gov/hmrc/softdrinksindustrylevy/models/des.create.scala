@@ -53,7 +53,7 @@ package object create {
         Some((json \ "line2").as[String]),
         (json \ "line3").asOpt[String],
         (json \ "line4").asOpt[String]
-      ).flatten
+      ).flatten.filter(_.trim.nonEmpty)
 
       val country = (json \ "country").asOpt[String].map(_.toUpperCase)
       val nonUk = (json \ "notUKAddress").as[Boolean]
