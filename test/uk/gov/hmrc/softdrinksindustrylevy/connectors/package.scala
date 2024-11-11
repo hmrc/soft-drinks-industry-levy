@@ -40,11 +40,22 @@ package object connectors {
     tld    <- Gen.oneOf("com", "co.uk")
   } yield s"$prefix@$domain.$tld"
 
-  val genUkAddress: Gen[Address] = Gen.ukAddress
+  private val genTwoLinesUkAddress = Gen.ukAddress
     .map { stubAddr =>
       UkAddress(stubAddr.init, stubAddr.last)
     }
     .retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
+
+  private val genOneLineUkAddress = Gen.ukAddress
+    .map { stubAddr =>
+      UkAddress(List(stubAddr.head), stubAddr.last)
+    }
+    .retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
+
+  val genUkAddress: Gen[Address] = for {
+    gen <- Gen.oneOf(List(genOneLineUkAddress, genTwoLinesUkAddress))
+    item <- gen
+  } yield item
 
   // could be part of scalacheck?
   def subset[A <: Enumeration](a: A): Gen[Set[A#Value]] =

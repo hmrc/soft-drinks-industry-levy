@@ -295,6 +295,34 @@ class DesConversionSpec
       assert((producerDetails \ "useContractPacker").asOpt[Boolean].isEmpty)
       assert((producerDetails \ "voluntarilyRegistered").asOpt[Boolean].isEmpty)
     }
+
+    "Address of length two should correctly parse to Json" in {
+      val addressTwoLine = baseSubscription
+
+      val transformedJson = Json.toJson(addressTwoLine)
+      val businessContact = (transformedJson \\ "businessContact").head
+      val addressDetails = (businessContact \\ "addressDetails").head
+
+      assert((addressDetails \ "line1").as[String] == "6A Gunson Street")
+      assert((addressDetails \ "line2").as[String] == "South East London")
+      assert((addressDetails \ "postCode").as[String] == "SE79 6NF")
+      assert(!(addressDetails \ "notUKAddress").as[Boolean])
+    }
+
+    "Address of length one should correctly parse to Json" in {
+      val addressOneLine = baseSubscription.copy(
+        address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF")
+      )
+
+      val transformedJson = Json.toJson(addressOneLine)
+      val businessContact = (transformedJson \\ "businessContact").head
+      val addressDetails = (businessContact \\ "addressDetails").head
+
+      assert((addressDetails \ "line1").as[String] == "6A Gunson Street, South East London")
+      assert((addressDetails \ "line2").as[String] == " ")
+      assert((addressDetails \ "postCode").as[String] == "SE79 6NF")
+      assert(!(addressDetails \ "notUKAddress").as[Boolean])
+    }
   }
 
   private lazy val baseSubscription = Subscription(
@@ -302,7 +330,7 @@ class DesConversionSpec
     sdilRef = None,
     orgName = "I AM THE ORGANISATION TO RULE",
     orgType = Some("3"),
-    address = UkAddress(List("6A Gunson Street, South East London"), "SE79 6NF"),
+    address = UkAddress(List("6A Gunson Street", "South East London"), "SE79 6NF"),
     activity = InternalActivity(Map.empty, isLarge = false),
     liabilityDate = LocalDate.parse("2018-04-06"),
     productionSites =

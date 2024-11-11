@@ -68,7 +68,12 @@ package object create {
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
+      val linesOfAtLeastLengthTwo: List[String] = address.lines.length match {
+        case 0 => throw new Exception("Cannot format address with params supplied")
+        case 1 => address.lines :+ " "
+        case _ => address.lines
+      }
+      val jsLines = linesOfAtLeastLengthTwo.zipWithIndex.map { case (v, i) =>
         s"line${i + 1}" -> JsString(v)
       }
 
