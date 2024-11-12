@@ -53,7 +53,7 @@ package object create {
         Some((json \ "line2").as[String]),
         (json \ "line3").asOpt[String],
         (json \ "line4").asOpt[String]
-      ).flatten
+      ).flatten.filter(_.trim.nonEmpty)
 
       val country = (json \ "country").asOpt[String].map(_.toUpperCase)
       val nonUk = (json \ "notUKAddress").as[Boolean]
@@ -68,7 +68,12 @@ package object create {
 
     def writes(address: Address): JsValue = {
 
-      val jsLines = address.lines.zipWithIndex.map { case (v, i) =>
+      val linesOfAtLeastLengthTwo: List[String] = address.lines.length match {
+        case 0 => throw new Exception("Cannot format address with params supplied")
+        case 1 => address.lines :+ " "
+        case _ => address.lines
+      }
+      val jsLines = linesOfAtLeastLengthTwo.zipWithIndex.map { case (v, i) =>
         s"line${i + 1}" -> JsString(v)
       }
 

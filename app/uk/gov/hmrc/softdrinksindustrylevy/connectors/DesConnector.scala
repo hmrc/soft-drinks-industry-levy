@@ -62,20 +62,27 @@ class DesConnector @Inject() (
     }
   }
 
+  private def formatAddress(address: Address): Address = {
+    import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
+    address match {
+      case a: UkAddress      => a.copy(lines = address.lines.map(_.clean))
+      case b: ForeignAddress => b.copy(lines = address.lines.map(_.clean))
+      case _                 => throw new Exception("Cannot format address with params supplied")
+    }
+  }
+
   def createSubscription(request: Subscription, idType: String, idNumber: String)(implicit
     hc: HeaderCarrier
   ): Future[CreateSubscriptionResponse] = {
     import json.des.create._
-    import uk.gov.hmrc.softdrinksindustrylevy.models.RosmResponseAddress._
-    val formattedLines = request.address.lines.map { line =>
-      line.clean
-    }
-    val formattedAddress = request.address match {
-      case a: UkAddress      => a.copy(lines = formattedLines)
-      case b: ForeignAddress => b.copy(lines = formattedLines)
-      case _                 => throw new Exception("Cannot format address with params supplied")
-    }
-    val submission = request.copy(address = formattedAddress)
+    val formattedWarehouseSites = request.warehouseSites.map(site => site.copy(address = formatAddress(site.address)))
+    val formattedProductionSites = request.productionSites.map(site => site.copy(address = formatAddress(site.address)))
+    val formattedAddress = formatAddress(request.address)
+    val submission = request.copy(
+      address = formattedAddress,
+      warehouseSites = formattedWarehouseSites,
+      productionSites = formattedProductionSites
+    )
 
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
     val subscriptionUrl = s"$desURL/$serviceURL/subscription/$idType/$idNumber"
