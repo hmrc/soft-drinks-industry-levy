@@ -198,4 +198,53 @@ package object get {
 
   }
 
+  implicit val subscriptionWithUtrOptionalFormat: Reads[SubscriptionWithUtrOptional] =
+    new Reads[SubscriptionWithUtrOptional] {
+
+      override def reads(json: JsValue): JsResult[SubscriptionWithUtrOptional] = {
+        def activityType = {
+          val smallProducer = (json \ "subscriptionDetails" \ "smallProducer").asOpt[Boolean]
+          val largeProducer = (json \ "subscriptionDetails" \ "largeProducer").asOpt[Boolean]
+          val contractPacker = (json \ "subscriptionDetails" \ "contractPacker").asOpt[Boolean]
+          val importer = (json \ "subscriptionDetails" \ "importer").asOpt[Boolean]
+          RetrievedActivity(
+            isProducer = smallProducer.contains(true) || largeProducer.contains(true),
+            isLarge = largeProducer.contains(true),
+            isContractPacker = contractPacker.contains(true),
+            isImporter = importer.contains(true)
+          )
+        }
+
+        def getSites(siteType: String): List[Site] =
+          json \ "sites" match {
+            case JsDefined(JsArray(arr)) =>
+              arr.toList.collect {
+                case obj: JsObject if {
+                      obj \ "siteType"
+                    }.as[String] == siteType =>
+                  obj.as[Site]
+              }
+            case _ => List.empty[Site]
+          }
+
+        JsSuccess(
+          SubscriptionWithUtrOptional(
+            utr = (json \ "utr").asOpt[String],
+            sdilRef = (json \ "subscriptionDetails" \ "sdilRegistrationNumber").as[String],
+            orgName = (json \ "subscriptionDetails" \ "tradingName").as[String],
+            orgType = None,
+            address = (json \ "businessAddress").as[Address],
+            activity = activityType,
+            liabilityDate = (json \ "subscriptionDetails" \ "taxObligationStartDate").as[LocalDate],
+            productionSites = getSites("2"),
+            warehouseSites = getSites("1"),
+            contact = json.as[Contact],
+            endDate = (json \ "subscriptionDetails" \ "taxObligationEndDate").asOpt[LocalDate],
+            deregDate = (json \ "subscriptionDetails" \ "deregistrationDate").asOpt[LocalDate]
+          )
+        )
+      }
+
+    }
+
 }

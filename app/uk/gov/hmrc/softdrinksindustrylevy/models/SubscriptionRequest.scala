@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import play.api.libs.json.Json
+
 import java.time.{LocalDate, LocalDateTime}
 
 case class Site(address: Address, ref: Option[String], tradingName: Option[String], closureDate: Option[LocalDate])
@@ -30,6 +32,26 @@ case class Contact(
 case class Subscription(
   utr: String,
   sdilRef: Option[String],
+  orgName: String,
+  orgType: Option[String],
+  address: Address,
+  activity: Activity,
+  liabilityDate: LocalDate,
+  productionSites: List[Site],
+  warehouseSites: List[Site],
+  contact: Contact,
+  endDate: Option[LocalDate],
+  deregDate: Option[LocalDate] = None
+) {
+
+  def isDeregistered: Boolean = deregDate.fold(false) { x =>
+    x.isBefore(LocalDate.now) || x.isEqual(LocalDate.now)
+  }
+}
+
+case class SubscriptionWithUtrOptional(
+  utr: Option[String],
+  sdilRef: String,
   orgName: String,
   orgType: Option[String],
   address: Address,

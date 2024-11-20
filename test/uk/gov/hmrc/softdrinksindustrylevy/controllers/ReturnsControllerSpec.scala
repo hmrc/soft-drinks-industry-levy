@@ -33,7 +33,7 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription, SubscriptionWithUtrOptional}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,29 +92,29 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testYear = 2018
       val testQuarter = 1
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+      when(mockDesConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(any[String])(any())) thenReturn Future.successful(
         None
       )
       when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
       val response =
-        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+        testReturnsContoller.checkSmallProducerStatus("SDIL0001", testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
     }
 
-    "Subscription returned by desConnector.retrieveSubscriptionDetails" in {
+    "Subscription returned by desConnector.retrieveSubscriptionDetails with UTR defined" in {
       val testYear = 2018
       val testQuarter = 1
       val testUtr = "testUtr"
       val testSdilRef = "someSdilRef"
       when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+      when(mockDesConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(any[String])(any())) thenReturn Future.successful(
         Some(
-          Subscription(
-            testUtr,
-            Some(testSdilRef),
+          SubscriptionWithUtrOptional(
+            Some(testUtr),
+            testSdilRef,
             "someOrgName",
             None,
             mock[Address],
@@ -129,9 +129,40 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
         )
       )
 
-      returns.update(testUtr, ReturnPeriod(2018, 1), SdilReturn(submittedOn = None))
       val response =
-        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+        testReturnsContoller.checkSmallProducerStatus(testSdilRef, testYear, testQuarter)(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) mustBe "false"
+    }
+
+    "Subscription returned by desConnector.retrieveSubscriptionDetails with no UTR defined" in {
+      val testYear = 2018
+      val testQuarter = 1
+      val testSdilRef = "someSdilRef"
+      when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
+
+      when(mockDesConnector.retrieveSmallProducerSubscriptionDetailsBySDILRef(any[String])(any())) thenReturn Future.successful(
+        Some(
+          SubscriptionWithUtrOptional(
+            None,
+            testSdilRef,
+            "someOrgName",
+            None,
+            mock[Address],
+            mock[Activity],
+            LocalDate.now,
+            Nil,
+            Nil,
+            mock[Contact],
+            None,
+            None
+          )
+        )
+      )
+
+      val response =
+        testReturnsContoller.checkSmallProducerStatus(testSdilRef, testYear, testQuarter)(FakeRequest())
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
