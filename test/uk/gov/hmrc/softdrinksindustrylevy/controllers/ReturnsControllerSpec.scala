@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import org.apache.pekko.http.scaladsl.model.HttpHeader.ParsingResult.Ok
+import org.apache.pekko.http.scaladsl.model.headers.SameSite
+
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
@@ -25,6 +28,7 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.http.Status.BAD_REQUEST
 import play.api.libs.json.JsNull
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
@@ -33,7 +37,7 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -155,5 +159,27 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val response = testReturnsContoller.post("", 2018, 1)(FakeRequest().withBody(JsNull))
       status(response) mustBe BAD_REQUEST
     }
+  }
+
+  "buildReturnAuditDetails method coverage" in {
+    val exportedLitreBand = (109L, 110L)
+    val wastedLitreBand = (111L, 112L)
+    val testSmallProd1 = SmallProducerVolume("", exportedLitreBand)
+    val testSmallProd2 = SmallProducerVolume("", wastedLitreBand)
+    val returnsImporting = new ReturnsImporting((111L, 112L), (111L, 112L))
+    val returnsPackaging = new ReturnsPackaging(
+      Seq(testSmallProd1, testSmallProd2),
+      (111L, 112L)
+    )
+    val returnsRequest = new ReturnsRequest(
+      packaged = Some(returnsPackaging),
+      imported = Some(returnsImporting),
+      exported = Some(exportedLitreBand),
+      wastage = Some(wastedLitreBand)
+    )
+    val sdilReturn1 = new SdilReturn((0, 0), (0, 0), Nil, (0, 0), (0, 0), (0, 0), (0, 0), None)
+    val returnPeriod1 = new ReturnPeriod(2024, 2)
+    when(returns.get(any(), any())(any())).thenReturn(Future(None))
+    testReturnsContoller.buildReturnAuditDetail(sdilReturn1, returnsRequest, "", returnPeriod1, None, "", "")
   }
 }

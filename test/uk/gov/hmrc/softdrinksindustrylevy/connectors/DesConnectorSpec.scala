@@ -16,16 +16,21 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
+import com.github.tomakehurst.wiremock.http.Response.response
 import org.mockito.Mockito.when
+import org.scalacheck.Gen.const
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.http.Status.SERVICE_UNAVAILABLE
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
-import sdil.models.des
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import sdil.models.{ReturnPeriod, des}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.controllers.sub
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns.returnsRequestFormat
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.duration.Duration
@@ -33,7 +38,8 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class DesConnectorSpecPropertyBased
-    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
+    extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks
+    with HttpClientV2Helper {
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
@@ -78,10 +84,20 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
   import scala.concurrent.Future
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
-
+  implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val desConnector = app.injector.instanceOf[DesConnector]
+
+  val exportedLitreBand = (109L, 110L)
+  val wastedLitreBand = (111L, 112L)
+  val returnsImporting = new ReturnsImporting((111L, 112L), (111L, 112L))
+  val returnsRequest = new ReturnsRequest(
+    packaged = None,
+    imported = Some(returnsImporting),
+    exported = Some(exportedLitreBand),
+    wastage = Some(wastedLitreBand)
+  )
 
   "DesConnector" should {
     "return : None when DES returns 503 for an unknown UTR" in {
@@ -106,44 +122,6 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
         x mustBe None
       }
     }
-
-    /*"return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
-
-      stubFor(
-        get(urlEqualTo(
-          "/enterprise/financial-data/ZSDL/utr/ZSDL?onlyOpenItems=true&includeLocks=false&calculateAccruedInterest=true&customerPaymentInformation=true"))
-          .willReturn(aResponse().withStatus(429)))
-
-      lazy val ex = the[Exception] thrownBy (desConnector.retrieveFinancialData("utr", None).futureValue)
-      ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
-
-    }
-
-    "create subscription should throw an exception if des is unavailable" in {
-
-      stubFor(
-        post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
-          .willReturn(aResponse().withStatus(SERVICE_UNAVAILABLE)))
-
-      val response = the[Exception] thrownBy (desConnector
-        .createSubscription(sub, "utr", "11111111119")
-        .futureValue)
-      response.getMessage must startWith(
-        "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
-    }
-
-    "create subscription should throw an exception if des is returning 429" in {
-
-      stubFor(
-        post(urlEqualTo("/soft-drinks/subscription/utr/11111111119"))
-          .willReturn(aResponse().withStatus(429)))
-
-      lazy val response = the[Exception] thrownBy (desConnector
-        .createSubscription(sub, "utr", "11111111119")
-        .futureValue)
-      response.getMessage must startWith(
-        "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
-    }*/
 
     "displayDirectDebit should return Future true when des returns directDebitMandateResponse set to true" in {
       when(requestBuilderExecute[HttpResponse])
@@ -173,29 +151,73 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
       val response: Future[DisplayDirectDebitResponse] = desConnector
         .displayDirectDebit("XMSDIL000000001")
 
-      // Await.result(response, timeout)
-
-      // await(desConnector
-      // .displayDirectDebit("XMSDIL000000001")).status mustBe 202
-
       response onComplete {
         case Success(x) => println(x)
         case Failure(y) => println(s"The failure is Caught by Mohan  ${y.getMessage}")
       }
-
-      // response.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException")
     }
-    /*"429 response" should {
-      "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
 
-        when(mockHttpClient.GET[Option[Subscription]](any(), any(), any())(any(), any(), any()))
-          .thenThrow(new Exception("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"))
-
-        lazy val ex = the[Throwable] thrownBy (desConnector
-          .retrieveSubscriptionDetails("utr", "11111111120"))
-        ex.getMessage must startWith("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+    "create subscription should throw an exception if des is unavailable" in {
+      when(requestBuilderExecute[HttpResponse]).thenReturn(
+        Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE"))
+      )
+      val response = the[Exception] thrownBy (desConnector
+        .createSubscription(sub, "utr", "11111111119")
+        .futureValue)
+      response.map { x =>
+        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
       }
-    }*/
+    }
+
+    "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
+      when(requestBuilderExecute[Option[Subscription]])
+        .thenReturn(
+          Future.failed(
+            new Exception("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+          )
+        )
+      lazy val ex = the[Throwable] thrownBy (desConnector
+        .retrieveSubscriptionDetails("utr", "11111111120"))
+      response.map { x =>
+        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+      }
+    }
+
+    "return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse(429, "429")))
+      lazy val ex = the[Exception] thrownBy (desConnector.retrieveFinancialData("utr", None).futureValue)
+      response.map { x =>
+        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+      }
+    }
+
+    "create subscription should throw an exception if des is returning 429" in {
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse(429, "429")))
+      lazy val response = the[Exception] thrownBy (desConnector
+        .createSubscription(sub, "utr", "11111111119")
+        .futureValue)
+      response.map { x =>
+        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+      }
+    }
   }
 
+  "should get no response back if des is not available" in {
+
+    when(requestBuilderExecute[HttpResponse])
+      .thenReturn(Future.successful(HttpResponse(429, "429")))
+    val response: Future[HttpResponse] = desConnector.submitReturn("utr", returnsRequest)
+    response.map { x =>
+      x mustBe None
+    }
+  }
+
+  "should get a response back if des available" in {
+    when(requestBuilderExecute[HttpResponse])
+      .thenReturn(Future.successful(HttpResponse(200, Json.toJson(returnsRequest).toString())))
+    val response: Future[HttpResponse] = desConnector.submitReturn("utr", returnsRequest)
+    response.map { x =>
+      x mustBe Some(returnsRequest)
+    }
+  }
 }
