@@ -125,7 +125,8 @@ class DesConnector @Inject() (
 
   def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit
     hc: HeaderCarrier,
-    period: ReturnPeriod
+    period: ReturnPeriod,
+    servicesConfig: ServicesConfig
   ): Future[HttpResponse] = {
     val returnUrl = s"$desURL/$serviceURL/$sdilRef/return"
     http

@@ -15,7 +15,8 @@
  *@
 
 @import sdil.models.ReturnVariationData
-@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages)
+@import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages, servicesConfig: ServicesConfig)
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html>
 <head>
