@@ -18,7 +18,6 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import java.time.LocalDate
 
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.{activityMapFormat, siteFormat}
 import play.api.libs.json._
 
 object VariationsRequest {

@@ -27,7 +27,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap._
 
 import java.time._
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
 
 case class SubscriptionWrap(
