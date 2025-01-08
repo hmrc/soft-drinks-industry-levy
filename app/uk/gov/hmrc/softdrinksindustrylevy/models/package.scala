@@ -36,6 +36,7 @@ package object models {
   }
 
   implicit class LitreOps(litreBands: LitreBands) {
+//    TODO: Pull out as config values
     lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
     lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
     lazy val dueLevy: BigDecimal = lowLevy + highLevy

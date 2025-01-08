@@ -65,7 +65,7 @@ case class SdilReturn(
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
 object SdilReturn {
-  // TODO extract to config
+  //    TODO: Pull out as config values
   val costLower = BigDecimal("0.18")
   val costHigher = BigDecimal("0.24")
 }
