@@ -20,13 +20,14 @@ import cats.syntax.semigroup._
 import cats.instances.option._
 import cats.kernel.Monoid
 import sdil.models._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 case class ReturnsRequest(
   packaged: Option[ReturnsPackaging],
   imported: Option[ReturnsImporting],
   exported: Option[LitreBands],
   wastage: Option[LitreBands]
-) {
+)(implicit servicesConfig: ServicesConfig) {
 
   lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
@@ -47,7 +48,7 @@ case class SmallProducerVolume(producerRef: String, volumes: LitreBands)
 
 object ReturnsRequest {
   import cats.implicits._
-  def apply(sdilReturn: SdilReturn): ReturnsRequest = {
+  def apply(sdilReturn: SdilReturn)(implicit servicesConfig: ServicesConfig): ReturnsRequest = {
 
     val pack = ReturnsPackaging(
       sdilReturn.packSmall.map { sp =>

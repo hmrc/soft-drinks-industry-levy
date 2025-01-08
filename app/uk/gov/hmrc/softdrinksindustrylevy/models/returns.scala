@@ -20,11 +20,16 @@ import cats.Monoid
 import cats.implicits._
 import play.api.libs.json._
 import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object returns {
 
-  implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest] =
+  implicit def writesForAuditing(implicit
+    period: ReturnPeriod,
+    sdilReturn: SdilReturn,
+    servicesConfig: ServicesConfig
+  ): Writes[ReturnsRequest] =
     new Writes[ReturnsRequest] {
       override def writes(o: ReturnsRequest): JsValue = {
         val ownBrand = returnsRequestFormat
@@ -39,7 +44,10 @@ package object returns {
       }
     }
 
-  implicit def returnsRequestFormat(implicit period: ReturnPeriod): Format[ReturnsRequest] =
+  implicit def returnsRequestFormat(implicit
+    period: ReturnPeriod,
+    servicesConfig: ServicesConfig
+  ): Format[ReturnsRequest] =
     new Format[ReturnsRequest] {
       override def reads(json: JsValue): JsResult[ReturnsRequest] = {
         def litreReads(json: JsValue): LitreBands = (

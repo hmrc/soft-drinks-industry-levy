@@ -19,6 +19,7 @@ package sdil.models
 import java.time.LocalDateTime
 import java.time.LocalDate
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _, _}
 
 case class ReturnVariationData(
@@ -60,8 +61,9 @@ case class SdilReturn(
       .map(x => keys(x._2) -> x._1)
       .toMap
   }
-  private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
-  def total: BigDecimal =
+  private def sumLitres(l: List[(Long, Long)])(implicit servicesConfig: ServicesConfig) =
+    l.map(x => LitreOps(x).dueLevy).sum
+  def total(implicit servicesConfig: ServicesConfig): BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
 object SdilReturn {

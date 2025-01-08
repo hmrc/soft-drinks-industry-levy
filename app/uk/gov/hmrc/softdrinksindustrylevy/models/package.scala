@@ -22,6 +22,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
 import sdil.models._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 package object models {
 
@@ -35,8 +36,10 @@ package object models {
     override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
   }
 
-  implicit class LitreOps(litreBands: LitreBands) {
+  implicit class LitreOps(litreBands: LitreBands)(implicit servicesConfig: ServicesConfig) {
 //    TODO: Pull out as config values
+    val lowerBandCostPerLitre: BigDecimal = BigDecimal(servicesConfig.getString("lowerBandCostPerLitre"))
+    val higherBandCostPerLitre: BigDecimal = BigDecimal(servicesConfig.getString("higherBandCostPerLitre"))
     lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
     lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
     lazy val dueLevy: BigDecimal = lowLevy + highLevy
