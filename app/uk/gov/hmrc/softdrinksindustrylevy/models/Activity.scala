@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import cats.kernel.Monoid
 import cats.syntax.semigroup._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 object ActivityType extends Enumeration {
   val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exporting, Wastage = Value
@@ -46,7 +47,9 @@ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPa
   // not optional
 }
 
-case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLarge: Boolean) extends Activity {
+case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLarge: Boolean)(implicit
+  servicesConfig: ServicesConfig
+) extends Activity {
 
   import ActivityType._
 
@@ -77,6 +80,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
     if (isSmallProducer && !isContractPacker && !isImporter) 0
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
-      totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
+//      TODO: PASS IN SERVICES CONFIG
+      LitreOps(totalLiableLitres).dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }

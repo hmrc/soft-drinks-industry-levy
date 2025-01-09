@@ -20,15 +20,17 @@ import cats.syntax.semigroup._
 import cats.instances.option._
 import cats.kernel.Monoid
 import sdil.models._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 case class ReturnsRequest(
   packaged: Option[ReturnsPackaging],
   imported: Option[ReturnsImporting],
   exported: Option[LitreBands],
   wastage: Option[LitreBands]
-) {
+)(implicit servicesConfig: ServicesConfig) {
 
-  lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
+  //      TODO: PASS IN SERVICES CONFIG
+  lazy val totalLevy: BigDecimal = LitreOps(liableVolumes).dueLevy - LitreOps(nonLiableVolumes).dueLevy
 
   private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
     .getOrElse(Monoid[LitreBands].empty)
@@ -56,6 +58,7 @@ object ReturnsRequest {
       (sdilReturn.packLarge._1 + sdilReturn.ownBrand._1, sdilReturn.packLarge._2 + sdilReturn.ownBrand._2)
     )
 
+//    TODO: HOW DOES THIS WORK
     ReturnsRequest(
       packaged = pack.some,
       imported = ReturnsImporting(sdilReturn.importSmall, sdilReturn.importLarge).some,

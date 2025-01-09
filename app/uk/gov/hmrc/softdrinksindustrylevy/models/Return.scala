@@ -19,6 +19,7 @@ package sdil.models
 import java.time.LocalDateTime
 import java.time.LocalDate
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.{litreBandsMonoid => _, _}
 
 case class ReturnVariationData(
@@ -48,7 +49,7 @@ case class SdilReturn(
   `export`: (Long, Long) = (0, 0), // negative charge
   wastage: (Long, Long) = (0, 0), // negative charge
   submittedOn: Option[LocalDateTime]
-) {
+)(implicit servicesConfig: ServicesConfig) {
   private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
   private val keys = List("ownBrand", "packLarge", "importSmall", "importLarge", "export", "wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
@@ -60,15 +61,16 @@ case class SdilReturn(
       .map(x => keys(x._2) -> x._1)
       .toMap
   }
+  //      TODO: PASS IN SERVICES CONFIG
   private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
   def total: BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
-object SdilReturn {
-  // TODO extract to config
-  val costLower = BigDecimal("0.18")
-  val costHigher = BigDecimal("0.24")
-}
+//object SdilReturn {
+//  // TODO extract to config
+//  val costLower = BigDecimal("0.18")
+//  val costHigher = BigDecimal("0.24")
+//}
 
 case class ReturnPeriod(year: Int, quarter: Int) {
   require(quarter <= 3 && quarter >= 0)

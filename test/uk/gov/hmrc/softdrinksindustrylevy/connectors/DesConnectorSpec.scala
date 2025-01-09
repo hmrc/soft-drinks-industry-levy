@@ -27,6 +27,7 @@ import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json._
 import sdil.models.{ReturnPeriod, des}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.sub
 import uk.gov.hmrc.softdrinksindustrylevy.models._
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest}
@@ -86,6 +87,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val balh: ServicesConfig = mock[ServicesConfig]
 
   val desConnector = app.injector.instanceOf[DesConnector]
 

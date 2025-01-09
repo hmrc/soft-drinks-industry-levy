@@ -33,6 +33,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMong
 import java.time._
 import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
 class ReturnsController @Inject() (
@@ -42,7 +43,7 @@ class ReturnsController @Inject() (
   val returns: ReturnsPersistence,
   auditing: AuditConnector,
   val cc: ControllerComponents
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, servicesConfig: ServicesConfig)
     extends BackendController(cc) with AuthorisedFunctions {
 
   lazy val logger = Logger(this.getClass)
@@ -93,7 +94,7 @@ class ReturnsController @Inject() (
       "outcome"          -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId"   -> providerId,
-      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
+      "return" -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn, servicesConfig)).as[JsObject]
     )
   }
 
