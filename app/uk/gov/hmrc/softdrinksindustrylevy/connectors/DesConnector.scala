@@ -84,12 +84,12 @@ class DesConnector @Inject() (
       productionSites = formattedProductionSites
     )
 
-    JsonSchemaChecker[Subscription](request, "des-create-subscription")
+    JsonSchemaChecker[Subscription](request, "des-create-subscription")(subscriptionFormat(servicesConfig))
     val subscriptionUrl = s"$desURL/$serviceURL/subscription/$idType/$idNumber"
     http
       .post(url"$subscriptionUrl")
       .transform(_.addHttpHeaders(desHeaders: _*))
-      .withBody(Json.toJson(submission))
+      .withBody(Json.toJson(submission)(subscriptionFormat(servicesConfig)))
       .execute[CreateSubscriptionResponse]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>
         logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
