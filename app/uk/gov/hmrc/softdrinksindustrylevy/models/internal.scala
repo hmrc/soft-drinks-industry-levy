@@ -17,6 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models.json
 
 import play.api.libs.json._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.{longTupleFormatter => _, _}
 
 package object internal {
@@ -55,7 +56,7 @@ package object internal {
   implicit val businessContactFormat: OFormat[Contact] = Json.format[Contact]
   implicit val siteFormat: OFormat[Site] = Json.format[Site]
 
-  implicit val activityMapFormat: Format[Activity] = new Format[Activity] {
+  implicit def activityMapFormat(implicit servicesConfig: ServicesConfig): Format[Activity] = new Format[Activity] {
     def reads(json: JsValue): JsResult[Activity] = JsSuccess {
       try
         InternalActivity(
@@ -100,7 +101,7 @@ package object internal {
   }
 
   val subReads: Reads[Subscription] = Json.reads[Subscription]
-  val subWrites: Writes[Subscription] = (o: Subscription) =>
+  def subWrites(implicit servicesConfig: ServicesConfig): Writes[Subscription] = (o: Subscription) =>
     Json.obj(
       "utr"             -> o.utr,
       "sdilRef"         -> o.sdilRef,
