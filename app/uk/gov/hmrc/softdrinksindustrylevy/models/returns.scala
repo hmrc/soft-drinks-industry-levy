@@ -106,7 +106,7 @@ package object returns {
             Json.obj(
               activityType.toString.toLowerCase -> Json.obj(
                 "volumes"        -> litresWrites(l),
-                "monetaryValues" -> monetaryWrites(l)
+//                "monetaryValues" -> monetaryWrites(l)
               )
             )
           }
@@ -120,7 +120,7 @@ package object returns {
                 ) ++ litresWrites(vols.volumes)
               },
               "volumeLarge"    -> litresWrites(p.largeProducerVolumes),
-              "monetaryValues" -> monetaryWrites(p.largeProducerVolumes)
+//              "monetaryValues" -> monetaryWrites(p.largeProducerVolumes)
             )
           )
         }
@@ -130,7 +130,7 @@ package object returns {
             "importing" -> Json.obj(
               "volumeSmall"    -> litresWrites(i.smallProducerVolumes),
               "volumeLarge"    -> litresWrites(i.largeProducerVolumes),
-              "monetaryValues" -> monetaryWrites(i.largeProducerVolumes)
+//              "monetaryValues" -> monetaryWrites(i.largeProducerVolumes)
             )
           )
         }
@@ -143,7 +143,7 @@ package object returns {
         Json.obj(
           "periodKey"       -> quarter,
           "formBundleType"  -> "ZSD1",
-          "netLevyDueTotal" -> o.totalLevy
+//          "netLevyDueTotal" -> o.totalLevy
         ) ++ packaged ++ imported ++ exported ++ wastage
       }
     }
