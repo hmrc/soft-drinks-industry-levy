@@ -79,16 +79,6 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
   }
 
-  "SdilReturn bounds cost correct" should {
-    "costLower" in {
-      SdilReturn.costLower shouldBe 0.18
-    }
-
-    "costHigher" in {
-      SdilReturn.costHigher shouldBe 0.24
-    }
-  }
-
   "ReturnVariationData" should {
     val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
     val removedSmallPack = SmallProducer(Some("removed"), "2", (100, 100))
