@@ -94,6 +94,7 @@ package object returns {
         )
 
         def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject =
+        // IT NEEDS LITRESOPS
           Json.obj(
             "lowVolume"    -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
             "highVolume"   -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),

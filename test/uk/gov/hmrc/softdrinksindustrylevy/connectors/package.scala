@@ -53,7 +53,7 @@ package object connectors {
     .retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
 
   val genUkAddress: Gen[Address] = for {
-    gen <- Gen.oneOf(List(genOneLineUkAddress, genTwoLinesUkAddress))
+    gen  <- Gen.oneOf(List(genOneLineUkAddress, genTwoLinesUkAddress))
     item <- gen
   } yield item
 

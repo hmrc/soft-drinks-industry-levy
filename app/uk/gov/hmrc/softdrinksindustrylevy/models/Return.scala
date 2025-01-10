@@ -60,6 +60,7 @@ case class SdilReturn(
       .map(x => keys(x._2) -> x._1)
       .toMap
   }
+  // IT NEEDS LITRESOPS
   private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
   def total: BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))

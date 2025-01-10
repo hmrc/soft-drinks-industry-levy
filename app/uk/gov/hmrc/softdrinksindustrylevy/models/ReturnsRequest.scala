@@ -28,6 +28,7 @@ case class ReturnsRequest(
   wastage: Option[LitreBands]
 ) {
 
+// IT NEEDS LITRESOPS
   lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
   private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))

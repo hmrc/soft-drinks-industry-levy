@@ -77,6 +77,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
     if (isSmallProducer && !isContractPacker && !isImporter) 0
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+      // IT NEEDS LITRESOPS
       totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }
