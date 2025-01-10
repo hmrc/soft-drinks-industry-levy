@@ -64,11 +64,6 @@ case class SdilReturn(
   def total: BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
-object SdilReturn {
-  // TODO extract to config
-  val costLower = BigDecimal("0.18")
-  val costHigher = BigDecimal("0.24")
-}
 
 case class ReturnPeriod(year: Int, quarter: Int) {
   require(quarter <= 3 && quarter >= 0)
