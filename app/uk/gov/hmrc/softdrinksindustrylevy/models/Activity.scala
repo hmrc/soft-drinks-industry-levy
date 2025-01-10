@@ -73,11 +73,12 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
-  override def taxEstimation: BigDecimal =
-    if (isSmallProducer && !isContractPacker && !isImporter) 0
-    else {
-      val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
-      // IT NEEDS LITRESOPS
-      totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
-    }
+  //  override def taxEstimation: BigDecimal =
+  //    if (isSmallProducer && !isContractPacker && !isImporter) 0
+  //    else {
+  //      val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+  //      // IT NEEDS LITRESOPS
+  //      totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
+  //    }
+  override def taxEstimation: BigDecimal = BigDecimal("99999999999.99")
 }

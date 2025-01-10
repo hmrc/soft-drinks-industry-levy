@@ -93,13 +93,13 @@ package object returns {
           "highVolume" -> litres._2.toString
         )
 
-        def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject =
-        // IT NEEDS LITRESOPS
-          Json.obj(
-            "lowVolume"    -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
-            "highVolume"   -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
-            "levySubtotal" -> litreBands.foldLeft(mb.empty)(_ + _.dueLevy)
-          )
+//        def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject =
+//        // IT NEEDS LITRESOPS
+//          Json.obj(
+//            "lowVolume"    -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
+//            "highVolume"   -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
+//            "levySubtotal" -> litreBands.foldLeft(mb.empty)(_ + _.dueLevy)
+//          )
 
         def optLitreObj(litres: Option[LitreBands], activityType: ActivityType.Value) =
           litres.fold(Json.obj()) { l =>
