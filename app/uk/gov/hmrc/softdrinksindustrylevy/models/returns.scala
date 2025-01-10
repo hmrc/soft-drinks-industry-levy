@@ -105,7 +105,7 @@ package object returns {
           litres.fold(Json.obj()) { l =>
             Json.obj(
               activityType.toString.toLowerCase -> Json.obj(
-                "volumes"        -> litresWrites(l),
+                "volumes" -> litresWrites(l)
 //                "monetaryValues" -> monetaryWrites(l)
               )
             )
@@ -119,7 +119,7 @@ package object returns {
                   "producerRef" -> vols.producerRef
                 ) ++ litresWrites(vols.volumes)
               },
-              "volumeLarge"    -> litresWrites(p.largeProducerVolumes),
+              "volumeLarge" -> litresWrites(p.largeProducerVolumes)
 //              "monetaryValues" -> monetaryWrites(p.largeProducerVolumes)
             )
           )
@@ -128,8 +128,8 @@ package object returns {
         val imported = o.imported.fold(Json.obj()) { i =>
           Json.obj(
             "importing" -> Json.obj(
-              "volumeSmall"    -> litresWrites(i.smallProducerVolumes),
-              "volumeLarge"    -> litresWrites(i.largeProducerVolumes),
+              "volumeSmall" -> litresWrites(i.smallProducerVolumes),
+              "volumeLarge" -> litresWrites(i.largeProducerVolumes)
 //              "monetaryValues" -> monetaryWrites(i.largeProducerVolumes)
             )
           )
@@ -141,8 +141,8 @@ package object returns {
         val quarter = period.desPeriodKey
 
         Json.obj(
-          "periodKey"       -> quarter,
-          "formBundleType"  -> "ZSD1",
+          "periodKey"      -> quarter,
+          "formBundleType" -> "ZSD1"
 //          "netLevyDueTotal" -> o.totalLevy
         ) ++ packaged ++ imported ++ exported ++ wastage
       }
