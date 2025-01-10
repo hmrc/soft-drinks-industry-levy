@@ -33,6 +33,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 class DesConversionSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
 
+  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
+
   "DesConversion" should {
     "parse Subscription as expected" in {
       val validator = JsonSchemaFactory.byDefault.getValidator

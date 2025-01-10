@@ -24,7 +24,7 @@ import play.api.mvc.{Action, ControllerComponents}
 import sdil.models.ReturnVariationData
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 
 import scala.concurrent.ExecutionContext
@@ -37,7 +37,7 @@ class VariationsController @Inject() (
   returnSubmission: ReturnsVariationSubmissionService,
   returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService,
   val cc: ControllerComponents
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, c: BandConfig)
     extends BackendController(cc) with I18nSupport {
 
   lazy val logger = Logger(this.getClass)

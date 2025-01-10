@@ -22,6 +22,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsPersistence, SdilMongoPersistence, VariationSubmissionService}
 import com.google.inject.{Inject, Singleton}
+import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
 
 import scala.concurrent.ExecutionContext
 @Singleton
@@ -34,7 +35,7 @@ class TestingController @Inject() (
   variationSubmissions: VariationSubmissionService,
   cc: ControllerComponents,
   returns: ReturnsPersistence
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, c: BandConfig)
     extends BackendController(cc) with I18nSupport {
 
   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>

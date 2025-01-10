@@ -30,6 +30,8 @@ import scala.jdk.CollectionConverters._
 
 class VariationsSpec extends FakeApplicationSpec {
 
+  implicit lazy val c: BandConfig = BandConfig(1, 1)
+
   "The variations HTML" when {
     "the trading name has changed" should {
       "contain the updated trading name" in {

@@ -22,6 +22,8 @@ import org.scalatest.AppendedClues
 
 class ActivitySpec extends PlaySpec with AppendedClues {
 
+  implicit lazy val c: BandConfig = BandConfig(0.18, 0.24)
+
   "Internal Activity" should {
     "include the volume copacked by others in the total produced values" in {
       val activity = internalActivity(produced = (200, 300), copackedByOthers = (300, 400))

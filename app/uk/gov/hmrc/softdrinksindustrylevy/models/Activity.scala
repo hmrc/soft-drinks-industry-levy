@@ -36,12 +36,12 @@ sealed trait Activity {
 
   def isSmallProducer: Boolean = isProducer && !isLarge
 
-  def taxEstimation: BigDecimal
+  def taxEstimation(implicit c: BandConfig): BigDecimal
 }
 
 case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPacker: Boolean, isImporter: Boolean)
     extends Activity {
-  override def taxEstimation: BigDecimal =
+  override def taxEstimation(implicit c: BandConfig): BigDecimal =
     0 // lost in translation - we should either hide or say something like unknown but it is
   // not optional
 }
@@ -73,7 +73,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
-  override def taxEstimation: BigDecimal =
+  override def taxEstimation(implicit c: BandConfig): BigDecimal =
     if (isSmallProducer && !isContractPacker && !isImporter) 0
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")

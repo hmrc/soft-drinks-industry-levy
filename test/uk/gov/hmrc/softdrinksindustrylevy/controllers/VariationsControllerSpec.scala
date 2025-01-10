@@ -29,7 +29,7 @@ import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
@@ -48,6 +48,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
   val cc = app.injector.instanceOf[ControllerComponents]
+  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
 
   val controller: VariationsController = new VariationsController(
     messagesApi,

@@ -37,7 +37,7 @@ import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, BandConfig, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,6 +51,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
   implicit def mockClock: Clock = Clock.systemDefaultZone()
   implicit val hc: HeaderCarrier = new HeaderCarrier
+  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
 
   val testReturnsContoller =
     new ReturnsController(mockAuthConnector, mockDesConnector, subscriptions, returns, mockAuditing, cc)

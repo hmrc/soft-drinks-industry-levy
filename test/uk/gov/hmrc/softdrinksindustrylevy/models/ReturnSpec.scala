@@ -22,9 +22,11 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
+import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, UkAddress}
 
 class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
+
+  implicit lazy val c: BandConfig = BandConfig(0.18, 0.24)
 
   "A ReturnPeriod" should {
     val lowPosInts = Gen.choose(0, 1000)

@@ -42,7 +42,7 @@ class DesConnector @Inject() (
   servicesConfig: ServicesConfig,
   persistence: SdilMongoPersistence,
   auditing: AuditConnector
-)(implicit executionContext: ExecutionContext)
+)(implicit executionContext: ExecutionContext, c: BandConfig)
     extends DesHelpers(servicesConfig) {
 
   val logger: Logger = Logger(this.getClass)

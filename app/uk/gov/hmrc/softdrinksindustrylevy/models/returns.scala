@@ -24,7 +24,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
 
 package object returns {
 
-  implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest] =
+  implicit def writesForAuditing(implicit
+    period: ReturnPeriod,
+    sdilReturn: SdilReturn,
+    c: BandConfig
+  ): Writes[ReturnsRequest] =
     new Writes[ReturnsRequest] {
       override def writes(o: ReturnsRequest): JsValue = {
         val ownBrand = returnsRequestFormat
@@ -39,7 +43,7 @@ package object returns {
       }
     }
 
-  implicit def returnsRequestFormat(implicit period: ReturnPeriod): Format[ReturnsRequest] =
+  implicit def returnsRequestFormat(implicit period: ReturnPeriod, c: BandConfig): Format[ReturnsRequest] =
     new Format[ReturnsRequest] {
       override def reads(json: JsValue): JsResult[ReturnsRequest] = {
         def litreReads(json: JsValue): LitreBands = (

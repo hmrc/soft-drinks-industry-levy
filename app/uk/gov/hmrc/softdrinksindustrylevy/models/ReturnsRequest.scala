@@ -28,7 +28,7 @@ case class ReturnsRequest(
   wastage: Option[LitreBands]
 ) {
 
-  lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
+  def totalLevy(implicit c: BandConfig): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
   private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
     .getOrElse(Monoid[LitreBands].empty)

@@ -1,0 +1,449 @@
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/config/BandConfigProvider.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/config/BandConfigProvider.scala
+new file mode 100644
+index 0000000..3741bd6
+--- /dev/null
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/config/BandConfigProvider.scala
+@@ -0,0 +1,30 @@
++/*
++ * Copyright 2025 HM Revenue & Customs
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package uk.gov.hmrc.softdrinksindustrylevy.config
++
++import com.google.inject.{Inject, Provider, Singleton}
++import play.api.Configuration
++import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
++
++@Singleton
++class BandConfigProvider @Inject() (configuration: Configuration) extends Provider[BandConfig] {
++
++  override def get(): BandConfig = BandConfig(
++    low = configuration.get[Double]("bands.low"),
++    high = configuration.get[Double]("bands.high")
++  )
++}
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/config/Module.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/config/Module.scala
+new file mode 100644
+index 0000000..1fa52ab
+--- /dev/null
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/config/Module.scala
+@@ -0,0 +1,29 @@
++/*
++ * Copyright 2025 HM Revenue & Customs
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package uk.gov.hmrc.softdrinksindustrylevy.config
++
++import play.api.{Configuration, Environment}
++import play.api.inject.Binding
++import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
++
++class Module extends play.api.inject.Module {
++
++  override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] =
++    Seq(
++      bind[BandConfig].toProvider[BandConfigProvider]
++    )
++}
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnector.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnector.scala
+index 50f2901..7834331 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnector.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnector.scala
+@@ -42,7 +42,7 @@ class DesConnector @Inject() (
+   servicesConfig: ServicesConfig,
+   persistence: SdilMongoPersistence,
+   auditing: AuditConnector
+-)(implicit executionContext: ExecutionContext)
++)(implicit executionContext: ExecutionContext, c: BandConfig)
+     extends DesHelpers(servicesConfig) {
+ 
+   val logger: Logger = Logger(this.getClass)
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsController.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsController.scala
+index 06ee45c..f164063 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsController.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsController.scala
+@@ -42,7 +42,7 @@ class ReturnsController @Inject() (
+   val returns: ReturnsPersistence,
+   auditing: AuditConnector,
+   val cc: ControllerComponents
+-)(implicit ec: ExecutionContext)
++)(implicit ec: ExecutionContext, c: BandConfig)
+     extends BackendController(cc) with AuthorisedFunctions {
+ 
+   lazy val logger = Logger(this.getClass)
+@@ -93,7 +93,7 @@ class ReturnsController @Inject() (
+       "outcome"          -> outcome,
+       "authProviderType" -> "GovernmentGateway",
+       "authProviderId"   -> providerId,
+-      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
++      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn, implicitly)).as[JsObject]
+     )
+   }
+ 
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsController.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsController.scala
+index 537b360..6ad6c06 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsController.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsController.scala
+@@ -24,7 +24,7 @@ import play.api.mvc.{Action, ControllerComponents}
+ import sdil.models.ReturnVariationData
+ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+ import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
+-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
++import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, ReturnsVariationRequest, VariationsRequest, formatReturnVariationData}
+ import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
+ 
+ import scala.concurrent.ExecutionContext
+@@ -37,7 +37,7 @@ class VariationsController @Inject() (
+   returnSubmission: ReturnsVariationSubmissionService,
+   returnsAdjustmentSubmissionService: ReturnsAdjustmentSubmissionService,
+   val cc: ControllerComponents
+-)(implicit ec: ExecutionContext)
++)(implicit ec: ExecutionContext, c: BandConfig)
+     extends BackendController(cc) with I18nSupport {
+ 
+   lazy val logger = Logger(this.getClass)
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/test/TestingController.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/test/TestingController.scala
+index 737d403..eefd7af 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/test/TestingController.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/controllers/test/TestingController.scala
+@@ -22,6 +22,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+ import uk.gov.hmrc.softdrinksindustrylevy.connectors.{FileUploadConnector, TestConnector}
+ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsPersistence, SdilMongoPersistence, VariationSubmissionService}
+ import com.google.inject.{Inject, Singleton}
++import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
+ 
+ import scala.concurrent.ExecutionContext
+ @Singleton
+@@ -34,7 +35,7 @@ class TestingController @Inject() (
+   variationSubmissions: VariationSubmissionService,
+   cc: ControllerComponents,
+   returns: ReturnsPersistence
+-)(implicit ec: ExecutionContext)
++)(implicit ec: ExecutionContext, c: BandConfig)
+     extends BackendController(cc) with I18nSupport {
+ 
+   def reset(url: String): Action[AnyContent] = Action.async { implicit request =>
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/Activity.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/Activity.scala
+index b54d0f3..0206441 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/Activity.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/Activity.scala
+@@ -36,12 +36,12 @@ sealed trait Activity {
+ 
+   def isSmallProducer: Boolean = isProducer && !isLarge
+ 
+-  def taxEstimation: BigDecimal
++  def taxEstimation(implicit c: BandConfig): BigDecimal
+ }
+ 
+ case class RetrievedActivity(isProducer: Boolean, isLarge: Boolean, isContractPacker: Boolean, isImporter: Boolean)
+     extends Activity {
+-  override def taxEstimation: BigDecimal =
++  override def taxEstimation(implicit c: BandConfig): BigDecimal =
+     0 // lost in translation - we should either hide or say something like unknown but it is
+   // not optional
+ }
+@@ -73,7 +73,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
+ 
+   def isImporter: Boolean = activity.keySet.contains(Imported)
+ 
+-  override def taxEstimation: BigDecimal =
++  override def taxEstimation(implicit c: BandConfig): BigDecimal =
+     if (isSmallProducer && !isContractPacker && !isImporter) 0
+     else {
+       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/Return.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/Return.scala
+index 61542f0..027bcca 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/Return.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/Return.scala
+@@ -60,8 +60,8 @@ case class SdilReturn(
+       .map(x => keys(x._2) -> x._1)
+       .toMap
+   }
+-  private def sumLitres(l: List[(Long, Long)]) = l.map(x => LitreOps(x).dueLevy).sum
+-  def total: BigDecimal =
++  private def sumLitres(l: List[(Long, Long)])(implicit c: BandConfig) = l.map(x => LitreOps(x).dueLevy).sum
++  def total(implicit c: BandConfig): BigDecimal =
+     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
+ }
+ object SdilReturn {
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsRequest.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsRequest.scala
+index 9d18846..b49c080 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsRequest.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsRequest.scala
+@@ -28,7 +28,7 @@ case class ReturnsRequest(
+   wastage: Option[LitreBands]
+ ) {
+ 
+-  lazy val totalLevy: BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
++  def totalLevy(implicit c: BandConfig): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
+ 
+   private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
+     .getOrElse(Monoid[LitreBands].empty)
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/des.create.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/des.create.scala
+index b6040e5..d7948a4 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/des.create.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/des.create.scala
+@@ -97,7 +97,7 @@ package object create {
+     }
+   }
+ 
+-  implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
++  implicit def subscriptionFormat(implicit c: BandConfig): Format[Subscription] = new Format[Subscription] {
+     def reads(json: JsValue): JsResult[Subscription] = {
+ 
+       val (warehouses, production) = json \ "sites" match {
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/package.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/package.scala
+index 6d98a23..17bb815 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/package.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/package.scala
+@@ -35,9 +35,11 @@ package object models {
+     override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
+   }
+ 
+-  implicit class LitreOps(litreBands: LitreBands) {
+-    lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
+-    lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
++  final case class BandConfig(low: BigDecimal, high: BigDecimal)
++
++  implicit class LitreOps(litreBands: LitreBands)(implicit c: BandConfig) {
++    lazy val lowLevy: BigDecimal = litreBands._1 * c.low
++    lazy val highLevy: BigDecimal = litreBands._2 * c.high
+     lazy val dueLevy: BigDecimal = lowLevy + highLevy
+   }
+ 
+diff --git a/app/uk/gov/hmrc/softdrinksindustrylevy/models/returns.scala b/app/uk/gov/hmrc/softdrinksindustrylevy/models/returns.scala
+index 55b7a13..5625535 100644
+--- a/app/uk/gov/hmrc/softdrinksindustrylevy/models/returns.scala
++++ b/app/uk/gov/hmrc/softdrinksindustrylevy/models/returns.scala
+@@ -24,7 +24,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models._
+ 
+ package object returns {
+ 
+-  implicit def writesForAuditing(implicit period: ReturnPeriod, sdilReturn: SdilReturn): Writes[ReturnsRequest] =
++  implicit def writesForAuditing(implicit
++    period: ReturnPeriod,
++    sdilReturn: SdilReturn,
++    c: BandConfig
++  ): Writes[ReturnsRequest] =
+     new Writes[ReturnsRequest] {
+       override def writes(o: ReturnsRequest): JsValue = {
+         val ownBrand = returnsRequestFormat
+@@ -39,7 +43,7 @@ package object returns {
+       }
+     }
+ 
+-  implicit def returnsRequestFormat(implicit period: ReturnPeriod): Format[ReturnsRequest] =
++  implicit def returnsRequestFormat(implicit period: ReturnPeriod, c: BandConfig): Format[ReturnsRequest] =
+     new Format[ReturnsRequest] {
+       override def reads(json: JsValue): JsResult[ReturnsRequest] = {
+         def litreReads(json: JsValue): LitreBands = (
+diff --git a/app/views/return_variation_pdf.scala.html b/app/views/return_variation_pdf.scala.html
+index 02c971e..2739e16 100644
+--- a/app/views/return_variation_pdf.scala.html
++++ b/app/views/return_variation_pdf.scala.html
+@@ -15,7 +15,9 @@
+  *@
+ 
+ @import sdil.models.ReturnVariationData
+-@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages)
++@import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
++
++@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages, c: BandConfig)
+ <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
+ <html>
+ <head>
+diff --git a/app/views/variations_pdf.scala.html b/app/views/variations_pdf.scala.html
+index 2c5e9c0..b98a4fa 100644
+--- a/app/views/variations_pdf.scala.html
++++ b/app/views/variations_pdf.scala.html
+@@ -20,7 +20,7 @@
+ @import java.time.format.DateTimeFormatter
+ @import java.time.LocalDate
+ 
+-@(variationsRequest: VariationsRequest, sdilNumber: String)(implicit messages: Messages)
++@(variationsRequest: VariationsRequest, sdilNumber: String)(implicit messages: Messages, c: BandConfig)
+ <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
+ <html>
+ <head>
+diff --git a/conf/application.conf b/conf/application.conf
+index ff0fe6e..f8e17d4 100644
+--- a/conf/application.conf
++++ b/conf/application.conf
+@@ -19,6 +19,7 @@ appName = soft-drinks-industry-levy
+ 
+ play.modules.enabled += "uk.gov.hmrc.play.bootstrap.HttpClientModule"
+ play.modules.enabled += "uk.gov.hmrc.play.bootstrap.HttpClientV2Module"
++play.modules.enabled += "uk.gov.hmrc.softdrinksindustrylevy.config.Module"
+ 
+ play.modules.enabled += "uk.gov.hmrc.play.bootstrap.AuthModule"
+ play.modules.enabled += "uk.gov.hmrc.mongo.play.PlayMongoModule"
+@@ -177,3 +178,8 @@ balance.useOutstandingAmount = false
+ mongodb.uri = "mongodb://localhost:27017/sdil-submissions"
+ 
+ etmp.sdil.regime = "ZSDL"
++
++bands {
++	low = 0.18
++	high = 0.24
++}
+\ No newline at end of file
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnectorSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnectorSpec.scala
+index 4454430..a93f966 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnectorSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConnectorSpec.scala
+@@ -86,6 +86,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
+   implicit val hc: HeaderCarrier = new HeaderCarrier
+   implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
+   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
++  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
+ 
+   val desConnector = app.injector.instanceOf[DesConnector]
+ 
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConversion.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConversion.scala
+index b0b493b..2d309df 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConversion.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/DesConversion.scala
+@@ -33,6 +33,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+ class DesConversionSpec
+     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
+ 
++  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
++
+   "DesConversion" should {
+     "parse Subscription as expected" in {
+       val validator = JsonSchemaFactory.byDefault.getValidator
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/package.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/package.scala
+index 9137082..0d3fee8 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/package.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/connectors/package.scala
+@@ -53,7 +53,7 @@ package object connectors {
+     .retryUntil(_.lines.forall(_.matches("^[A-Za-z0-9 \\-,.&'\\/]{1,35}$")))
+ 
+   val genUkAddress: Gen[Address] = for {
+-    gen <- Gen.oneOf(List(genOneLineUkAddress, genTwoLinesUkAddress))
++    gen  <- Gen.oneOf(List(genOneLineUkAddress, genTwoLinesUkAddress))
+     item <- gen
+   } yield item
+ 
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsControllerSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsControllerSpec.scala
+index 2d52528..6d5d039 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsControllerSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/ReturnsControllerSpec.scala
+@@ -37,7 +37,7 @@ import sdil.models.{ReturnPeriod, SdilReturn}
+ import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
+ import uk.gov.hmrc.http.HeaderCarrier
+ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
++import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, BandConfig, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
+ 
+ import scala.concurrent.Future
+ import scala.concurrent.ExecutionContext.Implicits.global
+@@ -51,6 +51,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
+ 
+   implicit def mockClock: Clock = Clock.systemDefaultZone()
+   implicit val hc: HeaderCarrier = new HeaderCarrier
++  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
+ 
+   val testReturnsContoller =
+     new ReturnsController(mockAuthConnector, mockDesConnector, subscriptions, returns, mockAuditing, cc)
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsControllerSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsControllerSpec.scala
+index 1627549..31a0ea7 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsControllerSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/controllers/VariationsControllerSpec.scala
+@@ -29,7 +29,7 @@ import play.api.test.Helpers._
+ import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
+ import uk.gov.hmrc.http.HeaderCarrier
+ import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
+-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
++import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
+ import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
+ import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+ 
+@@ -48,6 +48,7 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
+   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
+   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
+   val cc = app.injector.instanceOf[ControllerComponents]
++  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
+ 
+   val controller: VariationsController = new VariationsController(
+     messagesApi,
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ActivitySpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ActivitySpec.scala
+index d8c80c1..544353a 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ActivitySpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ActivitySpec.scala
+@@ -22,6 +22,8 @@ import org.scalatest.AppendedClues
+ 
+ class ActivitySpec extends PlaySpec with AppendedClues {
+ 
++  implicit lazy val c: BandConfig = BandConfig(0.18, 0.24)
++
+   "Internal Activity" should {
+     "include the volume copacked by others in the total produced values" in {
+       val activity = internalActivity(produced = (200, 300), copackedByOthers = (300, 400))
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnSpec.scala
+index a53f339..bb0f88d 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnSpec.scala
+@@ -22,10 +22,12 @@ import org.scalatest.matchers.should.Matchers
+ import org.scalatest.wordspec.AnyWordSpec
+ import org.scalatestplus.mockito.MockitoSugar
+ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+-import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
++import uk.gov.hmrc.softdrinksindustrylevy.models.{BandConfig, UkAddress}
+ 
+ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
+ 
++  implicit lazy val c: BandConfig = BandConfig(0.18, 0.24)
++
+   "A ReturnPeriod" should {
+     val lowPosInts = Gen.choose(0, 1000)
+ 
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsConversionSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsConversionSpec.scala
+index d985fe4..08aa91d 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsConversionSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/models/ReturnsConversionSpec.scala
+@@ -30,6 +30,7 @@ import sdil.models._
+ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
+ 
+ //  implicit val clock: Clock = Clock.systemDefaultZone()
++  implicit lazy val c: BandConfig = BandConfig(1, 1)
+   private val zone = ZoneId.systemDefault()
+ 
+   implicit def period(implicit cl: Clock): ReturnPeriod = ReturnPeriod(LocalDate.now(cl))
+diff --git a/test/uk/gov/hmrc/softdrinksindustrylevy/views/VariationsSpec.scala b/test/uk/gov/hmrc/softdrinksindustrylevy/views/VariationsSpec.scala
+index 1b3782c..59c4aa7 100644
+--- a/test/uk/gov/hmrc/softdrinksindustrylevy/views/VariationsSpec.scala
++++ b/test/uk/gov/hmrc/softdrinksindustrylevy/views/VariationsSpec.scala
+@@ -30,6 +30,8 @@ import scala.jdk.CollectionConverters._
+ 
+ class VariationsSpec extends FakeApplicationSpec {
+ 
++  implicit lazy val c: BandConfig = BandConfig(1, 1)
++
+   "The variations HTML" when {
+     "the trading name has changed" should {
+       "contain the updated trading name" in {

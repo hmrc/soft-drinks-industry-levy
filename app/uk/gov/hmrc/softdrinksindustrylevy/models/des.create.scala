@@ -97,7 +97,7 @@ package object create {
     }
   }
 
-  implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
+  implicit def subscriptionFormat(implicit c: BandConfig): Format[Subscription] = new Format[Subscription] {
     def reads(json: JsValue): JsResult[Subscription] = {
 
       val (warehouses, production) = json \ "sites" match {

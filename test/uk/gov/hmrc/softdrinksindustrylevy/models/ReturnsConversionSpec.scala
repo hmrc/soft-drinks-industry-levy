@@ -30,6 +30,7 @@ import sdil.models._
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
 //  implicit val clock: Clock = Clock.systemDefaultZone()
+  implicit lazy val c: BandConfig = BandConfig(1, 1)
   private val zone = ZoneId.systemDefault()
 
   implicit def period(implicit cl: Clock): ReturnPeriod = ReturnPeriod(LocalDate.now(cl))

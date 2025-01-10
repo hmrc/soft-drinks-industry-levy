@@ -86,6 +86,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val c: BandConfig = app.injector.instanceOf[BandConfig]
 
   val desConnector = app.injector.instanceOf[DesConnector]
 

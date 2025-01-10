@@ -42,7 +42,7 @@ class ReturnsController @Inject() (
   val returns: ReturnsPersistence,
   auditing: AuditConnector,
   val cc: ControllerComponents
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, c: BandConfig)
     extends BackendController(cc) with AuthorisedFunctions {
 
   lazy val logger = Logger(this.getClass)
@@ -93,7 +93,7 @@ class ReturnsController @Inject() (
       "outcome"          -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId"   -> providerId,
-      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
+      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn, implicitly)).as[JsObject]
     )
   }
 

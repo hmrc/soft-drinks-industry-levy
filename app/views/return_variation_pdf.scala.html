@@ -15,7 +15,9 @@
  *@
 
 @import sdil.models.ReturnVariationData
-@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages)
+@import uk.gov.hmrc.softdrinksindustrylevy.models.BandConfig
+
+@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages, c: BandConfig)
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html>
 <head>
