@@ -22,6 +22,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
 import sdil.models._
+import uk.gov.hmrc.softdrinksindustrylevy.config.Rates
 
 package object models {
 
@@ -36,8 +37,8 @@ package object models {
   }
 
   implicit class LitreOps(litreBands: LitreBands) {
-    lazy val lowLevy: BigDecimal = litreBands._1 * BigDecimal("0.18")
-    lazy val highLevy: BigDecimal = litreBands._2 * BigDecimal("0.24")
+    lazy val lowLevy: BigDecimal = litreBands._1 * Rates.lowerBandCostPerLitre
+    lazy val highLevy: BigDecimal = litreBands._2 * Rates.higherBandCostPerLitre
     lazy val dueLevy: BigDecimal = lowLevy + highLevy
   }
 
