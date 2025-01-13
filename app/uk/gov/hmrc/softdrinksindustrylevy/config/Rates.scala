@@ -21,7 +21,13 @@ object Rates {
   val lowerBandCostPerLitreString: String = "0.18"
   val higherBandCostPerLitreString: String = "0.24"
 
+  val lowerBandCostPerLitrePostApril2025String: String = "0.194"
+  val higherBandCostPerLitrePostApril2025String: String = "0.259"
+
   val lowerBandCostPerLitre: BigDecimal = BigDecimal(lowerBandCostPerLitreString)
   val higherBandCostPerLitre: BigDecimal = BigDecimal(higherBandCostPerLitreString)
+
+  val lowerBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(lowerBandCostPerLitrePostApril2025String)
+  val higherBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(higherBandCostPerLitrePostApril2025String)
 
 }
