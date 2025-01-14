@@ -36,7 +36,7 @@ package object models {
     override def combine(x: (Litres, Litres), y: (Litres, Litres)): (Litres, Litres) = (x._1 + y._1, x._2 + y._2)
   }
 
-  implicit class LitreOps(litreBands: LitreBands) {
+  implicit class LitreOps(litreBands: LitreBands)(implicit returnPeriod: ReturnPeriod) {
     lazy val lowLevy: BigDecimal = litreBands._1 * Rates.lowerBandCostPerLitre
     lazy val highLevy: BigDecimal = litreBands._2 * Rates.higherBandCostPerLitre
     lazy val dueLevy: BigDecimal = lowLevy + highLevy
