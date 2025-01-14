@@ -14,8 +14,9 @@
  * limitations under the License.
  *@
 
+@import sdil.models.ReturnPeriod
 @import sdil.models.ReturnVariationData
-@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages)
+@(variation: ReturnVariationData, sdilNumber: String)(implicit messages: Messages, returnPeriod: ReturnPeriod)
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html>
 <head>
