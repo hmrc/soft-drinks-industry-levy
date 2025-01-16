@@ -49,7 +49,7 @@ object Rates {
     getTaxYear(returnPeriod) match {
 //      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
       case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
-      case _ => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
+      case year if year < 2025 => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
     }
   }
 
