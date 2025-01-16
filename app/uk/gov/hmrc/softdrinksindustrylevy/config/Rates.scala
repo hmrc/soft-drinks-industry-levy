@@ -16,6 +16,14 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
+import sdil.models.ReturnPeriod
+
+case class BandRates(lowerBandCostPerLites: BigDecimal, higherBandCostPerLitre: BigDecimal)
+
+case class LevyCalculation(lowLevy: BigDecimal, highLevy: BigDecimal) {
+  lazy val total = lowLevy + highLevy
+}
+
 object Rates {
 
   val lowerBandCostPerLitreString: String = "0.18"
@@ -29,5 +37,14 @@ object Rates {
 
   val lowerBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(lowerBandCostPerLitrePostApril2025String)
   val higherBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(higherBandCostPerLitrePostApril2025String)
+
+  def getRatesBasedOnReturnPeriod(returnPeriod: ReturnPeriod): BandRates = ???
+
+  def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
+    val bandRates: BandRates = getRatesBasedOnReturnPeriod(returnPeriod)
+    val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
+    val highLevy = highLitres * bandRates.higherBandCostPerLitre
+    LevyCalculation(lowLevy, highLevy)
+  }
 
 }
