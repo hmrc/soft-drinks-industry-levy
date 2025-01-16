@@ -38,8 +38,19 @@ object Rates {
   val lowerBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(lowerBandCostPerLitrePostApril2025String)
   val higherBandCostPerLitrePostApril2025: BigDecimal = BigDecimal(higherBandCostPerLitrePostApril2025String)
 
+  def getTaxYear(returnPeriod: ReturnPeriod): Int = {
+    returnPeriod.quarter match {
+      case 1 => returnPeriod.year - 1
+      case _ => returnPeriod.year
+    }
+  }
+
   def getBandRates(returnPeriod: ReturnPeriod): BandRates = {
-    ???
+    getTaxYear(returnPeriod) match {
+//      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
+      case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
+      case _ => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
+    }
   }
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
