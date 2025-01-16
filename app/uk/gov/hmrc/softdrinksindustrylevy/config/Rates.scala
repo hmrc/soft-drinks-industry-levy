@@ -40,7 +40,7 @@ object Rates {
 
   def getTaxYear(returnPeriod: ReturnPeriod): Int = {
     returnPeriod.quarter match {
-      case 1 => returnPeriod.year - 1
+      case 0 => returnPeriod.year - 1
       case _ => returnPeriod.year
     }
   }
