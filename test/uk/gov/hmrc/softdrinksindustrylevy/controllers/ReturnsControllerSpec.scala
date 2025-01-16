@@ -16,13 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.apache.pekko.http.scaladsl.model.HttpHeader.ParsingResult.Ok
-import org.apache.pekko.http.scaladsl.model.headers.SameSite
-
-import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
-import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import org.mockito.ArgumentMatchers.{any, eq => matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -34,13 +27,17 @@ import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, SdilReturn}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
+import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-import scala.concurrent.Future
+import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
@@ -181,5 +178,39 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     val returnPeriod1 = new ReturnPeriod(2024, 2)
     when(returns.get(any(), any())(any())).thenReturn(Future(None))
     testReturnsContoller.buildReturnAuditDetail(sdilReturn1, returnsRequest, "", returnPeriod1, None, "", "")
+  }
+  "pending method" should {
+    "return pending periods" in {
+      val testUtr = "testUtr"
+      val startDate = LocalDate.of(2018, 1, 1)
+      val liabilityDate = startDate
+
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
+        Some(
+          Subscription(
+            testUtr,
+            Some("testSdilRef"),
+            "someOrgName",
+            None,
+            mock[Address],
+            mock[Activity],
+            liabilityDate,
+            Nil,
+            Nil,
+            mock[Contact],
+            None,
+            None
+          )
+        )
+      )
+
+      when(returns.list(any())(any())) thenReturn Future.successful(Map.empty)
+
+      val response = testReturnsContoller.pending(testUtr)(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) must include("year")
+      contentAsString(response) must include("quarter")
+    }
   }
 }
