@@ -125,5 +125,41 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         mock[ContactFrontendConnector]
       )(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.jobIntervalMinutes"
     }
+
+    "edge cases" should {
+      "all config values set correctly" in {
+        val configMock: Configuration = mock[Configuration]
+        val mongoLockRepoMock: MongoLockRepository = mock[MongoLockRepository]
+        val mongoBufferServiceMock: MongoBufferService = mock[MongoBufferService]
+        val actorSystemMock: ActorSystem = ActorSystem("TestActorSystem")
+        val contactFrontendConnectorMock: ContactFrontendConnector = mock[ContactFrontendConnector]
+
+        when(configMock.getOptional[Boolean](mEq("overdueSubmissions.enabled"))(any())) thenReturn Option(true)
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
+          minutesTestVal
+        )
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn Option(
+          minutesTestVal
+        )
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(any())) thenReturn Option(
+          minutesTestVal
+        )
+
+        val overdueSubmissionsCheckerMock = new OverdueSubmissionsChecker(
+          mongoLockRepoMock,
+          mongoBufferServiceMock,
+          configMock,
+          actorSystemMock,
+          contactFrontendConnectorMock
+        )(mock[ExecutionContext])
+
+        overdueSubmissionsCheckerMock.jobEnabled mustBe true
+        overdueSubmissionsCheckerMock.jobStartDelay.toMinutes mustBe minutesTestVal
+        overdueSubmissionsCheckerMock.overduePeriod.getStandardMinutes mustBe minutesTestVal
+        overdueSubmissionsCheckerMock.jobInterval.getStandardMinutes mustBe minutesTestVal
+
+        actorSystemMock.terminate()
+      }
+    }
   }
 }

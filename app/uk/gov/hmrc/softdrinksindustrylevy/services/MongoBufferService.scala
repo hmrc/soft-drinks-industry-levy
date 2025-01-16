@@ -16,19 +16,20 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import java.time.Instant
+import com.google.inject.{Inject, Singleton}
+import org.mongodb.scala.model._
+import org.mongodb.scala.result.DeleteResult
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats.instantFormat
+
+import java.time.Instant
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import com.google.inject.{Inject, Singleton}
-import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Updates}
-import org.mongodb.scala.result.DeleteResult
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 @Singleton
 class MongoBufferService @Inject() (
@@ -44,7 +45,8 @@ class MongoBufferService @Inject() (
           IndexOptions().name("ttl").expireAfter((30 days).toSeconds, SECONDS)
         ),
         IndexModel(Indexes.ascending("status")),
-        IndexModel(Indexes.ascending("utr"))
+        IndexModel(Indexes.ascending("utr")),
+        IndexModel(Indexes.ascending("subscription.utr"))
       )
     ) {
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
@@ -72,10 +74,10 @@ class MongoBufferService @Inject() (
     collection.insertOne(sub).toFuture() map (_ => ())
 
   def findByUtr(utr: String): Future[Seq[SubscriptionWrapper]] =
-    collection.find(Filters.equal("utr", utr)).toFuture()
+    collection.find(Filters.equal("subscription.utr", utr)).toFuture()
 
   def remove(utr: String): Future[DeleteResult] =
-    collection.deleteOne(Filters.equal("utr", utr)).toFuture()
+    collection.deleteOne(Filters.equal("subscription.utr", utr)).toFuture()
 
   def findById(id: String): Future[SubscriptionWrapper] =
     collection.find(Filters.equal("_id", id)).toFuture() map (_.head)

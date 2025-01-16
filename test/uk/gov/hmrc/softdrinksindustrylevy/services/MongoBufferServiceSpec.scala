@@ -159,4 +159,70 @@ class MongoBufferServiceSpec
 
   }
 
+  "remove method" should {
+    "remove a record by UTR if it exists" in {
+      await(repository.insert(subscriptionWrapper))
+      val deleteResult = await(repository.remove(testUtr))
+      deleteResult.getDeletedCount mustBe 1
+
+      val items = await(repository.findByUtr(testUtr))
+      items mustBe empty
+    }
+
+    "do nothing if no record exists with the given UTR" in {
+      val deleteResult = await(repository.remove("nonExistingUtr"))
+      deleteResult.getDeletedCount mustBe 0
+    }
+  }
+
+  "findById method" should {
+    "retrieve a record by ID if it exists" in {
+      await(repository.insert(subscriptionWrapper))
+      val item = await(repository.findById(subscriptionWrapper._id))
+      item mustBe subscriptionWrapper
+    }
+
+    "throw an exception if no record exists with the given ID" in {
+      intercept[NoSuchElementException] {
+        await(repository.findById("nonExistingId"))
+      }
+    }
+  }
+
+  "removeById method" should {
+    "remove a record by ID if it exists" in {
+      await(repository.insert(subscriptionWrapper))
+      val deleteResult = await(repository.removeById(subscriptionWrapper._id))
+      deleteResult.getDeletedCount mustBe 1
+
+      intercept[NoSuchElementException] {
+        await(repository.findById(subscriptionWrapper._id))
+      }
+    }
+
+    "do nothing if no record exists with the given ID" in {
+      val deleteResult = await(repository.removeById("nonExistingId"))
+      deleteResult.getDeletedCount mustBe 0
+    }
+  }
+
+  "insert method" should {
+    "insert a new record into the collection" in {
+      await(repository.insert(subscriptionWrapper))
+
+      val items = await(repository.findByUtr(testUtr))
+
+      items must not be empty
+      items.head mustBe subscriptionWrapper
+    }
+
+    "throw an exception if a record with the same ID already exists" in {
+      await(repository.insert(subscriptionWrapper))
+
+      intercept[Exception] {
+        await(repository.insert(subscriptionWrapper))
+      }
+    }
+  }
+
 }
