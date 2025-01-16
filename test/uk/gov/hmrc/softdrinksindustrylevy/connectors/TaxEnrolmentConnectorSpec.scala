@@ -16,16 +16,11 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatest.RecoverMethods.recoverToExceptionIf
 import play.api.Mode
-import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UnauthorizedException}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,6 +60,37 @@ class TaxEnrolmentConnectorSpec extends HttpClientV2Helper {
 
     connector.subscribe("safe1", "1234").map { res =>
       res.status mustBe 400
+    }
+  }
+  "should handle unauthorized error for subscription" in {
+    when(requestBuilderExecute[HttpResponse])
+      .thenReturn(Future.failed(new UnauthorizedException("Unauthorized")))
+
+    recoverToExceptionIf[UnauthorizedException] {
+      connector.subscribe("safe1", "1234")
+    }.map { ex =>
+      ex.getMessage mustBe "Unauthorized"
+    }
+  }
+  "should handle bad request error for subscription" in {
+    when(requestBuilderExecute[HttpResponse])
+      .thenReturn(Future.failed(new BadRequestException("Bad Request")))
+
+    recoverToExceptionIf[BadRequestException] {
+      connector.subscribe("safe1", "1234")
+    }.map { ex =>
+      ex.getMessage mustBe "Bad Request"
+    }
+  }
+
+  "should handle errors for get subscription" in {
+    when(requestBuilderExecute[TaxEnrolmentsSubscription])
+      .thenReturn(Future.failed(new NotFoundException("Not Found")))
+
+    recoverToExceptionIf[NotFoundException] {
+      connector.getSubscription("1234567890")
+    }.map { ex =>
+      ex.getMessage mustBe "Not Found"
     }
   }
 }
