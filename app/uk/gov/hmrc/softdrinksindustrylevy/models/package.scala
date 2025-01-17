@@ -22,7 +22,7 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.functional.syntax.unlift
 import sdil.models._
-import uk.gov.hmrc.softdrinksindustrylevy.config.{LevyCalculation, Rates}
+import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator.getLevyCalculation
 
 package object models {
 
@@ -37,7 +37,7 @@ package object models {
   }
 
   implicit class LitreOps(litreBands: LitreBands)(implicit returnPeriod: ReturnPeriod) {
-    lazy val levyCalculation: LevyCalculation = Rates.getLevyCalculation(litreBands._1, litreBands._2, returnPeriod)
+    lazy val levyCalculation: LevyCalculation = getLevyCalculation(litreBands._1, litreBands._2, returnPeriod)
     lazy val lowLevy: BigDecimal = levyCalculation.lowLevy
     lazy val highLevy: BigDecimal = levyCalculation.highLevy
     lazy val dueLevy: BigDecimal = levyCalculation.total
