@@ -20,8 +20,10 @@ import sdil.models.ReturnPeriod
 
 case class BandRates(lowerBandCostPerLites: BigDecimal, higherBandCostPerLitre: BigDecimal)
 
-case class LevyCalculation(lowLevy: BigDecimal, highLevy: BigDecimal) {
-  lazy val total = lowLevy + highLevy
+case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
+  lazy val lowLevy = low.setScale(2)
+  lazy val highLevy = high.setScale(2)
+  lazy val total = (low + high).setScale(2)
 }
 
 object Rates {
@@ -47,9 +49,9 @@ object Rates {
 
   def getBandRates(returnPeriod: ReturnPeriod): BandRates = {
     getTaxYear(returnPeriod) match {
-//      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
-      case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
       case year if year < 2025 => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
+      case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
+//      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
     }
   }
 
