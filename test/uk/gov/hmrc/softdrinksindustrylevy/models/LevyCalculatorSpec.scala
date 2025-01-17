@@ -26,7 +26,22 @@ import java.time.LocalDate
 
 class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
 // TODO: ADD TESTS
+  "getTaxYear" should {
     "test" in {
       true shouldBe false
     }
+  }
+
+  "getBandRates" should {
+    "test" in {
+      true shouldBe false
+    }
+  }
+
+  "getLevyCalculation" should {
+    "test" in {
+      true shouldBe false
+    }
+  }
+
 }
