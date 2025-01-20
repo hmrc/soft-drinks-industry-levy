@@ -36,8 +36,8 @@ object LevyCalculator {
     }
   }
 
-  private[models] def getBandRates(returnPeriod: ReturnPeriod): BandRates = {
-    getTaxYear(returnPeriod) match {
+  private[models] def getBandRates(taxYear: Int): BandRates = {
+    taxYear match {
       case year if year < 2025 => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
       case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
 //      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
@@ -45,7 +45,8 @@ object LevyCalculator {
   }
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
-    val bandRates: BandRates = getBandRates(returnPeriod)
+    val taxYear: Int = getTaxYear(returnPeriod)
+    val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
     LevyCalculation(lowLevy, highLevy)
