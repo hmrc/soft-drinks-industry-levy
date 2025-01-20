@@ -27,8 +27,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator._
 import java.time.LocalDate
 
 class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
-// TODO: ADD TESTS
   "getTaxYear" should {
+//    TODO: Implement tax year using yearGen
+    val yearGen = Gen.choose(2018, 2025)
     "return numeric value of year - 1 when in January" in {
       val year = 2024
       val returnPeriod = ReturnPeriod.apply(LocalDate.of(year, 1, 1))
@@ -103,7 +104,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
   }
 
   "getBandRates" should {
-    (2018 until 2024).foreach(taxYear => {
+    (2018 to 2024).foreach(taxYear => {
       val bandRates: BandRates = getBandRates(taxYear)
 
       s"return 0.18 for lower band when tax year is $taxYear" in {
