@@ -22,9 +22,9 @@ import uk.gov.hmrc.softdrinksindustrylevy.config.Rates._
 case class BandRates(lowerBandCostPerLites: BigDecimal, higherBandCostPerLitre: BigDecimal)
 
 case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
-  lazy val lowLevy = low.setScale(2)
-  lazy val highLevy = high.setScale(2)
-  lazy val total = (low + high).setScale(2)
+  lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val highLevy = high.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val total = (low + high).setScale(2, BigDecimal.RoundingMode.HALF_UP)
 }
 
 object LevyCalculator {
