@@ -149,14 +149,17 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
 
     (2018 to 2024).foreach(year => {
 
-      s"calculate low levy correctly with small litres totals using original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
+      val lowerBandCostPerLitre = BigDecimal("0.18")
+      val higherBandCostPerLitre = BigDecimal("0.24")
+
+      s"calculate low levy, high levy, and total correctly with small litres totals using original rates for Apr - Dec $year" in {
+        forAll(smallPosInts) { lowLitres =>
+          forAll(smallPosInts) { highLitres =>
+            forAll(aprToDecInt) { month =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+              val expectedHighLevy = higherBandCostPerLitre * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy
               levyCalculation.highLevy shouldBe expectedHighLevy
               levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
@@ -165,14 +168,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with small litres totals using original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
+      s"calculate low levy, high levy, and total correctly with large litres totals using original rates for Apr - Dec $year" in {
+        forAll(largePosInts) { lowLitres =>
+          forAll(largePosInts) { highLitres =>
+            forAll(aprToDecInt) { month =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+              val expectedHighLevy = higherBandCostPerLitre * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy
               levyCalculation.highLevy shouldBe expectedHighLevy
               levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
@@ -181,78 +184,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate total correctly using with small litres totals original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with large litres totals using original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate high levy correctly with large litres totals using original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with large litres totals original rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with small litres totals using original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
+      s"calculate low levy, high levy, and total correctly with small litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(smallPosInts) { lowLitres =>
+          forAll(smallPosInts) { highLitres =>
+            forAll(janToMarInt) { month =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+              val expectedHighLevy = higherBandCostPerLitre * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy
               levyCalculation.highLevy shouldBe expectedHighLevy
               levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
@@ -261,78 +200,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with small litres totals using original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
+      s"calculate low levy, high levy, and total correctly with large litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(largePosInts) { lowLitres =>
+          forAll(largePosInts) { highLitres =>
+            forAll(janToMarInt) { month =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with small litres totals original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with large litres totals using original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate high levy correctly with large litres totals using original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy
-              levyCalculation.highLevy shouldBe expectedHighLevy
-              levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with large litres totals original rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.18") * lowLitres
-              val expectedHighLevy = BigDecimal("0.24") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+              val expectedHighLevy = higherBandCostPerLitre * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy
               levyCalculation.highLevy shouldBe expectedHighLevy
               levyCalculation.total shouldBe expectedLowLevy + expectedHighLevy
@@ -344,14 +219,18 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
 
     (2025 to 2025).foreach(year => {
 
-      s"calculate low levy correctly with small litres totals using $year rates for Apr - Dec $year" in {
+      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
+
+      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
+
+      s"calculate low levy, high levy, and total correctly with small litres totals using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           forAll(smallPosInts) { lowLitres =>
             forAll(smallPosInts) { highLitres =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitreMap(year) * lowLitres
+              val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -360,46 +239,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with small litres totals using $year rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with small litres totals $year rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with large litres totals using $year rates for Apr - Dec $year" in {
+      s"calculate low levy, high levy, and total correctly with large litres totals using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           forAll(largePosInts) { lowLitres =>
             forAll(largePosInts) { highLitres =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitreMap(year) * lowLitres
+              val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -408,46 +255,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with large litres totals using $year rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with large litres totals $year rates for Apr - Dec $year" in {
-        forAll(aprToDecInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with small litres totals using $year rates for Jan - Mar ${year + 1}" in {
+      s"calculate low levy, high levy, and total correctly with small litres totals using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
           forAll(smallPosInts) { lowLitres =>
             forAll(smallPosInts) { highLitres =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitreMap(year) * lowLitres
+              val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -456,46 +271,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with small litres totals using $year rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with small litres totals $year rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(smallPosInts) { lowLitres =>
-            forAll(smallPosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate low levy correctly with large litres totals using $year rates for Jan - Mar ${year + 1}" in {
+      s"calculate low levy, high levy, and total correctly with large litres totals using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
           forAll(largePosInts) { lowLitres =>
             forAll(largePosInts) { highLitres =>
               val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
+              val expectedLowLevy = lowerBandCostPerLitreMap(year) * lowLitres
+              val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -504,37 +287,6 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
         }
       }
 
-      s"calculate high levy correctly with large litres totals using $year rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
-
-      s"calculate total correctly using with large litres totals $year rates for Jan - Mar ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          forAll(largePosInts) { lowLitres =>
-            forAll(largePosInts) { highLitres =>
-              val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-              val expectedLowLevy = BigDecimal("0.194") * lowLitres
-              val expectedHighLevy = BigDecimal("0.259") * highLitres
-              levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
-            }
-          }
-        }
-      }
     })
 
   }
