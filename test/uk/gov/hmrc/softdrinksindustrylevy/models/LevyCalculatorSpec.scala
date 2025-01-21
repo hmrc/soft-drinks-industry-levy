@@ -19,14 +19,13 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator._
 
 import java.time.LocalDate
 
-class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
+class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
   "getTaxYear" should {
     val yearGen = Gen.choose(2018, 2026)
