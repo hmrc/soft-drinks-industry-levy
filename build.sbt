@@ -67,8 +67,8 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   import scoverage.ScoverageKeys._
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
-  coverageMinimumStmtTotal := 80.00
-  coverageFailOnMinimum := false
+  coverageMinimumStmtTotal := 81.00
+  coverageFailOnMinimum := true
   coverageHighlighting := true
   Compile / scalafmtOnCompile := true
   Test / scalafmtOnCompile := true
