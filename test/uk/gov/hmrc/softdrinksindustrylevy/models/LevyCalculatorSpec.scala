@@ -116,7 +116,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
   }
 
   "getBandRates" should {
-    (2018 to 2024).foreach(taxYear => {
+    (2018 to 2024).foreach { taxYear =>
       val bandRates: BandRates = getBandRates(taxYear)
 
       s"return 0.18 for lower band when tax year is $taxYear" in {
@@ -126,7 +126,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
       s"return 0.24 for higher band when tax year is $taxYear" in {
         bandRates.higherBandCostPerLitre shouldBe BigDecimal("0.24")
       }
-    })
+    }
 
     "return 0.194 for lower band when tax year is 2025" in {
       val bandRates: BandRates = getBandRates(2025)
@@ -146,8 +146,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
     val janToMarInt = Gen.choose(1, 3)
     val aprToDecInt = Gen.choose(4, 12)
 
-    (2018 to 2024).foreach(year => {
-
+    (2018 to 2024).foreach { year =>
       val lowerBandCostPerLitre = BigDecimal("0.18")
       val higherBandCostPerLitre = BigDecimal("0.24")
 
@@ -214,10 +213,9 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
           }
         }
       }
-    })
+    }
 
-    (2025 to 2025).foreach(year => {
-
+    (2025 to 2025).foreach { year =>
       val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
 
       val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
@@ -232,7 +230,8 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
               val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy)
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             }
           }
         }
@@ -248,7 +247,8 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
               val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy)
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             }
           }
         }
@@ -264,7 +264,8 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
               val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy)
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             }
           }
         }
@@ -280,13 +281,14 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
               val expectedHighLevy = higherBandCostPerLitreMap(year) * highLitres
               levyCalculation.lowLevy shouldBe expectedLowLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
               levyCalculation.highLevy shouldBe expectedHighLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP)
-              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              levyCalculation.total shouldBe (expectedLowLevy + expectedHighLevy)
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             }
           }
         }
       }
 
-    })
+    }
 
   }
 

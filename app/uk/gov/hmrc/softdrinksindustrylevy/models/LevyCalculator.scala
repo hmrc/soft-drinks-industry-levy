@@ -29,20 +29,18 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
 
 object LevyCalculator {
 
-  private[models] def getTaxYear(returnPeriod: ReturnPeriod): Int = {
+  private[models] def getTaxYear(returnPeriod: ReturnPeriod): Int =
     returnPeriod.quarter match {
       case 0 => returnPeriod.year - 1
       case _ => returnPeriod.year
     }
-  }
 
-  private[models] def getBandRates(taxYear: Int): BandRates = {
+  private[models] def getBandRates(taxYear: Int): BandRates =
     taxYear match {
       case year if year < 2025 => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
-      case 2025 => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
+      case 2025                => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
 //      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
     }
-  }
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
     val taxYear: Int = getTaxYear(returnPeriod)
