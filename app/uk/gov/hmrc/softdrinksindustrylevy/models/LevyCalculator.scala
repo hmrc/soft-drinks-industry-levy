@@ -19,6 +19,21 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.config.Rates._
 
+sealed trait TaxYear
+
+object Pre2025 extends TaxYear
+object Year2025 extends TaxYear
+object Year2026 extends TaxYear
+
+object TaxYear {
+  def fromYear(year: Int): TaxYear = year match {
+    case y if y < 2025 => Pre2025
+    case 2025          => Year2025
+    case 2026          => Year2026
+    case _             => throw new IllegalArgumentException(s"Unsupported tax year: $year")
+  }
+}
+
 case class BandRates(lowerBandCostPerLites: BigDecimal, higherBandCostPerLitre: BigDecimal)
 
 case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
@@ -29,21 +44,33 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
 
 object LevyCalculator {
 
-  private[models] def getTaxYear(returnPeriod: ReturnPeriod): Int =
-    returnPeriod.quarter match {
+  // Map tax years to their corresponding band rates using the Rates object
+  private val bandRatesByTaxYear: Map[TaxYear, BandRates] = Map(
+    Pre2025  -> BandRates(lowerBandCostPerLitre, higherBandCostPerLitre),
+    Year2025 -> BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
+    // Add more years as needed
+  )
+
+  private[models] def getTaxYear(returnPeriod: ReturnPeriod): TaxYear = {
+    val taxYear = returnPeriod.quarter match {
       case 0 => returnPeriod.year - 1
       case _ => returnPeriod.year
     }
+    TaxYear.fromYear(taxYear)
+  }
 
-  private[models] def getBandRates(taxYear: Int): BandRates =
-    taxYear match {
-      case year if year < 2025 => BandRates(lowerBandCostPerLitre, higherBandCostPerLitre)
-      case 2025                => BandRates(lowerBandCostPerLitrePostApril2025, higherBandCostPerLitrePostApril2025)
-//      case 2026 => BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)
-    }
+  private[models] def getBandRates(taxYear: TaxYear): BandRates =
+    bandRatesByTaxYear.getOrElse(
+      taxYear,
+      throw new IllegalArgumentException(s"No band rates found for tax year: ${taxYear.toString}")
+    )
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
-    val taxYear: Int = getTaxYear(returnPeriod)
+    if (lowLitres < 0 || highLitres < 0) {
+      throw new IllegalArgumentException("Litres cannot be negative")
+    }
+
+    val taxYear: TaxYear = getTaxYear(returnPeriod)
     val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
