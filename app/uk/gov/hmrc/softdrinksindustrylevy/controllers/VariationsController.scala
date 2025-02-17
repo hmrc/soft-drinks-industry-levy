@@ -65,6 +65,7 @@ class VariationsController @Inject() (
     Action.async(parse.json) { implicit request =>
       withJsonBody[ReturnVariationData] { data =>
         logger.info("SDIL return variation sent to DMS queue")
+        implicit val returnPeriod = data.period
         val page = views.html.return_variation_pdf(data, sdilRef).toString
         for {
           _ <- gforms.submitToDms(page, sdilRef)

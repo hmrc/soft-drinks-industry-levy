@@ -18,6 +18,9 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import cats.kernel.Monoid
 import cats.syntax.semigroup._
+import sdil.models.ReturnPeriod
+
+import java.time.LocalDate
 
 object ActivityType extends Enumeration {
   val ProducedOwnBrand, Imported, CopackerAll, Copackee, Exporting, Wastage = Value
@@ -77,6 +80,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
     if (isSmallProducer && !isContractPacker && !isImporter) 0
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+      implicit val returnPeriod = ReturnPeriod(LocalDate.now())
       totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }
