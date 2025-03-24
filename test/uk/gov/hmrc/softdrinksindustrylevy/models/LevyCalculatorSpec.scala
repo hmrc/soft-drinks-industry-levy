@@ -31,7 +31,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
     val janToMarInt = Gen.choose(1, 3)
     val aprToDecInt = Gen.choose(4, 12)
 
-    (2018 to 2024).foreach(year => {
+    (2018 to 2024).foreach { year =>
       s"return Pre2025 when in April - December $year" in {
         forAll(aprToDecInt) { month =>
           val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -45,7 +45,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
           getTaxYear(returnPeriod) shouldBe Pre2025
         }
       }
-    })
+    }
 
     "return Year2025 when in April - December 2025" in {
       forAll(aprToDecInt) { month =>
@@ -75,7 +75,6 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
       }
     }
   }
-
 
   "getBandRates" should {
     (2018 to 2024).foreach { taxYear =>
