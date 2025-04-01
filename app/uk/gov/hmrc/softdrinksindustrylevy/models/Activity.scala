@@ -81,6 +81,7 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
       implicit val returnPeriod = ReturnPeriod(LocalDate.now())
+//      TODO: This is to be tested in des-create-subscription
       totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }

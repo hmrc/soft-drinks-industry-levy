@@ -27,6 +27,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
 
+//TODO: This is where to test package object returns and model.scala
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
 //  implicit val clock: Clock = Clock.systemDefaultZone()
