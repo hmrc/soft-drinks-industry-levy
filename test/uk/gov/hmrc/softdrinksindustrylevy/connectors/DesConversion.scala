@@ -30,6 +30,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
+//TODO: This is where to test package object returns and model.scala for estimatedTaxAmount
 class DesConversionSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
 
