@@ -76,12 +76,21 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
 
   def isImporter: Boolean = activity.keySet.contains(Imported)
 
-  override def taxEstimation: BigDecimal =
+  override def taxEstimation: BigDecimal = taxEstimationWithExplicitReturnPeriod(ReturnPeriod(LocalDate.now()))
+//    if (isSmallProducer && !isContractPacker && !isImporter) 0
+//    else {
+//      val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+//      implicit val returnPeriod = ReturnPeriod(LocalDate.now())
+////      TODO: This is to be tested in des-create-subscription
+//      totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
+//    }
+
+  private[models] def taxEstimationWithExplicitReturnPeriod(explicitReturnPeriod: ReturnPeriod): BigDecimal =
     if (isSmallProducer && !isContractPacker && !isImporter) 0
     else {
       val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
-      implicit val returnPeriod = ReturnPeriod(LocalDate.now())
-//      TODO: This is to be tested in des-create-subscription
+      implicit val returnPeriod = explicitReturnPeriod
+      //      TODO: This is to be tested in des-create-subscription
       totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }
