@@ -39,6 +39,7 @@ package object models {
 
   implicit class LitreOps(litreBands: LitreBands)(implicit returnPeriod: ReturnPeriod) {
 //    TODO: UNCOMMENT THIS TEST IT OUT
+//    TODO: TEST IN ReturnsConversionSpec
 //    lazy val levyCalculation: LevyCalculation = getLevyCalculation(litreBands._1, litreBands._2, returnPeriod)
 //    lazy val lowLevy: BigDecimal = levyCalculation.lowLevy
 //    lazy val highLevy: BigDecimal = levyCalculation.highLevy
