@@ -27,7 +27,13 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
 
-//TODO: This is where to test package object returns and model.scala
+//TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
+//
+//This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
+//
+//dueLevy is also used in this way to form levySubtotal
+// monetaryWrites
+// in addition, can test netLevyDueTotal/totalLevy
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
 //  implicit val clock: Clock = Clock.systemDefaultZone()
