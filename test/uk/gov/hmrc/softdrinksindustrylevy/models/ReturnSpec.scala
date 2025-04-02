@@ -79,6 +79,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
   }
 
+//  TODO: TEST Variations data changes referring to return_variation_pdf similar to this
   "ReturnVariationData" should {
     val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
     val removedSmallPack = SmallProducer(Some("removed"), "2", (100, 100))
