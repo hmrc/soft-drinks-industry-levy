@@ -93,6 +93,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     //dueLevy is also used in this way to form levySubtotal
     // monetaryWrites
     // in addition, can test netLevyDueTotal/totalLevy
+    //  RELATING TO RETURNS - DO FIRST
     "packaged" should {
       "volumeSmall" should {
 

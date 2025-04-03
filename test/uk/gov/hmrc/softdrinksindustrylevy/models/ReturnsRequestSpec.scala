@@ -81,6 +81,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
   }
 
   // TODO: Test totalLevy in models/ReturnsRequest.scala is used to form netLevyDueTotal which is used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector. (similar to uses mentioned for lowLevy/highLevy/dueLevy in previous comment)
+//  RELATING TO RETURNS - DO FIRST
   "liableVolumes" should {
 
   }
