@@ -62,7 +62,7 @@ case class SdilReturn(
   }
   private def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
     l.map(x => LitreOps(x).dueLevy).sum
-  //          TODO: TEST IN ReturnSpec (worth splitting file into two spec files?)
+  //          TODO: TEST IN ReturnSpec
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
     sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
