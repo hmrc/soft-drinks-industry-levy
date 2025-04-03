@@ -30,8 +30,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create._
 import uk.gov.hmrc.softdrinksindustrylevy.services.JsonSchemaChecker
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-//TODO: Test taxEstimation in models/Activity.scala is used to form "estimatedTaxAmount" in des.create.scala
-//This is used by Json.toJson(submission) in createSubscription in DesConnector
 class DesConversionSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaCheckPropertyChecks {
 
@@ -325,6 +323,12 @@ class DesConversionSpec
       assert((addressDetails \ "postCode").as[String] == "SE79 6NF")
       assert(!(addressDetails \ "notUKAddress").as[Boolean])
     }
+  }
+
+  //TODO: Test taxEstimation in models/Activity.scala is used to form "estimatedTaxAmount" in des.create.scala
+  //This is used by Json.toJson(submission) in createSubscription in DesConnector
+  "taxEstimationWithExplicitReturnPeriod" should {
+
   }
 
   private lazy val baseSubscription = Subscription(

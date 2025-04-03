@@ -31,10 +31,10 @@ case class ReturnsRequest(
 //  TODO: Test in ReturnsRequestSpec
   def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
-  private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
+  private[models] lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
     .getOrElse(Monoid[LitreBands].empty)
 
-  private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
+  private[models] lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
 
 }
 

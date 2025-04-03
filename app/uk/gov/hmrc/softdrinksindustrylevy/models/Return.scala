@@ -60,7 +60,7 @@ case class SdilReturn(
       .map(x => keys(x._2) -> x._1)
       .toMap
   }
-  private def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
+  private[models] def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
     l.map(x => LitreOps(x).dueLevy).sum
   //          TODO: TEST IN ReturnSpec
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
