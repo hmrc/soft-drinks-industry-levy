@@ -80,6 +80,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
   }
 
 //  TODO: TEST sumLitres/total in models/Return.scala is used in varyReturn in VariationsController in views.html.return_variation_pdf which is submitted to dms
+//  RELATING TO VARIATION - DO AFTER RETURNS
   "SdilReturn - sumLitres" should {
 
   }
