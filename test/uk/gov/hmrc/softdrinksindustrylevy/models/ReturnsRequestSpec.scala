@@ -20,7 +20,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import sdil.models.{SdilReturn, SmallProducer}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-// TODO: Test totalLevy in models/ReturnsRequest.scala is used to form netLevyDueTotal which is used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector. (similar to uses mentioned for lowLevy/highLevy/dueLevy in previous comment)
 class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
   "ReturnsPackaging" should {
     "totalSmallProdVolumes" in {
@@ -79,5 +78,18 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
       result.wastage.get._1 mustBe testWastage._1
       result.wastage.get._2 mustBe testWastage._2
     }
+  }
+
+  // TODO: Test totalLevy in models/ReturnsRequest.scala is used to form netLevyDueTotal which is used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector. (similar to uses mentioned for lowLevy/highLevy/dueLevy in previous comment)
+  "liableVolumes" should {
+
+  }
+
+  "nonLiableVolumes" should {
+
+  }
+
+  "totalLevy" should {
+
   }
 }

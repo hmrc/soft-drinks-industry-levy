@@ -27,13 +27,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
 
-//TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
-//
-//This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
-//
-//dueLevy is also used in this way to form levySubtotal
-// monetaryWrites
-// in addition, can test netLevyDueTotal/totalLevy
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
 //  implicit val clock: Clock = Clock.systemDefaultZone()
@@ -91,6 +84,113 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C4")
       }
+    }
+
+    //TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
+    //
+    //This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
+    //
+    //dueLevy is also used in this way to form levySubtotal
+    // monetaryWrites
+    // in addition, can test netLevyDueTotal/totalLevy
+    "packaged" should {
+      "volumeSmall" should {
+
+      }
+
+      "volumeLarge" should {
+
+      }
+
+      "monetaryWrites" should {
+        "lowLevy" should {
+
+        }
+
+        "highLevy" should {
+
+        }
+
+        "dueLevy" should {
+
+        }
+      }
+    }
+
+    "imported" should {
+      "volumeSmall" should {
+
+      }
+
+      "volumeLarge" should {
+
+      }
+
+      "monetaryWrites" should {
+        "lowLevy" should {
+
+        }
+
+        "highLevy" should {
+
+        }
+
+        "dueLevy" should {
+
+        }
+      }
+    }
+
+    "exported" should {
+      "volumeSmall" should {
+
+      }
+
+      "volumeLarge" should {
+
+      }
+
+      "monetaryWrites" should {
+        "lowLevy" should {
+
+        }
+
+        "highLevy" should {
+
+        }
+
+        "dueLevy" should {
+
+        }
+      }
+    }
+
+    "wastage" should {
+      "volumeSmall" should {
+
+      }
+
+      "volumeLarge" should {
+
+      }
+
+      "monetaryWrites" should {
+        "lowLevy" should {
+
+        }
+
+        "highLevy" should {
+
+        }
+
+        "dueLevy" should {
+
+        }
+      }
+    }
+
+    "netLevyDueTotal" should {
+
     }
   }
 }
