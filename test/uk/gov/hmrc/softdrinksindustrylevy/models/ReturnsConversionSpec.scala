@@ -86,112 +86,70 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
     }
 
-    //TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
+    // TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
     //
-    //This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
+    // This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
     //
-    //dueLevy is also used in this way to form levySubtotal
+    // dueLevy is also used in this way to form levySubtotal
     // monetaryWrites
     // in addition, can test netLevyDueTotal/totalLevy
     //  RELATING TO RETURNS - DO FIRST
     "packaged" should {
-      "volumeSmall" should {
+      "volumeSmall" should {}
 
-      }
-
-      "volumeLarge" should {
-
-      }
+      "volumeLarge" should {}
 
       "monetaryWrites" should {
-        "lowLevy" should {
+        "lowLevy" should {}
 
-        }
+        "highLevy" should {}
 
-        "highLevy" should {
-
-        }
-
-        "dueLevy" should {
-
-        }
+        "dueLevy" should {}
       }
     }
 
     "imported" should {
-      "volumeSmall" should {
+      "volumeSmall" should {}
 
-      }
-
-      "volumeLarge" should {
-
-      }
+      "volumeLarge" should {}
 
       "monetaryWrites" should {
-        "lowLevy" should {
+        "lowLevy" should {}
 
-        }
+        "highLevy" should {}
 
-        "highLevy" should {
-
-        }
-
-        "dueLevy" should {
-
-        }
+        "dueLevy" should {}
       }
     }
 
     "exported" should {
-      "volumeSmall" should {
+      "volumeSmall" should {}
 
-      }
-
-      "volumeLarge" should {
-
-      }
+      "volumeLarge" should {}
 
       "monetaryWrites" should {
-        "lowLevy" should {
+        "lowLevy" should {}
 
-        }
+        "highLevy" should {}
 
-        "highLevy" should {
-
-        }
-
-        "dueLevy" should {
-
-        }
+        "dueLevy" should {}
       }
     }
 
     "wastage" should {
-      "volumeSmall" should {
+      "volumeSmall" should {}
 
-      }
-
-      "volumeLarge" should {
-
-      }
+      "volumeLarge" should {}
 
       "monetaryWrites" should {
-        "lowLevy" should {
+        "lowLevy" should {}
 
-        }
+        "highLevy" should {}
 
-        "highLevy" should {
-
-        }
-
-        "dueLevy" should {
-
-        }
+        "dueLevy" should {}
       }
     }
 
-    "netLevyDueTotal" should {
-
-    }
+    "netLevyDueTotal" should {}
   }
 }

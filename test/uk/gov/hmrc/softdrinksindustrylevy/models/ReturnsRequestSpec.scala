@@ -91,20 +91,29 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
   private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
   private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
 
-
-  private def getReturnsRequest(packagedNumberOfSmallProducers: Int = 0,
-                                packagedLargeProducer: Boolean = false,
-                                importedSmallProducer: Boolean = false,
-                                importedLargeProducer: Boolean = false,
-                                exported: Boolean = false,
-                                wastage: Boolean = false): ReturnsRequest = {
+  private def getReturnsRequest(
+    packagedNumberOfSmallProducers: Int = 0,
+    packagedLargeProducer: Boolean = false,
+    importedSmallProducer: Boolean = false,
+    importedLargeProducer: Boolean = false,
+    exported: Boolean = false,
+    wastage: Boolean = false
+  ): ReturnsRequest = {
     val smallProducers: Seq[SmallProducerVolume] = (0 to packagedNumberOfSmallProducers)
       .map(index => SmallProducerVolume(getRandomSdilRef(index), getRandomLitreage))
-    val returnsPackaged = Option(ReturnsPackaging(smallProducerVolumes = smallProducers, largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else (0L, 0L)))
+    val returnsPackaged = Option(
+      ReturnsPackaging(
+        smallProducerVolumes = smallProducers,
+        largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else (0L, 0L)
+      )
+    )
     val returnsImported = (importedSmallProducer, importedLargeProducer) match {
-      case (true, true) => Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = getRandomLitreage))
-      case (true, false) => Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = (0L, 0L)))
-      case (false, true) => Option(ReturnsImporting(smallProducerVolumes = (0L, 0L), largeProducerVolumes = getRandomLitreage))
+      case (true, true) =>
+        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = getRandomLitreage))
+      case (true, false) =>
+        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = (0L, 0L)))
+      case (false, true) =>
+        Option(ReturnsImporting(smallProducerVolumes = (0L, 0L), largeProducerVolumes = getRandomLitreage))
       case (false, false) => None
     }
     val returnsExported = if (exported) Option(getRandomLitreage) else None
@@ -112,62 +121,81 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
     ReturnsRequest(returnsPackaged, returnsImported, returnsExported, returnsWastage)
   }
 
+  private def getFullReturnsRequest: ReturnsRequest = getReturnsRequest(
+    packagedNumberOfSmallProducers = 5, packagedLargeProducer = true,
+    importedSmallProducer = true, importedLargeProducer = true,
+    exported = true, wastage = true)
+
   "liableVolumes" should {
     "include packaged large producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
       true mustBe true
     }
 
     "include imported large producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedLargeProducer = true)
       true mustBe true
     }
 
     "ignore packaged small producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
       true mustBe true
     }
 
     "ignore imported small producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedSmallProducer = true)
       true mustBe true
     }
 
     "ignore exported volumes" in {
+      val returnsRequest = getReturnsRequest(exported = true)
       true mustBe true
     }
 
     "ignore wastage volumes" in {
+      val returnsRequest = getReturnsRequest(wastage = true)
       true mustBe true
     }
 
     "be 'sum' of packaged large producer volumes and imported large producer volumes" in {
+      val returnsRequest = getFullReturnsRequest
       true mustBe true
     }
   }
 
   "nonLiableVolumes" should {
     "include exported volumes" in {
+      val returnsRequest = getReturnsRequest(exported = true)
       true mustBe true
     }
 
     "include wastage volumes" in {
+      val returnsRequest = getReturnsRequest(wastage = true)
       true mustBe true
     }
 
     "ignore packaged large producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
       true mustBe true
     }
 
     "ignore imported large producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedLargeProducer = true)
       true mustBe true
     }
 
     "ignore packaged small producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
       true mustBe true
     }
 
     "ignore imported small producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedSmallProducer = true)
       true mustBe true
     }
 
     "be 'sum' of exported volumes and wastage volumes" in {
+      val returnsRequest = getFullReturnsRequest
       true mustBe true
     }
   }
@@ -176,7 +204,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
     val janToMarInt = Gen.choose(1, 3)
     val aprToDecInt = Gen.choose(4, 12)
 
-    (2018 to 2024).foreach(year => {
+    (2018 to 2024).foreach { year =>
       val lowerBandCostPerLitre = BigDecimal("0.18")
       val higherBandCostPerLitre = BigDecimal("0.24")
 
@@ -227,9 +255,9 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 //          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
 //        }
 //      }
-    })
+    }
 
-    (2025 to 2025).foreach(year => {
+    (2025 to 2025).foreach { year =>
       val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
       val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
@@ -281,7 +309,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 //        }
 //      }
 
-    })
+    }
 
   }
 }
