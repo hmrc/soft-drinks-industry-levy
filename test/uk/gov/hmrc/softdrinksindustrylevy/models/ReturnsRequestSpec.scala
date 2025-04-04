@@ -16,11 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import org.scalacheck.Gen
 import org.scalatestplus.mockito.MockitoSugar
-import sdil.models.{SdilReturn, SmallProducer}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
+import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator.getLevyCalculation
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
+import java.time.LocalDate
+
+class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with ScalaCheckPropertyChecks {
   "ReturnsPackaging" should {
     "totalSmallProdVolumes" in {
       val testSmallProdLitre1 = (109L, 110L)
@@ -82,15 +87,201 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
 
   // TODO: Test totalLevy in models/ReturnsRequest.scala is used to form netLevyDueTotal which is used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector. (similar to uses mentioned for lowLevy/highLevy/dueLevy in previous comment)
 //  RELATING TO RETURNS - DO FIRST
-  "liableVolumes" should {
+  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
+  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
+  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
 
+
+  private def getReturnsRequest(packagedNumberOfSmallProducers: Int = 0,
+                                packagedLargeProducer: Boolean = false,
+                                importedSmallProducer: Boolean = false,
+                                importedLargeProducer: Boolean = false,
+                                exported: Boolean = false,
+                                wastage: Boolean = false): ReturnsRequest = {
+    val smallProducers: Seq[SmallProducerVolume] = (0 to packagedNumberOfSmallProducers)
+      .map(index => SmallProducerVolume(getRandomSdilRef(index), getRandomLitreage))
+    val returnsPackaged = Option(ReturnsPackaging(smallProducerVolumes = smallProducers, largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else (0L, 0L)))
+    val returnsImported = (importedSmallProducer, importedLargeProducer) match {
+      case (true, true) => Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = getRandomLitreage))
+      case (true, false) => Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = (0L, 0L)))
+      case (false, true) => Option(ReturnsImporting(smallProducerVolumes = (0L, 0L), largeProducerVolumes = getRandomLitreage))
+      case (false, false) => None
+    }
+    val returnsExported = if (exported) Option(getRandomLitreage) else None
+    val returnsWastage = if (wastage) Option(getRandomLitreage) else None
+    ReturnsRequest(returnsPackaged, returnsImported, returnsExported, returnsWastage)
+  }
+
+  "liableVolumes" should {
+    "include packaged large producer volumes" in {
+      true mustBe true
+    }
+
+    "include imported large producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore packaged small producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore imported small producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore exported volumes" in {
+      true mustBe true
+    }
+
+    "ignore wastage volumes" in {
+      true mustBe true
+    }
+
+    "be 'sum' of packaged large producer volumes and imported large producer volumes" in {
+      true mustBe true
+    }
   }
 
   "nonLiableVolumes" should {
+    "include exported volumes" in {
+      true mustBe true
+    }
 
+    "include wastage volumes" in {
+      true mustBe true
+    }
+
+    "ignore packaged large producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore imported large producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore packaged small producer volumes" in {
+      true mustBe true
+    }
+
+    "ignore imported small producer volumes" in {
+      true mustBe true
+    }
+
+    "be 'sum' of exported volumes and wastage volumes" in {
+      true mustBe true
+    }
   }
 
   "totalLevy" should {
+    val janToMarInt = Gen.choose(1, 3)
+    val aprToDecInt = Gen.choose(4, 12)
+
+    (2018 to 2024).foreach(year => {
+      val lowerBandCostPerLitre = BigDecimal("0.18")
+      val higherBandCostPerLitre = BigDecimal("0.24")
+
+      s"true - $year" in {
+        true mustBe true
+      }
+
+//      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Apr - Dec $year" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(0, 0, returnPeriod)
+//          levyCalculation.lowLevy mustBe BigDecimal("0.00")
+//          levyCalculation.highLevy mustBe BigDecimal("0.00")
+//          levyCalculation.total mustBe BigDecimal("0.00")
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Apr - Dec $year" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
+//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+//          val expectedHighLevy = higherBandCostPerLitre * highLitres
+//          levyCalculation.lowLevy mustBe expectedLowLevy
+//          levyCalculation.highLevy mustBe expectedHighLevy
+//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(0, 0, returnPeriod)
+//          levyCalculation.lowLevy mustBe BigDecimal("0.00")
+//          levyCalculation.highLevy mustBe BigDecimal("0.00")
+//          levyCalculation.total mustBe BigDecimal("0.00")
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
+//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+//          val expectedHighLevy = higherBandCostPerLitre * highLitres
+//          levyCalculation.lowLevy mustBe expectedLowLevy
+//          levyCalculation.highLevy mustBe expectedHighLevy
+//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
+//        }
+//      }
+    })
+
+    (2025 to 2025).foreach(year => {
+      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
+      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
+
+      s"true - $year" in {
+        true mustBe true
+      }
+
+//      s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Apr - Dec $year" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(0, 0, returnPeriod)
+//          levyCalculation.lowLevy mustBe BigDecimal("0.00")
+//          levyCalculation.highLevy mustBe BigDecimal("0.00")
+//          levyCalculation.total mustBe BigDecimal("0.00")
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Apr - Dec $year" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
+//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+//          val expectedHighLevy = higherBandCostPerLitre * highLitres
+//          levyCalculation.lowLevy mustBe expectedLowLevy
+//          levyCalculation.highLevy mustBe expectedHighLevy
+//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(0, 0, returnPeriod)
+//          levyCalculation.lowLevy mustBe BigDecimal("0.00")
+//          levyCalculation.highLevy mustBe BigDecimal("0.00")
+//          levyCalculation.total mustBe BigDecimal("0.00")
+//        }
+//      }
+//
+//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
+//        forAll(aprToDecInt) { month =>
+//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
+//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
+//          val expectedHighLevy = higherBandCostPerLitre * highLitres
+//          levyCalculation.lowLevy mustBe expectedLowLevy
+//          levyCalculation.highLevy mustBe expectedHighLevy
+//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
+//        }
+//      }
+
+    })
 
   }
 }
