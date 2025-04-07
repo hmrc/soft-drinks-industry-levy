@@ -22,7 +22,7 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
@@ -95,30 +95,52 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     // in addition, can test netLevyDueTotal/totalLevy
     //  RELATING TO RETURNS - DO FIRST
     "packaged" should {
-      "volumeSmall" should {}
+      "volumeSmall" in {
+//        TODO: THIS IS NOT EASY
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          assert((json \ "periodKey").as[String] == "18C4")
+        }
+      }
 
-      "volumeLarge" should {}
+      "volumeLarge" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.packaged match {
+            case Some(returnsPackaging) =>
+              val volumeLargeFields: Seq[(String, JsValue)] = Seq(
+                ("lowVolume", JsString(returnsPackaging.largeProducerVolumes._1.toString)),
+                ("highVolume", JsString(returnsPackaging.largeProducerVolumes._2.toString))
+              )
+              assert((json \ "packaging" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
+//              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
+        }
+      }
 
       "monetaryWrites" should {
-        "lowLevy" should {}
+        "lowLevy" in {}
 
-        "highLevy" should {}
+        "highLevy" in {}
 
-        "dueLevy" should {}
+        "dueLevy" in {}
       }
     }
 
     "imported" should {
-      "volumeSmall" should {}
+      "volumeSmall" in {}
 
-      "volumeLarge" should {}
+      "volumeLarge" in {}
 
       "monetaryWrites" should {
-        "lowLevy" should {}
+        "lowLevy" in {}
 
-        "highLevy" should {}
+        "highLevy" in {}
 
-        "dueLevy" should {}
+        "dueLevy" in {}
       }
     }
 
