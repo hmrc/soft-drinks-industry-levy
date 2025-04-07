@@ -153,11 +153,28 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
             }
           }
 
-          s"lowLevy - using original rates for Jan - Mar ${year + 1}" in {}
-
-          s"highLevy - using original rates for Jan - Mar ${year + 1}" in {}
-
-          s"dueLevy - using original rates for Jan - Mar ${year + 1}" in {}
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged match {
+                  case Some(returnsPackaging) =>
+                    val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitre
+                    val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitre
+                    val levySubtotal = lowVolumeLevy + highVolumeLevy
+                    val monetaryFields: Seq[(String, JsValue)] = Seq(
+                      ("lowVolume", JsNumber(lowVolumeLevy)),
+                      ("highVolume", JsNumber(highVolumeLevy)),
+                      ("levySubtotal", JsNumber(levySubtotal))
+                    )
+                    assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                  //              TODO: Need to add correct assertion here
+                  case None => assert(true)
+                }
+              }
+            }
+          }
         }
 
         (2025 to 2025).foreach { year =>
