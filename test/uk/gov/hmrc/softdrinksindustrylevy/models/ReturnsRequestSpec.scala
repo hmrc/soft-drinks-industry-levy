@@ -85,8 +85,6 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
     }
   }
 
-  // TODO: Test totalLevy in models/ReturnsRequest.scala is used to form netLevyDueTotal which is used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector. (similar to uses mentioned for lowLevy/highLevy/dueLevy in previous comment)
-//  RELATING TO RETURNS - DO FIRST
   private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
   private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
   private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
@@ -262,7 +260,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
       }
 
       s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
-        forAll(aprToDecInt) { month =>
+        forAll(janToMarInt) { month =>
           implicit val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val returnsRequest = getFullReturnsRequest
           val leviedLitres = for {
@@ -288,18 +286,21 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           returnsRequest.totalLevy mustBe BigDecimal("0.00")
         }
       }
-//
-//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Apr - Dec $year" in {
-//        forAll(aprToDecInt) { month =>
-//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
-//          val expectedHighLevy = higherBandCostPerLitre * highLitres
-//          levyCalculation.lowLevy mustBe expectedLowLevy
-//          levyCalculation.highLevy mustBe expectedHighLevy
-//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
-//        }
-//      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex <- returnsRequest.exported
+            wa <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
 
       s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
@@ -308,18 +309,21 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           returnsRequest.totalLevy mustBe BigDecimal("0.00")
         }
       }
-//
-//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
-//        forAll(aprToDecInt) { month =>
-//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
-//          val expectedHighLevy = higherBandCostPerLitre * highLitres
-//          levyCalculation.lowLevy mustBe expectedLowLevy
-//          levyCalculation.highLevy mustBe expectedHighLevy
-//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
-//        }
-//      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex <- returnsRequest.exported
+            wa <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
 
     }
 
