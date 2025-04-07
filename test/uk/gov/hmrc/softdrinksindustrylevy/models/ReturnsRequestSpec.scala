@@ -129,32 +129,38 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
   "liableVolumes" should {
     "include packaged large producer volumes" in {
       val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
-      true mustBe true
+      returnsRequest.packaged.map(_.largeProducerVolumes._1) mustBe Some(returnsRequest.liableVolumes._1)
+      returnsRequest.packaged.map(_.largeProducerVolumes._2) mustBe Some(returnsRequest.liableVolumes._2)
     }
 
     "include imported large producer volumes" in {
       val returnsRequest = getReturnsRequest(importedLargeProducer = true)
-      true mustBe true
+      returnsRequest.imported.map(_.largeProducerVolumes._1) mustBe Some(returnsRequest.liableVolumes._1)
+      returnsRequest.imported.map(_.largeProducerVolumes._2) mustBe Some(returnsRequest.liableVolumes._2)
     }
 
     "ignore packaged small producer volumes" in {
       val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
-      true mustBe true
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
     }
 
     "ignore imported small producer volumes" in {
       val returnsRequest = getReturnsRequest(importedSmallProducer = true)
-      true mustBe true
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
     }
 
     "ignore exported volumes" in {
       val returnsRequest = getReturnsRequest(exported = true)
-      true mustBe true
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
     }
 
     "ignore wastage volumes" in {
       val returnsRequest = getReturnsRequest(wastage = true)
-      true mustBe true
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
     }
 
     "be 'sum' of packaged large producer volumes and imported large producer volumes" in {
@@ -166,32 +172,38 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
   "nonLiableVolumes" should {
     "include exported volumes" in {
       val returnsRequest = getReturnsRequest(exported = true)
-      true mustBe true
+      returnsRequest.exported.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      returnsRequest.exported.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
     }
 
     "include wastage volumes" in {
       val returnsRequest = getReturnsRequest(wastage = true)
-      true mustBe true
+      returnsRequest.wastage.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      returnsRequest.wastage.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
     }
 
     "ignore packaged large producer volumes" in {
       val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
-      true mustBe true
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
     }
 
     "ignore imported large producer volumes" in {
       val returnsRequest = getReturnsRequest(importedLargeProducer = true)
-      true mustBe true
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
     }
 
     "ignore packaged small producer volumes" in {
       val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
-      true mustBe true
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
     }
 
     "ignore imported small producer volumes" in {
       val returnsRequest = getReturnsRequest(importedSmallProducer = true)
-      true mustBe true
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
     }
 
     "be 'sum' of exported volumes and wastage volumes" in {
