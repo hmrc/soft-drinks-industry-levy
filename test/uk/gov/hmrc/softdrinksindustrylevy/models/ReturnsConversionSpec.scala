@@ -130,7 +130,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           val lowerBandCostPerLitre = BigDecimal("0.18")
           val higherBandCostPerLitre = BigDecimal("0.24")
 
-          s"lowLevy - using original rates for Apr - Dec $year" in {
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
@@ -152,10 +152,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               }
             }
           }
-
-          s"highLevy - using original rates for Apr - Dec $year" in {}
-
-          s"dueLevy - using original rates for Apr - Dec $year" in {}
 
           s"lowLevy - using original rates for Jan - Mar ${year + 1}" in {}
 
