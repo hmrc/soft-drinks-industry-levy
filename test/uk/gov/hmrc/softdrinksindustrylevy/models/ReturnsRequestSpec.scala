@@ -20,7 +20,6 @@ import org.scalacheck.Gen
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
-import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator.getLevyCalculation
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.LocalDate
