@@ -165,7 +165,12 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
     "be 'sum' of packaged large producer volumes and imported large producer volumes" in {
       val returnsRequest = getFullReturnsRequest
-      true mustBe true
+      val expectedLiableLitres = for {
+        packagedLargeProducerVolumes <- returnsRequest.packaged.map(_.largeProducerVolumes)
+        importedLargeProducerVolumes <- returnsRequest.imported.map(_.largeProducerVolumes)
+      } yield (packagedLargeProducerVolumes._1 + importedLargeProducerVolumes._1, packagedLargeProducerVolumes._2 + importedLargeProducerVolumes._2)
+      expectedLiableLitres.map(_._1) mustBe Some(returnsRequest.liableVolumes._1)
+      expectedLiableLitres.map(_._2) mustBe Some(returnsRequest.liableVolumes._2)
     }
   }
 
@@ -208,7 +213,12 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
     "be 'sum' of exported volumes and wastage volumes" in {
       val returnsRequest = getFullReturnsRequest
-      true mustBe true
+      val expectedNonLiableLitres = for {
+        exportedVolumes <- returnsRequest.exported
+        wastageVolumes <- returnsRequest.wastage
+      } yield (exportedVolumes._1 + wastageVolumes._1, exportedVolumes._2 + wastageVolumes._2)
+      expectedNonLiableLitres.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      expectedNonLiableLitres.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
     }
   }
 
@@ -227,38 +237,44 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           returnsRequest.totalLevy mustBe BigDecimal("0.00")
         }
       }
-//
-//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Apr - Dec $year" in {
-//        forAll(aprToDecInt) { month =>
-//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
-//          val expectedHighLevy = higherBandCostPerLitre * highLitres
-//          levyCalculation.lowLevy mustBe expectedLowLevy
-//          levyCalculation.highLevy mustBe expectedHighLevy
-//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
-//        }
-//      }
-//
-      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex <- returnsRequest.exported
+            wa <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
           returnsRequest.totalLevy mustBe BigDecimal("0.00")
         }
       }
-//
-//      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
-//        forAll(aprToDecInt) { month =>
-//          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val levyCalculation = getLevyCalculation(lowLitres, highLitres, returnPeriod)
-//          val expectedLowLevy = lowerBandCostPerLitre * lowLitres
-//          val expectedHighLevy = higherBandCostPerLitre * highLitres
-//          levyCalculation.lowLevy mustBe expectedLowLevy
-//          levyCalculation.highLevy mustBe expectedHighLevy
-//          levyCalculation.total mustBe expectedLowLevy + expectedHighLevy
-//        }
-//      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex <- returnsRequest.exported
+            wa <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
     }
 
     (2025 to 2025).foreach { year =>
@@ -286,8 +302,8 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 //      }
 
       s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
-        forAll(aprToDecInt) { month =>
-          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
           returnsRequest.totalLevy mustBe BigDecimal("0.00")
         }
