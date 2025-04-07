@@ -131,9 +131,39 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     }
 
     "imported" should {
-      "volumeSmall" in {}
+      "volumeSmall" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.imported match {
+            case Some(returnsImporting) =>
+              val volumeSmallFields: Seq[(String, JsValue)] = Seq(
+                ("lowVolume", JsString(returnsImporting.smallProducerVolumes._1.toString)),
+                ("highVolume", JsString(returnsImporting.smallProducerVolumes._2.toString))
+              )
+              assert((json \ "importing" \ "volumeSmall").as[JsObject] == JsObject(volumeSmallFields))
+            //              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
+        }
+      }
 
-      "volumeLarge" in {}
+      "volumeLarge" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.imported match {
+            case Some(returnsImporting) =>
+              val volumeLargeFields: Seq[(String, JsValue)] = Seq(
+                ("lowVolume", JsString(returnsImporting.largeProducerVolumes._1.toString)),
+                ("highVolume", JsString(returnsImporting.largeProducerVolumes._2.toString))
+              )
+              assert((json \ "importing" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
+            //              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
+        }
+      }
 
       "monetaryWrites" should {
         "lowLevy" in {}
@@ -145,9 +175,22 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     }
 
     "exported" should {
-      "volumeSmall" should {}
-
-      "volumeLarge" should {}
+      "volumes" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.exported match {
+            case Some(returnsExported) =>
+              val volumesFields: Seq[(String, JsValue)] = Seq(
+                ("lowVolume", JsString(returnsExported._1.toString)),
+                ("highVolume", JsString(returnsExported._2.toString))
+              )
+              assert((json \ "exporting" \ "volumes").as[JsObject] == JsObject(volumesFields))
+            //              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
+        }
+      }
 
       "monetaryWrites" should {
         "lowLevy" should {}
@@ -159,9 +202,22 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     }
 
     "wastage" should {
-      "volumeSmall" should {}
-
-      "volumeLarge" should {}
+      "volumes" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.wastage match {
+            case Some(returnsWastage) =>
+              val volumesFields: Seq[(String, JsValue)] = Seq(
+                ("lowVolume", JsString(returnsWastage._1.toString)),
+                ("highVolume", JsString(returnsWastage._2.toString))
+              )
+              assert((json \ "wastage" \ "volumes").as[JsObject] == JsObject(volumesFields))
+            //              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
+        }
+      }
 
       "monetaryWrites" should {
         "lowLevy" should {}
