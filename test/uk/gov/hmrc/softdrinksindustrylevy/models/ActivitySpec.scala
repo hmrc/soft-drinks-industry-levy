@@ -39,6 +39,11 @@ class ActivitySpec extends PlaySpec with AppendedClues {
       activity.totalLiableLitres mustBe ((9, 12))
     }
 
+    // TODO: Test taxEstimation in models/Activity.scala is used to form "estimatedTaxAmount" in des.create.scala
+    // This is used by Json.toJson(submission) in createSubscription in DesConnector
+    //  RELATING TO REGISTRATION - DO AFTER RETURNS
+    "taxEstimationWithExplicitReturnPeriod" should {}
+
     "calculate the correct tax estimate" in {
       val activity = internalActivity(
         produced = (2, 3),
