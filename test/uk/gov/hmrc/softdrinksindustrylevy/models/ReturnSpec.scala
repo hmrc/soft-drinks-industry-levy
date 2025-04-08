@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
+import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, UkAddress}
 
 class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
 
@@ -81,8 +81,87 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
 //  TODO: TEST sumLitres/total in models/Return.scala is used in varyReturn in VariationsController in views.html.return_variation_pdf which is submitted to dms
 //  RELATING TO VARIATION - DO AFTER RETURNS
+  //    ownBrand: (Long, Long) = (0, 0),
+  //    packLarge: (Long, Long) = (0, 0),
+  //    packSmall: List[SmallProducer] = Nil, // zero charge
+  //    importSmall: (Long, Long) = (0, 0), // zero charge
+  //    importLarge: (Long, Long) = (0, 0),
+  //    `export`: (Long, Long) = (0, 0), // negative charge
+  //    wastage: (Long, Long) = (0, 0), // negative charge
+
+//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
+//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
+//  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
+//
+//  private def getReturnsRequest(
+//                                 packagedNumberOfSmallProducers: Int = 0,
+//                                 packagedLargeProducer: Boolean = false,
+//                                 importedSmallProducer: Boolean = false,
+//                                 importedLargeProducer: Boolean = false,
+//                                 exported: Boolean = false,
+//                                 wastage: Boolean = false
+//                               ): ReturnsRequest = {
+//    val smallProducers: Seq[SmallProducerVolume] = (0 to packagedNumberOfSmallProducers)
+//      .map(index => SmallProducerVolume(getRandomSdilRef(index), getRandomLitreage))
+//    val returnsPackaged = Option(
+//      ReturnsPackaging(
+//        smallProducerVolumes = smallProducers,
+//        largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else (0L, 0L)
+//      )
+//    )
+//    val returnsImported = (importedSmallProducer, importedLargeProducer) match {
+//      case (true, true) =>
+//        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = getRandomLitreage))
+//      case (true, false) =>
+//        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = (0L, 0L)))
+//      case (false, true) =>
+//        Option(ReturnsImporting(smallProducerVolumes = (0L, 0L), largeProducerVolumes = getRandomLitreage))
+//      case (false, false) => None
+//    }
+//    val returnsExported = if (exported) Option(getRandomLitreage) else None
+//    val returnsWastage = if (wastage) Option(getRandomLitreage) else None
+//    ReturnsRequest(returnsPackaged, returnsImported, returnsExported, returnsWastage)
+//  }
+//
+//  private def getFullReturnsRequest: ReturnsRequest = getReturnsRequest(
+//    packagedNumberOfSmallProducers = 5, packagedLargeProducer = true,
+//    importedSmallProducer = true, importedLargeProducer = true,
+//    exported = true, wastage = true)
+
 //  TODO: sumLitres references in unit tests can hopefully be removed
-  "SdilReturn - sumLitres, leviedLitres, total" should {}
+  "SdilReturn - sumLitres, leviedLitres, total" should {
+    val janToMarInt = Gen.choose(1, 3)
+    val aprToDecInt = Gen.choose(4, 12)
+
+    (2018 to 2024).foreach { year =>
+      val lowerBandCostPerLitre = BigDecimal("0.18")
+      val higherBandCostPerLitre = BigDecimal("0.24")
+
+      s"calculate sumlitres, levied litres, total for SdilReturn correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val internalActivity = getInternalActivity()
+//          val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+//          taxEstimation mustBe BigDecimal("0.00")
+        }
+      }
+
+    }
+
+    (2025 to 2025).foreach { year =>
+      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
+      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
+
+      s"calculate zero taxEstimation correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+//          val internalActivity = getInternalActivity()
+//          val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+//          taxEstimation mustBe BigDecimal("0.00")
+        }
+      }
+    }
+  }
 
   "ReturnVariationData - revisedTotalDifference" should {}
 
