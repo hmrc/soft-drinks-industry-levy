@@ -81,15 +81,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
 //  TODO: TEST sumLitres/total in models/Return.scala is used in varyReturn in VariationsController in views.html.return_variation_pdf which is submitted to dms
 //  RELATING TO VARIATION - DO AFTER RETURNS
-//  TODO: Unit test below and replace with below methods
-  "SdilReturn - sumLitres" should {}
-
-  "SdilReturn - total" should {}
-
-  //  TODO: Unit test below and remove above
-  "SdilReturn - leviedLitres" should {}
-
-  "SdilReturn - newLitres" should {}
+//  TODO: sumLitres references in unit tests can hopefully be removed
+  "SdilReturn - sumLitres, leviedLitres, total" should {}
 
   "ReturnVariationData - revisedTotalDifference" should {}
 
