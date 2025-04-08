@@ -21,7 +21,6 @@ import ActivityType._
 import org.scalacheck.Gen
 import org.scalatest.AppendedClues
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsNumber, JsObject, JsValue, Json}
 import sdil.models.ReturnPeriod
 
 import java.time.LocalDate
@@ -45,9 +44,6 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
       activity.totalLiableLitres mustBe ((9, 12))
     }
 
-    // TODO: Test taxEstimation in models/Activity.scala is used to form "estimatedTaxAmount" in des.create.scala
-    // This is used by Json.toJson(submission) in createSubscription in DesConnector
-    //  RELATING TO REGISTRATION - DO AFTER RETURNS
     "taxEstimationWithExplicitReturnPeriod" should {
       val janToMarInt = Gen.choose(1, 3)
       val aprToDecInt = Gen.choose(4, 12)
@@ -176,29 +172,119 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
         val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
         val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
-        s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
-//          forAll(aprToDecInt) { month =>
-//            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//            forAll { r: ReturnsRequest =>
-//              val json = Json.toJson(r)
-//              r.imported match {
-//                case Some(returnsImporting) =>
-//                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
-//                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
-//                  val levySubtotal = lowVolumeLevy + highVolumeLevy
-//                  val monetaryFields: Seq[(String, JsValue)] = Seq(
-//                    ("lowVolume", JsNumber(lowVolumeLevy)),
-//                    ("highVolume", JsNumber(highVolumeLevy)),
-//                    ("levySubtotal", JsNumber(levySubtotal))
-//                  )
-//                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-//                //              TODO: Need to add correct assertion here
-//                case None => assert(true)
-//              }
-//            }
-//          }
+        s"calculate zero taxEstimation correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getInternalActivity()
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe BigDecimal("0.00")
+          }
         }
 
+        s"calculate non-zero taxEstimation for ProducedOwnBrand correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getInternalActivity(hasProduced = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
+            taxEstimation mustBe producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate non-zero taxEstimation for CopackerAll correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getInternalActivity(hasCopackedAll = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val copackerAll = internalActivity.activity(CopackerAll)
+            taxEstimation mustBe copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate non-zero taxEstimation for Imported correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getInternalActivity(hasImported = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val imported = internalActivity.activity(Imported)
+            taxEstimation mustBe imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate zero taxEstimation for Copackee correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getInternalActivity(hasCopackedByOthers = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe BigDecimal("0.00")
+          }
+        }
+
+        s"calculate non-zero taxEstimation for all correctly - using $year rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            val internalActivity = getFullInternalActivity
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(year) + internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate zero taxEstimation correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getInternalActivity()
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe BigDecimal("0.00")
+          }
+        }
+
+        s"calculate non-zero taxEstimation for ProducedOwnBrand correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getInternalActivity(hasProduced = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
+            taxEstimation mustBe producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate non-zero taxEstimation for CopackerAll correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getInternalActivity(hasCopackedAll = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val copackerAll = internalActivity.activity(CopackerAll)
+            taxEstimation mustBe copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate non-zero taxEstimation for Imported correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getInternalActivity(hasImported = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            val imported = internalActivity.activity(Imported)
+            taxEstimation mustBe imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year)
+          }
+        }
+
+        s"calculate zero taxEstimation for Copackee correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getInternalActivity(hasCopackedByOthers = true)
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe BigDecimal("0.00")
+          }
+        }
+
+        s"calculate non-zero taxEstimation for all correctly - using $year rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            val internalActivity = getFullInternalActivity
+            val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
+            taxEstimation mustBe internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(year) + internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
+          }
+        }
       }
     }
 
