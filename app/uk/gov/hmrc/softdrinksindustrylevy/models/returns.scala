@@ -95,7 +95,6 @@ package object returns {
 
         def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject =
 //          TODO: NEED TO ADD ALL LITRES IN BANDS AND THEN CALL CALC ON IT
-//          TODO: TEST IN ReturnsConversionSpec/ReturnsRequestSpec
           Json.obj(
             "lowVolume"    -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
             "highVolume"   -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
@@ -144,7 +143,6 @@ package object returns {
         Json.obj(
           "periodKey"      -> quarter,
           "formBundleType" -> "ZSD1",
-//          TODO: TEST IN ReturnsConversionSpec/ReturnsRequestSpec
           "netLevyDueTotal" -> o.totalLevy
         ) ++ packaged ++ imported ++ exported ++ wastage
       }

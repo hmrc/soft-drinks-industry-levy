@@ -28,7 +28,6 @@ case class ReturnsRequest(
   wastage: Option[LitreBands]
 ) {
 
-//  TODO: Test in ReturnsRequestSpec
   def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
   private[models] lazy val liableVolumes =
