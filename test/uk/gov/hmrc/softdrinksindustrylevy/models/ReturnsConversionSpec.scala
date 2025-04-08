@@ -89,14 +89,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
     }
 
-    // TODO: Test lowLevy and highLevy are used in monetaryWrites of models/returns.scala (as is dueLevy) to form lowVolume and highVolume within the returnsRequestFormat/writesForAuditing.
-    //
-    // This is then used in Line 96 of ReturnsController within the buildReturnAuditDetail method and also (more importantly) in Line 134 Json.toJson(returnsRequest) of the method submitReturn within DesConnector.
-    //
-    // dueLevy is also used in this way to form levySubtotal
-    // monetaryWrites
-    // in addition, can test netLevyDueTotal/totalLevy
-    //  RELATING TO RETURNS - DO FIRST
     "packaged" should {
       "volumeSmall" in {
 //        TODO: THIS IS NOT EASY
@@ -675,51 +667,39 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
         val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
-//        s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
-//          forAll(aprToDecInt) { month =>
-//            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//            forAll { r: ReturnsRequest =>
-//              val json = Json.toJson(r)
-//              r.wastage match {
-//                case Some(returnsWastage) =>
-//                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
-//                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
-//                  val levySubtotal = lowVolumeLevy + highVolumeLevy
-//                  val monetaryFields: Seq[(String, JsValue)] = Seq(
-//                    ("lowVolume", JsNumber(lowVolumeLevy)),
-//                    ("highVolume", JsNumber(highVolumeLevy)),
-//                    ("levySubtotal", JsNumber(levySubtotal))
-//                  )
-//                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-//                //              TODO: Need to add correct assertion here
-//                case None => assert(true)
-//              }
-//            }
-//          }
-//        }
+        s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse((0L, 0L))
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse((0L, 0L))
+              val ex = r.exported.getOrElse((0L, 0L))
+              val wa = r.wastage.getOrElse((0L, 0L))
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+            }
+          }
+        }
 
-//        s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
-//          forAll(janToMarInt) { month =>
-//            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-//            forAll { r: ReturnsRequest =>
-//              val json = Json.toJson(r)
-//              r.wastage match {
-//                case Some(returnsWastage) =>
-//                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
-//                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
-//                  val levySubtotal = lowVolumeLevy + highVolumeLevy
-//                  val monetaryFields: Seq[(String, JsValue)] = Seq(
-//                    ("lowVolume", JsNumber(lowVolumeLevy)),
-//                    ("highVolume", JsNumber(highVolumeLevy)),
-//                    ("levySubtotal", JsNumber(levySubtotal))
-//                  )
-//                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-//                //              TODO: Need to add correct assertion here
-//                case None => assert(true)
-//              }
-//            }
-//          }
-//        }
+        s"write netLevyDueTotal - using original rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse((0L, 0L))
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse((0L, 0L))
+              val ex = r.exported.getOrElse((0L, 0L))
+              val wa = r.wastage.getOrElse((0L, 0L))
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+            }
+          }
+        }
       }
     }
   }
