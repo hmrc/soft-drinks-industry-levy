@@ -181,17 +181,51 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
           val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
-          s"lowLevy - using $year rates for Apr - Dec $year" in {}
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged match {
+                  case Some(returnsPackaging) =>
+                    val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                    val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                    val levySubtotal = lowVolumeLevy + highVolumeLevy
+                    val monetaryFields: Seq[(String, JsValue)] = Seq(
+                      ("lowVolume", JsNumber(lowVolumeLevy)),
+                      ("highVolume", JsNumber(highVolumeLevy)),
+                      ("levySubtotal", JsNumber(levySubtotal))
+                    )
+                    assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                  //              TODO: Need to add correct assertion here
+                  case None => assert(true)
+                }
+              }
+            }
+          }
 
-          s"highLevy - using $year rates for Apr - Dec $year" in {}
-
-          s"dueLevy - using $year rates for Apr - Dec $year" in {}
-
-          s"lowLevy - using $year rates for Jan - Mar ${year + 1}" in {}
-
-          s"highLevy - using $year rates for Jan - Mar ${year + 1}" in {}
-
-          s"dueLevy - using $year rates for Jan - Mar ${year + 1}" in {}
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged match {
+                  case Some(returnsPackaging) =>
+                    val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                    val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                    val levySubtotal = lowVolumeLevy + highVolumeLevy
+                    val monetaryFields: Seq[(String, JsValue)] = Seq(
+                      ("lowVolume", JsNumber(lowVolumeLevy)),
+                      ("highVolume", JsNumber(highVolumeLevy)),
+                      ("levySubtotal", JsNumber(levySubtotal))
+                    )
+                    assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                  //              TODO: Need to add correct assertion here
+                  case None => assert(true)
+                }
+              }
+            }
+          }
         }
       }
     }
