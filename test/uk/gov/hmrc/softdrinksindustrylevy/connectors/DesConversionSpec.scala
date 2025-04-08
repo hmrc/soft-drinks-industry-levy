@@ -325,11 +325,6 @@ class DesConversionSpec
     }
   }
 
-  // TODO: Test taxEstimation in models/Activity.scala is used to form "estimatedTaxAmount" in des.create.scala
-  // This is used by Json.toJson(submission) in createSubscription in DesConnector
-  //  RELATING TO REGISTRATION - DO AFTER RETURNS
-  "taxEstimationWithExplicitReturnPeriod" should {}
-
   private lazy val baseSubscription = Subscription(
     utr = "1111111111",
     sdilRef = None,
