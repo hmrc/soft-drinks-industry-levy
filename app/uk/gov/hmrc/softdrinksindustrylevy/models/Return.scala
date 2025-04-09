@@ -77,13 +77,13 @@ case class SdilReturn(
     (chargedLitres._1 - creditsLitres._1, chargedLitres._2 - creditsLitres._2)
   }
 
-  private[models] def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
-    l.map(x => LitreOps(x).dueLevy).sum
+//  private[models] def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
+//    l.map(x => LitreOps(x).dueLevy).sum
   //          TODO: TEST IN ReturnSpec
 //  NOTE DO NOT ROUND THIS
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
-//    LitreOps(leviedLitres).dueLevy
-    sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
+    LitreOps(leviedLitres).dueLevy
+//    sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
 
 case class ReturnPeriod(year: Int, quarter: Int) {
