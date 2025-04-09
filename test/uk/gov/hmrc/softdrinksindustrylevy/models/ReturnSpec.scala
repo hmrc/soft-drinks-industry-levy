@@ -124,10 +124,11 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
       s"calculate sumlitres, levied litres, total for SdilReturn with ownBrand correctly - using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val internalActivity = getInternalActivity()
-//          val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
-//          taxEstimation mustBe BigDecimal("0.00")
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.sumLitres(List(sdilReturn.ownBrand)) shouldBe sdilReturn.ownBrand._1 * lowerBandCostPerLitre + sdilReturn.ownBrand._2 * higherBandCostPerLitre
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe sdilReturn.ownBrand._1 * lowerBandCostPerLitre + sdilReturn.ownBrand._2 * higherBandCostPerLitre
         }
       }
 
