@@ -267,12 +267,141 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
       val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
-      s"calculate levied litres, total for SdilReturn correctly - using $year rates for Apr - Dec $year" in {
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.export._1, -1 * sdilReturn.export._2)
+          sdilReturn.total shouldBe -1 * (sdilReturn.export._1 * lowerBandCostPerLitreMap(year) + sdilReturn.export._2 * higherBandCostPerLitreMap(year))
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-//          val internalActivity = getInternalActivity()
-//          val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
-//          taxEstimation mustBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.export._1, -1 * sdilReturn.export._2)
+          sdilReturn.total shouldBe -1 * (sdilReturn.export._1 * lowerBandCostPerLitreMap(year) + sdilReturn.export._2 * higherBandCostPerLitreMap(year))
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
         }
       }
     }
