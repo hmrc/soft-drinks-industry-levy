@@ -94,21 +94,18 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          r.packaged match {
-            case Some(returnsPackaging) =>
-              def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
-                val smallProducerFields: Seq[(String, JsValue)] = Seq(
-                  ("producerRef", JsString(smallProducerVolume.producerRef)),
-                  ("lowVolume", JsString(smallProducerVolume.volumes._1.toString)),
-                  ("highVolume", JsString(smallProducerVolume.volumes._2.toString))
-                )
-                JsObject(smallProducerFields)
-              }
-              val smallProducers: Seq[JsValue] = returnsPackaging.smallProducerVolumes.map(getSmallProducerAsJsValue)
-              assert((json \ "packaging" \ "volumeSmall").as[JsArray] == JsArray(smallProducers))
-            //              TODO: Need to add correct assertion here
-            case None => assert(true)
-          }
+          r.packaged.map(returnsPackaging => {
+            def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
+              val smallProducerFields: Seq[(String, JsValue)] = Seq(
+                ("producerRef", JsString(smallProducerVolume.producerRef)),
+                ("lowVolume", JsString(smallProducerVolume.volumes._1.toString)),
+                ("highVolume", JsString(smallProducerVolume.volumes._2.toString))
+              )
+              JsObject(smallProducerFields)
+            }
+            val smallProducers: Seq[JsValue] = returnsPackaging.smallProducerVolumes.map(getSmallProducerAsJsValue)
+            assert((json \ "packaging" \ "volumeSmall").as[JsArray] == JsArray(smallProducers))
+          })
         }
       }
 
