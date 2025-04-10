@@ -22,7 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, UkAddress}
+import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 
 class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
 
@@ -559,7 +559,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     "total" in {
       val testSdilReturn =
         SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
-      implicit val returnPeriod = ReturnPeriod(LocalDate.now())
+      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.now())
       val result = testSdilReturn.total
 
       result shouldBe 630.00
