@@ -112,6 +112,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
   private def getFullSdilReturn: SdilReturn = getSdilReturn(
     ownBrand = true, packLarge = true, numberOfPackSmall = 5,
     importSmall = true, importLarge = true, export = true, wastage = true)
+
+//  TODO: Is there a cleverer way to -1 * tuple
   
   "SdilReturn - leviedLitres, total" should {
     val janToMarInt = Gen.choose(1, 3)
@@ -143,10 +145,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
-//          sdilReturn.leviedLitres shouldBe sdilReturn.packSmall
-//          sdilReturn.total shouldBe sdilReturn.packSmall._1 * lowerBandCostPerLitre + sdilReturn.packSmall._2 * higherBandCostPerLitre
-          true shouldBe false
-          //          TODO: FIX
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
 
@@ -154,9 +154,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
-          sdilReturn.leviedLitres shouldBe sdilReturn.importSmall
+          sdilReturn.leviedLitres shouldBe (0L, 0L)
           sdilReturn.total shouldBe BigDecimal("0.00")
-          //          TODO: FIX
         }
       }
 
@@ -173,9 +172,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(export = true)
-          sdilReturn.leviedLitres shouldBe sdilReturn.export
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.export._1, -1 * sdilReturn.export._2)
           sdilReturn.total shouldBe -1 * (sdilReturn.export._1 * lowerBandCostPerLitre + sdilReturn.export._2 * higherBandCostPerLitre)
-          //          TODO: FIX
         }
       }
 
@@ -183,9 +181,8 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
-          sdilReturn.leviedLitres shouldBe sdilReturn.wastage
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
           sdilReturn.total shouldBe -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitre + sdilReturn.wastage._2 * higherBandCostPerLitre)
-          //          TODO: FIX
         }
       }
 
