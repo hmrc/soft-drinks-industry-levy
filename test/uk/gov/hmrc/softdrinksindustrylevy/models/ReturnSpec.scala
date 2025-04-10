@@ -427,7 +427,81 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
   }
 
-  "ReturnVariationData - revisedTotalDifference" should {}
+  "ReturnVariationData - revisedTotalDifference" should {
+    val janToMarInt = Gen.choose(1, 3)
+    val aprToDecInt = Gen.choose(4, 12)
+    val rvdAddress = UkAddress(List("My House", "My Lane"), "AA111A")
+
+    (2018 to 2024).foreach { year =>
+      val lowerBandCostPerLitre = BigDecimal("0.18")
+      val higherBandCostPerLitre = BigDecimal("0.24")
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres = originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.export._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres = originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.export._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres = revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.export._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres = revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.export._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres, expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres)
+          val returnVariationData = ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe changeInLeviedLitres._1 * lowerBandCostPerLitre + changeInLeviedLitres._2 * higherBandCostPerLitre
+        }
+      }
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres = originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.export._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres = originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.export._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres = revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.export._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres = revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.export._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres, expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres)
+          val returnVariationData = ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe changeInLeviedLitres._1 * lowerBandCostPerLitre + changeInLeviedLitres._2 * higherBandCostPerLitre
+        }
+      }
+    }
+
+    (2025 to 2025).foreach { year =>
+      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
+      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres = originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.export._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres = originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.export._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres = revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.export._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres = revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.export._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres, expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres)
+          val returnVariationData = ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres = originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.export._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres = originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.export._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres = revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.export._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres = revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.export._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres, expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres)
+          val returnVariationData = ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year)
+        }
+      }
+    }
+  }
 
   "ReturnVariationData" should {
     val commonSmallPack = SmallProducer(Some("common"), "1", (100, 100))
