@@ -188,7 +188,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
       s"calculate levied litres, total for SdilReturn with all fields correctly - using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres = sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.export._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres = sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.export._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe expectedLeviedLowLitres * lowerBandCostPerLitre + expectedLeviedHighLitres * higherBandCostPerLitre
         }
       }
 
@@ -257,7 +262,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
       s"calculate levied litres, total for SdilReturn with all fields correctly - using original rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
-          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres = sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.export._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres = sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.export._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe expectedLeviedLowLitres * lowerBandCostPerLitre + expectedLeviedHighLitres * higherBandCostPerLitre
         }
       }
 
@@ -332,7 +342,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
       s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres = sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.export._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres = sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.export._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres * higherBandCostPerLitreMap(year)
         }
       }
 
@@ -401,7 +416,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
 
       s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
-          val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres = sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.export._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres = sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.export._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres * higherBandCostPerLitreMap(year)
         }
       }
     }
