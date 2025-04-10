@@ -317,7 +317,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
     copackedAll: LitreBands = zero,
     imported: LitreBands = zero,
     copackedByOthers: LitreBands = zero
-  ) =
+  ): InternalActivity =
     InternalActivity(
       Map(
         ProducedOwnBrand -> produced,

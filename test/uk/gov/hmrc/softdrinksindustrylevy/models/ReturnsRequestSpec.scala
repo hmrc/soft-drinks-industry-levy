@@ -237,7 +237,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
       s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val returnsRequest = getFullReturnsRequest
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
@@ -260,7 +260,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
       s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
-          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val returnsRequest = getFullReturnsRequest
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
@@ -288,7 +288,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
       s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
-          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val returnsRequest = getFullReturnsRequest
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
@@ -311,7 +311,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
 
       s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
-          implicit val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val returnsRequest = getFullReturnsRequest
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
