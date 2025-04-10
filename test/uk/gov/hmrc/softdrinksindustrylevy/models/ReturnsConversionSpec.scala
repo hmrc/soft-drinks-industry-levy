@@ -25,7 +25,7 @@ import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsNumber, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString, JsValue, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
@@ -91,11 +91,24 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
 
     "packaged" should {
       "volumeSmall" in {
-//        TODO: THIS IS NOT EASY
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          assert((json \ "periodKey").as[String] == "18C4")
+          r.packaged match {
+            case Some(returnsPackaging) =>
+              def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
+                val smallProducerFields: Seq[(String, JsValue)] = Seq(
+                  ("producerRef", JsString(smallProducerVolume.producerRef)),
+                  ("lowVolume", JsString(smallProducerVolume.volumes._1.toString)),
+                  ("highVolume", JsString(smallProducerVolume.volumes._2.toString))
+                )
+                JsObject(smallProducerFields)
+              }
+              val smallProducers: Seq[JsValue] = returnsPackaging.smallProducerVolumes.map(getSmallProducerAsJsValue)
+              assert((json \ "packaging" \ "volumeSmall").as[JsArray] == JsArray(smallProducers))
+            //              TODO: Need to add correct assertion here
+            case None => assert(true)
+          }
         }
       }
 
