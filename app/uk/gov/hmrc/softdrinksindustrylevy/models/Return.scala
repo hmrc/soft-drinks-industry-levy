@@ -79,7 +79,6 @@ case class SdilReturn(
 
 //  private[models] def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
 //    l.map(x => LitreOps(x).dueLevy).sum
-  //          TODO: TEST IN ReturnSpec
 //  NOTE DO NOT ROUND THIS
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
     LitreOps(leviedLitres).dueLevy

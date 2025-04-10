@@ -79,9 +79,6 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
   }
 
-//  TODO: TEST sumLitres/total in models/Return.scala is used in varyReturn in VariationsController in views.html.return_variation_pdf which is submitted to dms
-//  RELATING TO VARIATION - DO AFTER RETURNS
-
   private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
   private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
   private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
