@@ -27,8 +27,9 @@ case class ReturnsRequest(
   exported: Option[LitreBands],
   wastage: Option[LitreBands]
 ) {
-// TODO: DueLevy on whole volumes rather than separate
-  def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
+  def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal =
+    (liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2).dueLevy
+//    liableVolumes.dueLevy - nonLiableVolumes.dueLevy
 
   private[models] lazy val liableVolumes =
     (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
