@@ -60,7 +60,7 @@ case class SdilReturn(
   wastage: (Long, Long) = (0, 0), // negative charge
   submittedOn: Option[LocalDateTime]
 ) {
-  private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
+  private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, `export`, wastage)
   private val keys = List("ownBrand", "packLarge", "importSmall", "importLarge", "export", "wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
     val y = this.toLongs
@@ -74,7 +74,7 @@ case class SdilReturn(
 
   private[models] def leviedLitres: (Long, Long) = {
     val chargedLitres = ownBrand |+| packLarge |+| importLarge
-    val creditsLitres = export |+| wastage
+    val creditsLitres = `export` |+| wastage
     (chargedLitres._1 - creditsLitres._1, chargedLitres._2 - creditsLitres._2)
   }
 

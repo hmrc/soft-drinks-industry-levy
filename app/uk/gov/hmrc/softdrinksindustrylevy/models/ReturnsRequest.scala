@@ -60,7 +60,7 @@ object ReturnsRequest {
     ReturnsRequest(
       packaged = pack.some,
       imported = ReturnsImporting(sdilReturn.importSmall, sdilReturn.importLarge).some,
-      exported = sdilReturn.export.some,
+      exported = sdilReturn.`export`.some,
       wastage = sdilReturn.wastage.some
     )
   }
