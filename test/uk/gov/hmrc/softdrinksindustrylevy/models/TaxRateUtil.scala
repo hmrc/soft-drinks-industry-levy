@@ -20,9 +20,6 @@ object TaxRateUtil {
 
   lazy val zero: LitreBands = (0, 0)
 
-//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-
   def getInternalActivity(
                                    hasProduced: Boolean = false,
                                    hasCopackedAll: Boolean = false,
@@ -40,10 +37,6 @@ object TaxRateUtil {
     )
 
   def getFullInternalActivity: InternalActivity = getInternalActivity(true, true, true, true)
-
-//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-//  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
 
   def getReturnsRequest(
                                  packagedNumberOfSmallProducers: Int = 0,
