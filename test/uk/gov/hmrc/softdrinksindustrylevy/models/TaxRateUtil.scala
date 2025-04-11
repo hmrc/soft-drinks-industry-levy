@@ -4,7 +4,7 @@ import org.scalacheck.Gen
 import sdil.models.{SdilReturn, SmallProducer}
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
 
-object TaxRate {
+object TaxRateUtil {
   val janToMarInt = Gen.choose(1, 3)
   val aprToDecInt = Gen.choose(4, 12)
 
