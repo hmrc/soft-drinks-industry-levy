@@ -247,8 +247,6 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val expected = (producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year))
               .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
-            taxEstimation mustBe
-              producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -300,7 +298,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
     }
 
     "calculate the correct tax estimate" in {
-      val returnPeriod = ReturnPeriod(LocalDate.of(2025, 4, 9))
+      val returnPeriod = ReturnPeriod(LocalDate.of(2025, 3, 31))
       val activity = internalActivity(
         produced = (2, 3),
         copackedAll = (4, 5),

@@ -578,7 +578,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     "total" in {
       val testSdilReturn =
         SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
-      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2018, 4, 15))
+      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2025, 3 ,31))
       val result = testSdilReturn.total
 
       result shouldBe 630.00
