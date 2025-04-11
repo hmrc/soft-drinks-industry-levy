@@ -242,8 +242,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
-          sdilReturn.total shouldBe
-            sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -252,8 +253,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
-          sdilReturn.total shouldBe
-            sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -280,8 +282,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
-          sdilReturn.total shouldBe
-            sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -290,8 +293,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(export = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
-          sdilReturn.total shouldBe
-            -1 * (sdilReturn.`export`._1 * lowerBandCostPerLitreMap(year) + sdilReturn.`export`._2 * higherBandCostPerLitreMap(year))
+          val expectedTotal = -1 * (sdilReturn.`export`._1 * lowerBandCostPerLitreMap(year) + sdilReturn.`export`._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -300,8 +304,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
-          sdilReturn.total shouldBe
-            -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+          val expectedTotal = -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -314,8 +319,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           val expectedLeviedHighLitres =
             sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
           sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
-          sdilReturn.total shouldBe
-            expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres * higherBandCostPerLitreMap(year)
+          val expectedTotal = (expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres* higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -324,8 +330,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
-          sdilReturn.total shouldBe
-            sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.ownBrand._1 * lowerBandCostPerLitreMap(year) + sdilReturn.ownBrand._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -334,8 +341,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
-          sdilReturn.total shouldBe
-            sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.packLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.packLarge._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -362,8 +370,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
           sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
-          sdilReturn.total shouldBe
-            sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year)
+          val expectedTotal = (sdilReturn.importLarge._1 * lowerBandCostPerLitreMap(year) + sdilReturn.importLarge._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -372,8 +381,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(export = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
-          sdilReturn.total shouldBe
-            -1 * (sdilReturn.`export`._1 * lowerBandCostPerLitreMap(year) + sdilReturn.`export`._2 * higherBandCostPerLitreMap(year))
+          val expectedTotal = -1 * (sdilReturn.`export`._1 * lowerBandCostPerLitreMap(year) + sdilReturn.`export`._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -382,8 +392,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
-          sdilReturn.total shouldBe
-            -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+          val expectedTotal = -1 * (sdilReturn.wastage._1 * lowerBandCostPerLitreMap(year) + sdilReturn.wastage._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
 
@@ -396,8 +407,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           val expectedLeviedHighLitres =
             sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
           sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
-          sdilReturn.total shouldBe
-            expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres * higherBandCostPerLitreMap(year)
+          val expectedTotal = (expectedLeviedLowLitres * lowerBandCostPerLitreMap(year) + expectedLeviedHighLitres* higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          sdilReturn.total shouldBe expectedTotal
         }
       }
     }
@@ -474,8 +486,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe
-            changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year)
+          val expectedRTD = (changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          returnVariationData.revisedTotalDifference shouldBe expectedRTD
         }
       }
 
@@ -498,8 +511,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe
-            changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year)
+          val expectedRTD = (changeInLeviedLitres._1 * lowerBandCostPerLitreMap(year) + changeInLeviedLitres._2 * higherBandCostPerLitreMap(year))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          returnVariationData.revisedTotalDifference shouldBe expectedRTD
         }
       }
     }
@@ -564,7 +578,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     "total" in {
       val testSdilReturn =
         SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
-      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.now())
+      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2018, 4, 15))
       val result = testSdilReturn.total
 
       result shouldBe 630.00
