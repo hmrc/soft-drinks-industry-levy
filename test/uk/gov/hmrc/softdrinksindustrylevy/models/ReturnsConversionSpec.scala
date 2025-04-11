@@ -21,7 +21,6 @@ import cats.implicits.catsSyntaxSemigroup
 import java.time.{Clock, LocalDate, LocalDateTime, ZoneId}
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main.JsonSchemaFactory
-import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -29,6 +28,7 @@ import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString, JsValue, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
 
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
@@ -127,13 +127,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
 
       "monetaryWrites" should {
-        val janToMarInt = Gen.choose(1, 3)
-        val aprToDecInt = Gen.choose(4, 12)
-
         (2018 to 2024).foreach { year =>
-          val lowerBandCostPerLitre = BigDecimal("0.18")
-          val higherBandCostPerLitre = BigDecimal("0.24")
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -182,9 +176,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         }
 
         (2025 to 2025).foreach { year =>
-          val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-          val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -270,13 +261,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
 
       "monetaryWrites" should {
-        val janToMarInt = Gen.choose(1, 3)
-        val aprToDecInt = Gen.choose(4, 12)
-
         (2018 to 2024).foreach { year =>
-          val lowerBandCostPerLitre = BigDecimal("0.18")
-          val higherBandCostPerLitre = BigDecimal("0.24")
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -325,9 +310,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         }
 
         (2025 to 2025).foreach { year =>
-          val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-          val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -396,13 +378,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
 
       "monetaryWrites" should {
-        val janToMarInt = Gen.choose(1, 3)
-        val aprToDecInt = Gen.choose(4, 12)
-
         (2018 to 2024).foreach { year =>
-          val lowerBandCostPerLitre = BigDecimal("0.18")
-          val higherBandCostPerLitre = BigDecimal("0.24")
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -451,9 +427,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         }
 
         (2025 to 2025).foreach { year =>
-          val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-          val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -522,13 +495,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
 
       "monetaryWrites" should {
-        val janToMarInt = Gen.choose(1, 3)
-        val aprToDecInt = Gen.choose(4, 12)
-
         (2018 to 2024).foreach { year =>
-          val lowerBandCostPerLitre = BigDecimal("0.18")
-          val higherBandCostPerLitre = BigDecimal("0.24")
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -577,9 +544,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         }
 
         (2025 to 2025).foreach { year =>
-          val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-          val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -630,13 +594,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     }
 
     "netLevyDueTotal" should {
-      val janToMarInt = Gen.choose(1, 3)
-      val aprToDecInt = Gen.choose(4, 12)
-
       (2018 to 2024).foreach { year =>
-        val lowerBandCostPerLitre = BigDecimal("0.18")
-        val higherBandCostPerLitre = BigDecimal("0.24")
-
         s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -676,9 +634,6 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       }
 
       (2025 to 2025).foreach { year =>
-        val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-        val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
         s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
