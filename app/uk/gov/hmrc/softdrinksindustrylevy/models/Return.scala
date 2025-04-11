@@ -36,8 +36,7 @@ case class ReturnVariationData(
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
-
-//  TODO: Test and use
+  
   def revisedTotalDifference(implicit returnPeriod: ReturnPeriod): BigDecimal = {
     val originalLeviedLitres = original.leviedLitres
     val revisedLeviedLitres = revised.leviedLitres
@@ -78,12 +77,8 @@ case class SdilReturn(
     (chargedLitres._1 - creditsLitres._1, chargedLitres._2 - creditsLitres._2)
   }
 
-//  private[models] def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
-//    l.map(x => LitreOps(x).dueLevy).sum
-//  NOTE DO NOT ROUND THIS
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
     LitreOps(leviedLitres).dueLevy
-//    sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
 }
 
 case class ReturnPeriod(year: Int, quarter: Int) {
