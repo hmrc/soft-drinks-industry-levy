@@ -21,7 +21,7 @@ import ActivityType._
 import org.scalatest.AppendedClues
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 
 import java.time.LocalDate
 
@@ -330,25 +330,4 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
     )
 
   lazy val zero: LitreBands = (0, 0)
-
-//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-//
-//  private def getInternalActivity(
-//    hasProduced: Boolean = false,
-//    hasCopackedAll: Boolean = false,
-//    hasImported: Boolean = false,
-//    hasCopackedByOthers: Boolean = false
-//  ) =
-//    InternalActivity(
-//      Map(
-//        ProducedOwnBrand -> (if (hasProduced) getRandomLitreage else zero),
-//        CopackerAll      -> (if (hasCopackedAll) getRandomLitreage else zero),
-//        Imported         -> (if (hasImported) getRandomLitreage else zero),
-//        Copackee         -> (if (hasCopackedByOthers) getRandomLitreage else zero)
-//      ),
-//      false
-//    )
-//
-//  private def getFullInternalActivity = getInternalActivity(true, true, true, true)
 }

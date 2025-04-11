@@ -22,7 +22,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator._
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 
 import java.time.LocalDate
 

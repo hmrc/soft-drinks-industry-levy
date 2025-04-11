@@ -28,7 +28,7 @@ import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString, JsValue, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
