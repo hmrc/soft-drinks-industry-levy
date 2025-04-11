@@ -79,11 +79,11 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
   override def taxEstimation: BigDecimal = taxEstimationWithExplicitReturnPeriod(ReturnPeriod(LocalDate.now()))
 
   private[models] def taxEstimationWithExplicitReturnPeriod(explicitReturnPeriod: ReturnPeriod): BigDecimal =
-//    TODO: Refactor
-    if (isSmallProducer && !isContractPacker && !isImporter) 0
-    else {
-      val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
-      implicit val returnPeriod = explicitReturnPeriod
-      totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
+    (isSmallProducer, isContractPacker, isImporter) match {
+      case (true, false, false) => 0
+      case _ =>
+        val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
+        implicit val returnPeriod = explicitReturnPeriod
+        totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
     }
 }
