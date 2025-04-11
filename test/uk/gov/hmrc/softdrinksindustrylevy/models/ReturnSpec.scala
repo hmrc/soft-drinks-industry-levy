@@ -104,7 +104,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -113,7 +113,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -180,7 +180,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -189,7 +189,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -263,7 +263,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -272,7 +272,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -351,7 +351,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
@@ -360,7 +360,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
           val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
-          sdilReturn.leviedLitres shouldBe (0L, 0L)
+          sdilReturn.leviedLitres shouldBe zero
           sdilReturn.total shouldBe BigDecimal("0.00")
         }
       }
