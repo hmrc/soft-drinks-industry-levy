@@ -113,6 +113,7 @@
     @table_helper("return-reason") {
         <tr><td colspan="2">@variation.reason</td></tr>
     }
+<!-- TODO: Replace variation.revised.total - variation.original.total with variation.revisedTotalDifference   -->
     @table_helper("return-value") {
         @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
         @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
