@@ -177,9 +177,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -197,9 +197,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -293,9 +293,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -313,9 +313,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -395,9 +395,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -415,9 +415,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -497,9 +497,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -517,9 +517,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
                   val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
                   val levySubtotal = lowVolumeLevy + highVolumeLevy
                   val monetaryFields: Seq[(String, JsValue)] = Seq(
-                    ("lowVolume", JsNumber(lowVolumeLevy)),
-                    ("highVolume", JsNumber(highVolumeLevy)),
-                    ("levySubtotal", JsNumber(levySubtotal))
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
                   )
                   assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
@@ -584,7 +584,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val nonLiableVolumes: (Long, Long) = ex |+| wa
               val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) +
                 (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
-              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP))
             }
           }
         }
@@ -602,7 +602,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val nonLiableVolumes: (Long, Long) = ex |+| wa
               val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) +
                 (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
-              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP))
             }
           }
         }
