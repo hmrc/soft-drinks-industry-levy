@@ -187,9 +187,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
-            taxEstimation mustBe producedOwnBrand._1 * lowerBandCostPerLitreMap(
-              year
-            ) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -199,9 +198,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val copackerAll = internalActivity.activity(CopackerAll)
-            taxEstimation mustBe copackerAll._1 * lowerBandCostPerLitreMap(
-              year
-            ) + copackerAll._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -211,9 +209,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val imported = internalActivity.activity(Imported)
-            taxEstimation mustBe imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(
-              year
-            )
+            taxEstimation mustBe
+              imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -231,9 +228,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
             val internalActivity = getFullInternalActivity
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
-            taxEstimation mustBe internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(
-              year
-            ) + internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(year) +
+                internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -252,9 +249,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
-            taxEstimation mustBe producedOwnBrand._1 * lowerBandCostPerLitreMap(
-              year
-            ) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -264,9 +260,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val copackerAll = internalActivity.activity(CopackerAll)
-            taxEstimation mustBe copackerAll._1 * lowerBandCostPerLitreMap(
-              year
-            ) + copackerAll._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -276,9 +271,8 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val imported = internalActivity.activity(Imported)
-            taxEstimation mustBe imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(
-              year
-            )
+            taxEstimation mustBe
+              imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year)
           }
         }
 
@@ -296,9 +290,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
             val internalActivity = getFullInternalActivity
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
-            taxEstimation mustBe internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(
-              year
-            ) + internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
+            taxEstimation mustBe
+              internalActivity.totalLiableLitres._1 * lowerBandCostPerLitreMap(year) +
+                internalActivity.totalLiableLitres._2 * higherBandCostPerLitreMap(year)
           }
         }
       }
