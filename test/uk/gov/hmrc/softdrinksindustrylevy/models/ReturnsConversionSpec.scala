@@ -94,7 +94,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          r.packaged.map(returnsPackaging => {
+          r.packaged.map { returnsPackaging =>
             def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
               val smallProducerFields: Seq[(String, JsValue)] = Seq(
                 ("producerRef", JsString(smallProducerVolume.producerRef)),
@@ -105,7 +105,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
             }
             val smallProducers: Seq[JsValue] = returnsPackaging.smallProducerVolumes.map(getSmallProducerAsJsValue)
             assert((json \ "packaging" \ "volumeSmall").as[JsArray] == JsArray(smallProducers))
-          })
+          }
         }
       }
 
@@ -648,7 +648,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse((0L, 0L))
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitre + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitre
+              val netLevySubtotal =
+                (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitre + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitre
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
@@ -665,7 +666,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse((0L, 0L))
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitre + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitre
+              val netLevySubtotal =
+                (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitre + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitre
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
@@ -688,7 +690,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse((0L, 0L))
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
+              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(
+                year
+              ) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
@@ -705,7 +709,9 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse((0L, 0L))
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(year) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
+              val netLevySubtotal = (liableVolumes._1 - nonLiableVolumes._1) * lowerBandCostPerLitreMap(
+                year
+              ) + (liableVolumes._2 - nonLiableVolumes._2) * higherBandCostPerLitreMap(year)
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
