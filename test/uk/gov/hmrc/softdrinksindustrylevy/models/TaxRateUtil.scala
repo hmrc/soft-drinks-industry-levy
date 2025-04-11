@@ -5,11 +5,11 @@ import sdil.models.{SdilReturn, SmallProducer}
 import uk.gov.hmrc.softdrinksindustrylevy.models.ActivityType.{Copackee, CopackerAll, Imported, ProducedOwnBrand}
 
 object TaxRateUtil {
-  val janToMarInt = Gen.choose(1, 3)
-  val aprToDecInt = Gen.choose(4, 12)
+  val janToMarInt: Gen[Int] = Gen.choose(1, 3)
+  val aprToDecInt: Gen[Int] = Gen.choose(4, 12)
 
-  val lowerBandCostPerLitre = BigDecimal("0.18")
-  val higherBandCostPerLitre = BigDecimal("0.24")
+  val lowerBandCostPerLitre: BigDecimal = BigDecimal("0.18")
+  val higherBandCostPerLitre: BigDecimal = BigDecimal("0.24")
 
   val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
   val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
@@ -28,7 +28,7 @@ object TaxRateUtil {
                                    hasCopackedAll: Boolean = false,
                                    hasImported: Boolean = false,
                                    hasCopackedByOthers: Boolean = false
-                                 ) =
+                                 ): InternalActivity =
     InternalActivity(
       Map(
         ProducedOwnBrand -> (if (hasProduced) getRandomLitreage else zero),
@@ -39,7 +39,7 @@ object TaxRateUtil {
       false
     )
 
-  def getFullInternalActivity = getInternalActivity(true, true, true, true)
+  def getFullInternalActivity: InternalActivity = getInternalActivity(true, true, true, true)
 
 //  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
 //  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
