@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 
 class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
@@ -79,53 +80,47 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
   }
 
-  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
-
-  private def getSdilReturn(
-    ownBrand: Boolean = false,
-    packLarge: Boolean = false,
-    numberOfPackSmall: Int = 0,
-    importSmall: Boolean = false,
-    importLarge: Boolean = false,
-    export: Boolean = false,
-    wastage: Boolean = false
-  ): SdilReturn = {
-    val smallProducers: Seq[SmallProducer] = (0 to numberOfPackSmall)
-      .map(index => SmallProducer(None, getRandomSdilRef(index), getRandomLitreage))
-    SdilReturn(
-      ownBrand = if (ownBrand) getRandomLitreage else (0L, 0L),
-      packLarge = if (packLarge) getRandomLitreage else (0L, 0L),
-      packSmall = smallProducers.toList,
-      importSmall = if (importSmall) getRandomLitreage else (0L, 0L),
-      importLarge = if (importLarge) getRandomLitreage else (0L, 0L),
-      export = if (export) getRandomLitreage else (0L, 0L),
-      wastage = if (wastage) getRandomLitreage else (0L, 0L),
-      submittedOn = None
-    )
-  }
-
-  private def getFullSdilReturn: SdilReturn = getSdilReturn(
-    ownBrand = true,
-    packLarge = true,
-    numberOfPackSmall = 5,
-    importSmall = true,
-    importLarge = true,
-    export = true,
-    wastage = true
-  )
+//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
+//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
+//  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
+//
+//  private def getSdilReturn(
+//    ownBrand: Boolean = false,
+//    packLarge: Boolean = false,
+//    numberOfPackSmall: Int = 0,
+//    importSmall: Boolean = false,
+//    importLarge: Boolean = false,
+//    export: Boolean = false,
+//    wastage: Boolean = false
+//  ): SdilReturn = {
+//    val smallProducers: Seq[SmallProducer] = (0 to numberOfPackSmall)
+//      .map(index => SmallProducer(None, getRandomSdilRef(index), getRandomLitreage))
+//    SdilReturn(
+//      ownBrand = if (ownBrand) getRandomLitreage else (0L, 0L),
+//      packLarge = if (packLarge) getRandomLitreage else (0L, 0L),
+//      packSmall = smallProducers.toList,
+//      importSmall = if (importSmall) getRandomLitreage else (0L, 0L),
+//      importLarge = if (importLarge) getRandomLitreage else (0L, 0L),
+//      export = if (export) getRandomLitreage else (0L, 0L),
+//      wastage = if (wastage) getRandomLitreage else (0L, 0L),
+//      submittedOn = None
+//    )
+//  }
+//
+//  private def getFullSdilReturn: SdilReturn = getSdilReturn(
+//    ownBrand = true,
+//    packLarge = true,
+//    numberOfPackSmall = 5,
+//    importSmall = true,
+//    importLarge = true,
+//    export = true,
+//    wastage = true
+//  )
 
 //  TODO: Is there a cleverer way to -1 * tuple
 
   "SdilReturn - leviedLitres, total" should {
-    val janToMarInt = Gen.choose(1, 3)
-    val aprToDecInt = Gen.choose(4, 12)
-
     (2018 to 2024).foreach { year =>
-      val lowerBandCostPerLitre = BigDecimal("0.18")
-      val higherBandCostPerLitre = BigDecimal("0.24")
-
       s"calculate levied litres, total for SdilReturn with ownBrand correctly - using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -281,9 +276,6 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
 
     (2025 to 2025).foreach { year =>
-      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
       s"calculate levied litres, total for SdilReturn with ownBrand correctly - using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -451,14 +443,9 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
   }
 
   "ReturnVariationData - revisedTotalDifference" should {
-    val janToMarInt = Gen.choose(1, 3)
-    val aprToDecInt = Gen.choose(4, 12)
     val rvdAddress = UkAddress(List("My House", "My Lane"), "AA111A")
 
     (2018 to 2024).foreach { year =>
-      val lowerBandCostPerLitre = BigDecimal("0.18")
-      val higherBandCostPerLitre = BigDecimal("0.24")
-
       s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -507,9 +494,6 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     }
 
     (2025 to 2025).foreach { year =>
-      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
       s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))

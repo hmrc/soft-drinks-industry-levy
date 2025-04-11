@@ -18,10 +18,10 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalatestplus.play.PlaySpec
 import ActivityType._
-import org.scalacheck.Gen
 import org.scalatest.AppendedClues
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRate._
 
 import java.time.LocalDate
 
@@ -45,13 +45,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
     }
 
     "taxEstimationWithExplicitReturnPeriod" should {
-      val janToMarInt = Gen.choose(1, 3)
-      val aprToDecInt = Gen.choose(4, 12)
-
       (2018 to 2024).foreach { year =>
-        val lowerBandCostPerLitre = BigDecimal("0.18")
-        val higherBandCostPerLitre = BigDecimal("0.24")
-
         s"calculate zero taxEstimation correctly - using original rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -169,9 +163,6 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
       }
 
       (2025 to 2025).foreach { year =>
-        val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-        val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
         s"calculate zero taxEstimation correctly - using $year rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -340,24 +331,24 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
 
   lazy val zero: LitreBands = (0, 0)
 
-  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-
-  private def getInternalActivity(
-    hasProduced: Boolean = false,
-    hasCopackedAll: Boolean = false,
-    hasImported: Boolean = false,
-    hasCopackedByOthers: Boolean = false
-  ) =
-    InternalActivity(
-      Map(
-        ProducedOwnBrand -> (if (hasProduced) getRandomLitreage else zero),
-        CopackerAll      -> (if (hasCopackedAll) getRandomLitreage else zero),
-        Imported         -> (if (hasImported) getRandomLitreage else zero),
-        Copackee         -> (if (hasCopackedByOthers) getRandomLitreage else zero)
-      ),
-      false
-    )
-
-  private def getFullInternalActivity = getInternalActivity(true, true, true, true)
+//  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
+//  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
+//
+//  private def getInternalActivity(
+//    hasProduced: Boolean = false,
+//    hasCopackedAll: Boolean = false,
+//    hasImported: Boolean = false,
+//    hasCopackedByOthers: Boolean = false
+//  ) =
+//    InternalActivity(
+//      Map(
+//        ProducedOwnBrand -> (if (hasProduced) getRandomLitreage else zero),
+//        CopackerAll      -> (if (hasCopackedAll) getRandomLitreage else zero),
+//        Imported         -> (if (hasImported) getRandomLitreage else zero),
+//        Copackee         -> (if (hasCopackedByOthers) getRandomLitreage else zero)
+//      ),
+//      false
+//    )
+//
+//  private def getFullInternalActivity = getInternalActivity(true, true, true, true)
 }
