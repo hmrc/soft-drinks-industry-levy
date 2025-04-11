@@ -229,15 +229,12 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          r.imported match {
-            case Some(returnsImporting) =>
-              val volumeLargeFields: Seq[(String, JsValue)] = Seq(
-                ("lowVolume", JsString(returnsImporting.largeProducerVolumes._1.toString)),
-                ("highVolume", JsString(returnsImporting.largeProducerVolumes._2.toString))
-              )
-              assert((json \ "importing" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
-            //              TODO: Need to add correct assertion here
-            case None => assert(true)
+          r.imported map { returnsImporting =>
+            val volumeLargeFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsImporting.largeProducerVolumes._1.toString)),
+              ("highVolume", JsString(returnsImporting.largeProducerVolumes._2.toString))
+            )
+            assert((json \ "importing" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
           }
         }
       }
@@ -249,19 +246,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.imported match {
-                  case Some(returnsImporting) =>
-                    val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -272,19 +266,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.imported match {
-                  case Some(returnsImporting) =>
-                    val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -297,19 +288,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.imported match {
-                  case Some(returnsImporting) =>
-                    val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -320,19 +308,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.imported match {
-                  case Some(returnsImporting) =>
-                    val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -346,15 +331,12 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          r.exported match {
-            case Some(returnsExported) =>
-              val volumesFields: Seq[(String, JsValue)] = Seq(
-                ("lowVolume", JsString(returnsExported._1.toString)),
-                ("highVolume", JsString(returnsExported._2.toString))
-              )
-              assert((json \ "exporting" \ "volumes").as[JsObject] == JsObject(volumesFields))
-            //              TODO: Need to add correct assertion here
-            case None => assert(true)
+          r.exported map { returnsExported =>
+            val volumesFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsExported._1.toString)),
+              ("highVolume", JsString(returnsExported._2.toString))
+            )
+            assert((json \ "exporting" \ "volumes").as[JsObject] == JsObject(volumesFields))
           }
         }
       }
@@ -366,19 +348,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.exported match {
-                  case Some(returnsExported) =>
-                    val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -389,19 +368,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.exported match {
-                  case Some(returnsExported) =>
-                    val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -414,19 +390,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.exported match {
-                  case Some(returnsExported) =>
-                    val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -437,19 +410,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.exported match {
-                  case Some(returnsExported) =>
-                    val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -463,15 +433,12 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
         forAll { r: ReturnsRequest =>
           val json = Json.toJson(r)
-          r.wastage match {
-            case Some(returnsWastage) =>
-              val volumesFields: Seq[(String, JsValue)] = Seq(
-                ("lowVolume", JsString(returnsWastage._1.toString)),
-                ("highVolume", JsString(returnsWastage._2.toString))
-              )
-              assert((json \ "wastage" \ "volumes").as[JsObject] == JsObject(volumesFields))
-            //              TODO: Need to add correct assertion here
-            case None => assert(true)
+          r.wastage map { returnsWastage =>
+            val volumesFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsWastage._1.toString)),
+              ("highVolume", JsString(returnsWastage._2.toString))
+            )
+            assert((json \ "wastage" \ "volumes").as[JsObject] == JsObject(volumesFields))
           }
         }
       }
@@ -483,19 +450,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.wastage match {
-                  case Some(returnsWastage) =>
-                    val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -506,19 +470,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.wastage match {
-                  case Some(returnsWastage) =>
-                    val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
-                    val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -531,19 +492,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.wastage match {
-                  case Some(returnsWastage) =>
-                    val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
@@ -554,19 +512,16 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
               forAll { r: ReturnsRequest =>
                 val json = Json.toJson(r)
-                r.wastage match {
-                  case Some(returnsWastage) =>
-                    val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
-                    val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
-                    val levySubtotal = lowVolumeLevy + highVolumeLevy
-                    val monetaryFields: Seq[(String, JsValue)] = Seq(
-                      ("lowVolume", JsNumber(lowVolumeLevy)),
-                      ("highVolume", JsNumber(highVolumeLevy)),
-                      ("levySubtotal", JsNumber(levySubtotal))
-                    )
-                    assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
-                  //              TODO: Need to add correct assertion here
-                  case None => assert(true)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
                 }
               }
             }
