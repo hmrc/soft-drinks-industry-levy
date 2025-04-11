@@ -141,8 +141,8 @@ package object returns {
         val quarter = period.desPeriodKey
 
         Json.obj(
-          "periodKey"      -> quarter,
-          "formBundleType" -> "ZSD1",
+          "periodKey"       -> quarter,
+          "formBundleType"  -> "ZSD1",
           "netLevyDueTotal" -> o.totalLevy
         ) ++ packaged ++ imported ++ exported ++ wastage
       }

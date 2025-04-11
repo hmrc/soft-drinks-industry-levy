@@ -41,7 +41,8 @@ case class ReturnVariationData(
   def revisedTotalDifference(implicit returnPeriod: ReturnPeriod): BigDecimal = {
     val originalLeviedLitres = original.leviedLitres
     val revisedLeviedLitres = revised.leviedLitres
-    val comparedLeviedLitres = (revisedLeviedLitres._1 - originalLeviedLitres._1, revisedLeviedLitres._2 - originalLeviedLitres._2)
+    val comparedLeviedLitres =
+      (revisedLeviedLitres._1 - originalLeviedLitres._1, revisedLeviedLitres._2 - originalLeviedLitres._2)
     LitreOps(comparedLeviedLitres).dueLevy
   }
 }

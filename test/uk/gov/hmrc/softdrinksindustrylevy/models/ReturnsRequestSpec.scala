@@ -119,9 +119,13 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
   }
 
   private def getFullReturnsRequest: ReturnsRequest = getReturnsRequest(
-    packagedNumberOfSmallProducers = 5, packagedLargeProducer = true,
-    importedSmallProducer = true, importedLargeProducer = true,
-    exported = true, wastage = true)
+    packagedNumberOfSmallProducers = 5,
+    packagedLargeProducer = true,
+    importedSmallProducer = true,
+    importedLargeProducer = true,
+    exported = true,
+    wastage = true
+  )
 
   "liableVolumes" should {
     "include packaged large producer volumes" in {
@@ -165,7 +169,10 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
       val expectedLiableLitres = for {
         packagedLargeProducerVolumes <- returnsRequest.packaged.map(_.largeProducerVolumes)
         importedLargeProducerVolumes <- returnsRequest.imported.map(_.largeProducerVolumes)
-      } yield (packagedLargeProducerVolumes._1 + importedLargeProducerVolumes._1, packagedLargeProducerVolumes._2 + importedLargeProducerVolumes._2)
+      } yield (
+        packagedLargeProducerVolumes._1 + importedLargeProducerVolumes._1,
+        packagedLargeProducerVolumes._2 + importedLargeProducerVolumes._2
+      )
       expectedLiableLitres.map(_._1) mustBe Some(returnsRequest.liableVolumes._1)
       expectedLiableLitres.map(_._2) mustBe Some(returnsRequest.liableVolumes._2)
     }
@@ -212,7 +219,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
       val returnsRequest = getFullReturnsRequest
       val expectedNonLiableLitres = for {
         exportedVolumes <- returnsRequest.exported
-        wastageVolumes <- returnsRequest.wastage
+        wastageVolumes  <- returnsRequest.wastage
       } yield (exportedVolumes._1 + wastageVolumes._1, exportedVolumes._2 + wastageVolumes._2)
       expectedNonLiableLitres.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
       expectedNonLiableLitres.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
@@ -242,8 +249,8 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
             ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
-            ex <- returnsRequest.exported
-            wa <- returnsRequest.wastage
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
           val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
           returnsRequest.totalLevy mustEqual totalLevy.get
@@ -265,8 +272,8 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
             ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
-            ex <- returnsRequest.exported
-            wa <- returnsRequest.wastage
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
           val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
           returnsRequest.totalLevy mustEqual totalLevy.get
@@ -293,10 +300,11 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
             ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
-            ex <- returnsRequest.exported
-            wa <- returnsRequest.wastage
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          val totalLevy =
+            leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
           returnsRequest.totalLevy mustEqual totalLevy.get
         }
       }
@@ -316,10 +324,11 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
           val leviedLitres = for {
             plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
             ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
-            ex <- returnsRequest.exported
-            wa <- returnsRequest.wastage
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          val totalLevy =
+            leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
           returnsRequest.totalLevy mustEqual totalLevy.get
         }
       }
