@@ -51,16 +51,16 @@ object TaxRateUtil {
     val returnsPackaged = Option(
       ReturnsPackaging(
         smallProducerVolumes = smallProducers,
-        largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else (0L, 0L)
+        largeProducerVolumes = if (packagedLargeProducer) getRandomLitreage else zero
       )
     )
     val returnsImported = (importedSmallProducer, importedLargeProducer) match {
       case (true, true) =>
         Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = getRandomLitreage))
       case (true, false) =>
-        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = (0L, 0L)))
+        Option(ReturnsImporting(smallProducerVolumes = getRandomLitreage, largeProducerVolumes = zero))
       case (false, true) =>
-        Option(ReturnsImporting(smallProducerVolumes = (0L, 0L), largeProducerVolumes = getRandomLitreage))
+        Option(ReturnsImporting(smallProducerVolumes = zero, largeProducerVolumes = getRandomLitreage))
       case (false, false) => None
     }
     val returnsExported = if (exported) Option(getRandomLitreage) else None
@@ -89,13 +89,13 @@ object TaxRateUtil {
     val smallProducers: Seq[SmallProducer] = (0 to numberOfPackSmall)
       .map(index => SmallProducer(None, getRandomSdilRef(index), getRandomLitreage))
     SdilReturn(
-      ownBrand = if (ownBrand) getRandomLitreage else (0L, 0L),
-      packLarge = if (packLarge) getRandomLitreage else (0L, 0L),
+      ownBrand = if (ownBrand) getRandomLitreage else zero,
+      packLarge = if (packLarge) getRandomLitreage else zero,
       packSmall = smallProducers.toList,
-      importSmall = if (importSmall) getRandomLitreage else (0L, 0L),
-      importLarge = if (importLarge) getRandomLitreage else (0L, 0L),
-      export = if (export) getRandomLitreage else (0L, 0L),
-      wastage = if (wastage) getRandomLitreage else (0L, 0L),
+      importSmall = if (importSmall) getRandomLitreage else zero,
+      importLarge = if (importLarge) getRandomLitreage else zero,
+      export = if (export) getRandomLitreage else zero,
+      wastage = if (wastage) getRandomLitreage else zero,
       submittedOn = None
     )
   }
