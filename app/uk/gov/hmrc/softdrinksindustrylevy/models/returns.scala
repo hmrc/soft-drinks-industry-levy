@@ -93,14 +93,12 @@ package object returns {
           "highVolume" -> litres._2.toString
         )
 
-        def monetaryWrites(litreBands: LitreBands*)(implicit mb: Monoid[BigDecimal]): JsObject = {
-//          TODO: NEED TO ADD ALL LITRES IN BANDS AND THEN CALL CALC ON IT
+        def monetaryWrites(litreBands: LitreBands)(implicit mb: Monoid[BigDecimal]): JsObject =
           Json.obj(
-            "lowVolume"    -> litreBands.foldLeft(mb.empty)(_ + _.lowLevy),
-            "highVolume"   -> litreBands.foldLeft(mb.empty)(_ + _.highLevy),
-            "levySubtotal" -> litreBands.foldLeft(mb.empty)(_ + _.dueLevy)
+            "lowVolume"    -> litreBands.lowLevy,
+            "highVolume"   -> litreBands.highLevy,
+            "levySubtotal" -> litreBands.dueLevy
           )
-        }
 
         def optLitreObj(litres: Option[LitreBands], activityType: ActivityType.Value) =
           litres.fold(Json.obj()) { l =>
