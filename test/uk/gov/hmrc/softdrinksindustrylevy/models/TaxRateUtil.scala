@@ -21,11 +21,11 @@ object TaxRateUtil {
   lazy val zero: LitreBands = (0, 0)
 
   def getInternalActivity(
-                                   hasProduced: Boolean = false,
-                                   hasCopackedAll: Boolean = false,
-                                   hasImported: Boolean = false,
-                                   hasCopackedByOthers: Boolean = false
-                                 ): InternalActivity =
+    hasProduced: Boolean = false,
+    hasCopackedAll: Boolean = false,
+    hasImported: Boolean = false,
+    hasCopackedByOthers: Boolean = false
+  ): InternalActivity =
     InternalActivity(
       Map(
         ProducedOwnBrand -> (if (hasProduced) getRandomLitreage else zero),
@@ -39,13 +39,13 @@ object TaxRateUtil {
   def getFullInternalActivity: InternalActivity = getInternalActivity(true, true, true, true)
 
   def getReturnsRequest(
-                                 packagedNumberOfSmallProducers: Int = 0,
-                                 packagedLargeProducer: Boolean = false,
-                                 importedSmallProducer: Boolean = false,
-                                 importedLargeProducer: Boolean = false,
-                                 exported: Boolean = false,
-                                 wastage: Boolean = false
-                               ): ReturnsRequest = {
+    packagedNumberOfSmallProducers: Int = 0,
+    packagedLargeProducer: Boolean = false,
+    importedSmallProducer: Boolean = false,
+    importedLargeProducer: Boolean = false,
+    exported: Boolean = false,
+    wastage: Boolean = false
+  ): ReturnsRequest = {
     val smallProducers: Seq[SmallProducerVolume] = (0 to packagedNumberOfSmallProducers)
       .map(index => SmallProducerVolume(getRandomSdilRef(index), getRandomLitreage))
     val returnsPackaged = Option(
@@ -78,14 +78,14 @@ object TaxRateUtil {
   )
 
   def getSdilReturn(
-                             ownBrand: Boolean = false,
-                             packLarge: Boolean = false,
-                             numberOfPackSmall: Int = 0,
-                             importSmall: Boolean = false,
-                             importLarge: Boolean = false,
-                             export: Boolean = false,
-                             wastage: Boolean = false
-                           ): SdilReturn = {
+    ownBrand: Boolean = false,
+    packLarge: Boolean = false,
+    numberOfPackSmall: Int = 0,
+    importSmall: Boolean = false,
+    importLarge: Boolean = false,
+    export: Boolean = false,
+    wastage: Boolean = false
+  ): SdilReturn = {
     val smallProducers: Seq[SmallProducer] = (0 to numberOfPackSmall)
       .map(index => SmallProducer(None, getRandomSdilRef(index), getRandomLitreage))
     SdilReturn(
