@@ -178,7 +178,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
-            val expected = (producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year))
+            val expected = (producedOwnBrand._1 * lowerBandCostPerLitreMap(
+              year
+            ) + producedOwnBrand._2 * higherBandCostPerLitreMap(year))
               .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
@@ -190,8 +192,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val copackerAll = internalActivity.activity(CopackerAll)
-            val expected = (copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year))
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+            val expected =
+              (copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year))
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
         }
@@ -202,8 +205,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val imported = internalActivity.activity(Imported)
-            val expected = (imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year))
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+            val expected =
+              (imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year))
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
         }
@@ -244,7 +248,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
-            val expected = (producedOwnBrand._1 * lowerBandCostPerLitreMap(year) + producedOwnBrand._2 * higherBandCostPerLitreMap(year))
+            val expected = (producedOwnBrand._1 * lowerBandCostPerLitreMap(
+              year
+            ) + producedOwnBrand._2 * higherBandCostPerLitreMap(year))
               .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
@@ -256,8 +262,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val copackerAll = internalActivity.activity(CopackerAll)
-            val expected = (copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year))
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+            val expected =
+              (copackerAll._1 * lowerBandCostPerLitreMap(year) + copackerAll._2 * higherBandCostPerLitreMap(year))
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
         }
@@ -268,8 +275,9 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val imported = internalActivity.activity(Imported)
-            val expected = (imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year))
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+            val expected =
+              (imported._1 * lowerBandCostPerLitreMap(year) + imported._2 * higherBandCostPerLitreMap(year))
+                .setScale(2, BigDecimal.RoundingMode.HALF_UP)
             taxEstimation mustBe expected
           }
         }

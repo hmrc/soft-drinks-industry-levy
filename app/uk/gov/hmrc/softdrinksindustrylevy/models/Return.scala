@@ -36,7 +36,7 @@ case class ReturnVariationData(
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
-  
+
   def revisedTotalDifference(implicit returnPeriod: ReturnPeriod): BigDecimal = {
     val originalLeviedLitres = original.leviedLitres
     val revisedLeviedLitres = revised.leviedLitres
