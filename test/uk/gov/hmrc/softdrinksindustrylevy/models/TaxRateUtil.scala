@@ -14,22 +14,17 @@ object TaxRateUtil {
   val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
   val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
 
-  def getBandsFromTaxYear(taxYear: Int): (BigDecimal, BigDecimal) = {
-    taxYear match {
+  def calculateLevy(litres: (Long, Long), taxYear: Int): BigDecimal = {
+    val bandRates: (BigDecimal, BigDecimal) = taxYear match {
       case y if y < 2025 => (lowerBandCostPerLitre, higherBandCostPerLitre)
       case _ => (lowerBandCostPerLitreMap(taxYear), higherBandCostPerLitreMap(taxYear))
     }
-  }
-
-//  TODO: USE THIS UTIL IN UNIT TESTS
-  def calculateLevy(litres: (Long, Long), taxYear: Int): BigDecimal = {
-    val bandRates: (BigDecimal, BigDecimal) = getBandsFromTaxYear(taxYear)
     litres._1 * bandRates._1 + litres._2 * bandRates._2
   }
 
-  def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
-  def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
-  def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
+  private def getRandomLitres: Long = Math.floor(Math.random() * 1000000).toLong
+  private def getRandomLitreage: (Long, Long) = (getRandomLitres, getRandomLitres)
+  private def getRandomSdilRef(index: Int): String = s"${Math.floor(Math.random() * 1000).toLong}SdilRef$index"
 
   lazy val zero: LitreBands = (0, 0)
 
