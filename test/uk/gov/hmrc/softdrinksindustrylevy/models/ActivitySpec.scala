@@ -61,7 +61,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             val producedOwnBrand = internalActivity.activity(ProducedOwnBrand)
-            taxEstimation mustBe producedOwnBrand._1 * lowerBandCostPerLitre + producedOwnBrand._2 * higherBandCostPerLitre
+            taxEstimation mustBe calculateLevy(producedOwnBrand, year)
           }
         }
 
