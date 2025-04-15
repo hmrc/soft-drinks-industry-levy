@@ -203,7 +203,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             ex  <- returnsRequest.exported
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
           returnsRequest.totalLevy mustEqual totalLevy.get
         }
       }
@@ -226,7 +226,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             ex  <- returnsRequest.exported
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy = leviedLitres.map(ll => ll._1 * lowerBandCostPerLitre + ll._2 * higherBandCostPerLitre)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
           returnsRequest.totalLevy mustEqual totalLevy.get
         }
       }
@@ -251,8 +251,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             ex  <- returnsRequest.exported
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy =
-            leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
           returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
         }
       }
@@ -275,8 +274,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             ex  <- returnsRequest.exported
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
-          val totalLevy =
-            leviedLitres.map(ll => ll._1 * lowerBandCostPerLitreMap(year) + ll._2 * higherBandCostPerLitreMap(year))
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
           returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
         }
       }
