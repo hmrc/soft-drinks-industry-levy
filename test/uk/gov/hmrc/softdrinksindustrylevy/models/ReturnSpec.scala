@@ -420,7 +420,6 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-//          returnVariationData.revisedTotalDifference shouldBe changeInLeviedLitres._1 * lowerBandCostPerLitre + changeInLeviedLitres._2 * higherBandCostPerLitre
           returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
         }
       }
