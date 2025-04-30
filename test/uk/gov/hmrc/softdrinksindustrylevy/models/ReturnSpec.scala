@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
 
 class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
@@ -76,6 +77,425 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       new ReturnPeriod(testYear, 1).pretty shouldBe "April to June 2018 (18C2)"
       new ReturnPeriod(testYear, 2).pretty shouldBe "July to September 2018 (18C3)"
       new ReturnPeriod(testYear, 3).pretty shouldBe "October to December 2018 (18C4)"
+    }
+  }
+
+  "SdilReturn - leviedLitres, total" should {
+    (2018 to 2024).foreach { year =>
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.ownBrand, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.packLarge, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.importLarge, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2), year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres =
+            sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.`export`._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres =
+            sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe calculateLevy((expectedLeviedLowLitres, expectedLeviedHighLitres), year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.ownBrand, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.packLarge, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.importLarge, year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2), year)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres =
+            sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.`export`._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres =
+            sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe calculateLevy((expectedLeviedLowLitres, expectedLeviedHighLitres), year)
+        }
+      }
+
+    }
+
+    (2025 to 2025).foreach { year =>
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.ownBrand, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.packLarge, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.importLarge, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres =
+            sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.`export`._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres =
+            sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe calculateLevy((expectedLeviedLowLitres, expectedLeviedHighLitres), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with ownBrand correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(ownBrand = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.ownBrand
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.ownBrand, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packLarge correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(packLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.packLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.packLarge, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with packSmall correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(numberOfPackSmall = 5)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importSmall correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importSmall = true)
+          sdilReturn.leviedLitres shouldBe zero
+          sdilReturn.total shouldBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with importLarge correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(importLarge = true)
+          sdilReturn.leviedLitres shouldBe sdilReturn.importLarge
+          sdilReturn.total shouldBe calculateLevy(sdilReturn.importLarge, year).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with wastage correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getSdilReturn(wastage = true)
+          sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2)
+          sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.wastage._1, -1 * sdilReturn.wastage._2), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate levied litres, total for SdilReturn with all fields correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val sdilReturn: SdilReturn = getFullSdilReturn
+          val expectedLeviedLowLitres =
+            sdilReturn.ownBrand._1 + sdilReturn.packLarge._1 + sdilReturn.importLarge._1 - sdilReturn.`export`._1 - sdilReturn.wastage._1
+          val expectedLeviedHighLitres =
+            sdilReturn.ownBrand._2 + sdilReturn.packLarge._2 + sdilReturn.importLarge._2 - sdilReturn.`export`._2 - sdilReturn.wastage._2
+          sdilReturn.leviedLitres shouldBe (expectedLeviedLowLitres, expectedLeviedHighLitres)
+          sdilReturn.total shouldBe calculateLevy((expectedLeviedLowLitres, expectedLeviedHighLitres), year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+    }
+  }
+
+  "ReturnVariationData - revisedTotalDifference" should {
+    val rvdAddress = UkAddress(List("My House", "My Lane"), "AA111A")
+
+    (2018 to 2024).foreach { year =>
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres =
+            originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.`export`._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres =
+            originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.`export`._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres =
+            revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres =
+            revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (
+            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
+            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
+          )
+          val returnVariationData =
+            ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+        }
+      }
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres =
+            originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.`export`._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres =
+            originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.`export`._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres =
+            revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres =
+            revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (
+            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
+            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
+          )
+          val returnVariationData =
+            ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+        }
+      }
+    }
+
+    (2025 to 2025).foreach { year =>
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres =
+            originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.`export`._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres =
+            originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.`export`._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres =
+            revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres =
+            revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (
+            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
+            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
+          )
+          val returnVariationData =
+            ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate revisedTotalDifference for ReturnVariationData for two SdilReturns with all fields correctly - using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val originalSdilReturn: SdilReturn = getFullSdilReturn
+          val revisedSdilReturn: SdilReturn = getFullSdilReturn
+          val expectedOriginalLeviedLowLitres =
+            originalSdilReturn.ownBrand._1 + originalSdilReturn.packLarge._1 + originalSdilReturn.importLarge._1 - originalSdilReturn.`export`._1 - originalSdilReturn.wastage._1
+          val expectedOriginalLeviedHighLitres =
+            originalSdilReturn.ownBrand._2 + originalSdilReturn.packLarge._2 + originalSdilReturn.importLarge._2 - originalSdilReturn.`export`._2 - originalSdilReturn.wastage._2
+          val expectedRevisedlLeviedLowLitres =
+            revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
+          val expectedRevisedLeviedHighLitres =
+            revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
+          val changeInLeviedLitres = (
+            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
+            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
+          )
+          val returnVariationData =
+            ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
+          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
     }
   }
 
@@ -138,7 +558,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
     "total" in {
       val testSdilReturn =
         SdilReturn((1500, 1500), (1500, 1500), Nil, (0, 0), (1500, 1500), (1500, 1500), (1500, 1500), None)
-      implicit val returnPeriod = ReturnPeriod(LocalDate.now())
+      implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2025, 3, 31))
       val result = testSdilReturn.total
 
       result shouldBe 630.00

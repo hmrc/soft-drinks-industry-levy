@@ -17,10 +17,14 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalatestplus.mockito.MockitoSugar
-import sdil.models.{SdilReturn, SmallProducer}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer}
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
-class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
+import java.time.LocalDate
+
+class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with ScalaCheckPropertyChecks {
   "ReturnsPackaging" should {
     "totalSmallProdVolumes" in {
       val testSmallProdLitre1 = (109L, 110L)
@@ -78,5 +82,204 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar {
       result.wastage.get._1 mustBe testWastage._1
       result.wastage.get._2 mustBe testWastage._2
     }
+  }
+
+  "liableVolumes" should {
+    "include packaged large producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
+      returnsRequest.packaged.map(_.largeProducerVolumes._1) mustBe Some(returnsRequest.liableVolumes._1)
+      returnsRequest.packaged.map(_.largeProducerVolumes._2) mustBe Some(returnsRequest.liableVolumes._2)
+    }
+
+    "include imported large producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedLargeProducer = true)
+      returnsRequest.imported.map(_.largeProducerVolumes._1) mustBe Some(returnsRequest.liableVolumes._1)
+      returnsRequest.imported.map(_.largeProducerVolumes._2) mustBe Some(returnsRequest.liableVolumes._2)
+    }
+
+    "ignore packaged small producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
+    }
+
+    "ignore imported small producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedSmallProducer = true)
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
+    }
+
+    "ignore exported volumes" in {
+      val returnsRequest = getReturnsRequest(exported = true)
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
+    }
+
+    "ignore wastage volumes" in {
+      val returnsRequest = getReturnsRequest(wastage = true)
+      returnsRequest.liableVolumes._1 mustEqual 0L
+      returnsRequest.liableVolumes._2 mustEqual 0L
+    }
+
+    "be 'sum' of packaged large producer volumes and imported large producer volumes" in {
+      val returnsRequest = getFullReturnsRequest
+      val expectedLiableLitres = for {
+        packagedLargeProducerVolumes <- returnsRequest.packaged.map(_.largeProducerVolumes)
+        importedLargeProducerVolumes <- returnsRequest.imported.map(_.largeProducerVolumes)
+      } yield (
+        packagedLargeProducerVolumes._1 + importedLargeProducerVolumes._1,
+        packagedLargeProducerVolumes._2 + importedLargeProducerVolumes._2
+      )
+      expectedLiableLitres.map(_._1) mustBe Some(returnsRequest.liableVolumes._1)
+      expectedLiableLitres.map(_._2) mustBe Some(returnsRequest.liableVolumes._2)
+    }
+  }
+
+  "nonLiableVolumes" should {
+    "include exported volumes" in {
+      val returnsRequest = getReturnsRequest(exported = true)
+      returnsRequest.exported.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      returnsRequest.exported.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
+    }
+
+    "include wastage volumes" in {
+      val returnsRequest = getReturnsRequest(wastage = true)
+      returnsRequest.wastage.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      returnsRequest.wastage.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
+    }
+
+    "ignore packaged large producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedLargeProducer = true)
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
+    }
+
+    "ignore imported large producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedLargeProducer = true)
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
+    }
+
+    "ignore packaged small producer volumes" in {
+      val returnsRequest = getReturnsRequest(packagedNumberOfSmallProducers = 5)
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
+    }
+
+    "ignore imported small producer volumes" in {
+      val returnsRequest = getReturnsRequest(importedSmallProducer = true)
+      returnsRequest.nonLiableVolumes._1 mustEqual 0L
+      returnsRequest.nonLiableVolumes._2 mustEqual 0L
+    }
+
+    "be 'sum' of exported volumes and wastage volumes" in {
+      val returnsRequest = getFullReturnsRequest
+      val expectedNonLiableLitres = for {
+        exportedVolumes <- returnsRequest.exported
+        wastageVolumes  <- returnsRequest.wastage
+      } yield (exportedVolumes._1 + wastageVolumes._1, exportedVolumes._2 + wastageVolumes._2)
+      expectedNonLiableLitres.map(_._1) mustBe Some(returnsRequest.nonLiableVolumes._1)
+      expectedNonLiableLitres.map(_._2) mustBe Some(returnsRequest.nonLiableVolumes._2)
+    }
+  }
+
+  "totalLevy" should {
+    (2018 to 2024).foreach { year =>
+      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
+          returnsRequest.totalLevy mustBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
+          returnsRequest.totalLevy mustBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using original rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
+          returnsRequest.totalLevy mustEqual totalLevy.get
+        }
+      }
+    }
+
+    (2025 to 2025).foreach { year =>
+      s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
+          returnsRequest.totalLevy mustBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Apr - Dec $year" in {
+        forAll(aprToDecInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
+          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = ReturnsRequest(packaged = None, imported = None, exported = None, wastage = None)
+          returnsRequest.totalLevy mustBe BigDecimal("0.00")
+        }
+      }
+
+      s"calculate low levy, high levy, and total correctly with non-zero litres totals using $year rates for Jan - Mar ${year + 1}" in {
+        forAll(janToMarInt) { month =>
+          implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+          val returnsRequest = getFullReturnsRequest
+          val leviedLitres = for {
+            plp <- returnsRequest.packaged.map(_.largeProducerVolumes)
+            ilp <- returnsRequest.imported.map(_.largeProducerVolumes)
+            ex  <- returnsRequest.exported
+            wa  <- returnsRequest.wastage
+          } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
+          val totalLevy = leviedLitres.map(calculateLevy(_, year))
+          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+        }
+      }
+
+    }
+
   }
 }

@@ -16,16 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import cats.implicits.catsSyntaxSemigroup
+
 import java.time.{Clock, LocalDate, LocalDateTime, ZoneId}
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.main.JsonSchemaFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString, JsValue, Json}
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.arbReturnReq
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
 import sdil.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 
 class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks with Matchers {
 
@@ -83,6 +86,528 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       forAll { r: ReturnsRequest =>
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C4")
+      }
+    }
+
+    "packaged" should {
+      "volumeSmall" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.packaged map { returnsPackaging =>
+            def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
+              val smallProducerFields: Seq[(String, JsValue)] = Seq(
+                ("producerRef", JsString(smallProducerVolume.producerRef)),
+                ("lowVolume", JsString(smallProducerVolume.volumes._1.toString)),
+                ("highVolume", JsString(smallProducerVolume.volumes._2.toString))
+              )
+              JsObject(smallProducerFields)
+            }
+            val smallProducers: Seq[JsValue] = returnsPackaging.smallProducerVolumes.map(getSmallProducerAsJsValue)
+            assert((json \ "packaging" \ "volumeSmall").as[JsArray] == JsArray(smallProducers))
+          }
+        }
+      }
+
+      "volumeLarge" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.packaged map { returnsPackaging =>
+            val volumeLargeFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsPackaging.largeProducerVolumes._1.toString)),
+              ("highVolume", JsString(returnsPackaging.largeProducerVolumes._2.toString))
+            )
+            assert((json \ "packaging" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
+          }
+        }
+      }
+
+      "monetaryWrites" should {
+        (2018 to 2024).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged map { returnsPackaging =>
+                  val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged map { returnsPackaging =>
+                  val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+
+        (2025 to 2025).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged map { returnsPackaging =>
+                  val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.packaged map { returnsPackaging =>
+                  val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsPackaging.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "packaging" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    "imported" should {
+      "volumeSmall" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.imported map { returnsImporting =>
+            val volumeSmallFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsImporting.smallProducerVolumes._1.toString)),
+              ("highVolume", JsString(returnsImporting.smallProducerVolumes._2.toString))
+            )
+            assert((json \ "importing" \ "volumeSmall").as[JsObject] == JsObject(volumeSmallFields))
+          }
+        }
+      }
+
+      "volumeLarge" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.imported map { returnsImporting =>
+            val volumeLargeFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsImporting.largeProducerVolumes._1.toString)),
+              ("highVolume", JsString(returnsImporting.largeProducerVolumes._2.toString))
+            )
+            assert((json \ "importing" \ "volumeLarge").as[JsObject] == JsObject(volumeLargeFields))
+          }
+        }
+      }
+
+      "monetaryWrites" should {
+        (2018 to 2024).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+
+        (2025 to 2025).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.imported map { returnsImporting =>
+                  val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsImporting.largeProducerVolumes._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "importing" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    "exported" should {
+      "volumes" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.exported map { returnsExported =>
+            val volumesFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsExported._1.toString)),
+              ("highVolume", JsString(returnsExported._2.toString))
+            )
+            assert((json \ "exporting" \ "volumes").as[JsObject] == JsObject(volumesFields))
+          }
+        }
+      }
+
+      "monetaryWrites" should {
+        (2018 to 2024).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+
+        (2025 to 2025).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.exported map { returnsExported =>
+                  val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsExported._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "exporting" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    "wastage" should {
+      "volumes" in {
+        implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
+        forAll { r: ReturnsRequest =>
+          val json = Json.toJson(r)
+          r.wastage map { returnsWastage =>
+            val volumesFields: Seq[(String, JsValue)] = Seq(
+              ("lowVolume", JsString(returnsWastage._1.toString)),
+              ("highVolume", JsString(returnsWastage._2.toString))
+            )
+            assert((json \ "wastage" \ "volumes").as[JsObject] == JsObject(volumesFields))
+          }
+        }
+      }
+
+      "monetaryWrites" should {
+        (2018 to 2024).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitre
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy)),
+                    ("highVolume", JsNumber(highVolumeLevy)),
+                    ("levySubtotal", JsNumber(levySubtotal))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+
+        (2025 to 2025).foreach { year =>
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
+            forAll(aprToDecInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+
+          s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
+            forAll(janToMarInt) { month =>
+              implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+              forAll { r: ReturnsRequest =>
+                val json = Json.toJson(r)
+                r.wastage map { returnsWastage =>
+                  val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
+                  val highVolumeLevy = returnsWastage._2 * higherBandCostPerLitreMap(year)
+                  val levySubtotal = lowVolumeLevy + highVolumeLevy
+                  val monetaryFields: Seq[(String, JsValue)] = Seq(
+                    ("lowVolume", JsNumber(lowVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("highVolume", JsNumber(highVolumeLevy.setScale(2, BigDecimal.RoundingMode.HALF_UP))),
+                    ("levySubtotal", JsNumber(levySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)))
+                  )
+                  assert((json \ "wastage" \ "monetaryValues").as[JsObject] == JsObject(monetaryFields))
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    "netLevyDueTotal" should {
+      (2018 to 2024).foreach { year =>
+        s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
+              val ex = r.exported.getOrElse(zero)
+              val wa = r.wastage.getOrElse(zero)
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+            }
+          }
+        }
+
+        s"write netLevyDueTotal - using original rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
+              val ex = r.exported.getOrElse(zero)
+              val wa = r.wastage.getOrElse(zero)
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
+            }
+          }
+        }
+
+      }
+
+      (2025 to 2025).foreach { year =>
+        s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
+          forAll(aprToDecInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
+              val ex = r.exported.getOrElse(zero)
+              val wa = r.wastage.getOrElse(zero)
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              assert(
+                (json \ "netLevyDueTotal")
+                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              )
+            }
+          }
+        }
+
+        s"write netLevyDueTotal - using original rates for Jan - Mar ${year + 1}" in {
+          forAll(janToMarInt) { month =>
+            implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
+            forAll { r: ReturnsRequest =>
+              val json = Json.toJson(r)
+              val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
+              val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
+              val ex = r.exported.getOrElse(zero)
+              val wa = r.wastage.getOrElse(zero)
+              val liableVolumes: (Long, Long) = plp |+| ilp
+              val nonLiableVolumes: (Long, Long) = ex |+| wa
+              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              assert(
+                (json \ "netLevyDueTotal")
+                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              )
+            }
+          }
+        }
       }
     }
   }
