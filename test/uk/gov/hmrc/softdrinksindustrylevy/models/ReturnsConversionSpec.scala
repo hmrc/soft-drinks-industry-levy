@@ -543,7 +543,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse(zero)
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              val netLevySubtotal =
+                calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
@@ -560,7 +561,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse(zero)
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              val netLevySubtotal =
+                calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert((json \ "netLevyDueTotal").as[BigDecimal] == netLevySubtotal)
             }
           }
@@ -580,7 +582,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse(zero)
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              val netLevySubtotal =
+                calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert(
                 (json \ "netLevyDueTotal")
                   .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.DOWN)
@@ -600,7 +603,8 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val wa = r.wastage.getOrElse(zero)
               val liableVolumes: (Long, Long) = plp |+| ilp
               val nonLiableVolumes: (Long, Long) = ex |+| wa
-              val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
+              val netLevySubtotal =
+                calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert(
                 (json \ "netLevyDueTotal")
                   .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.DOWN)
