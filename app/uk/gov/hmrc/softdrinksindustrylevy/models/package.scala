@@ -41,6 +41,7 @@ package object models {
     lazy val lowLevy: BigDecimal = levyCalculation.lowLevy
     lazy val highLevy: BigDecimal = levyCalculation.highLevy
     lazy val dueLevy: BigDecimal = levyCalculation.total
+    lazy val dueLevyRoundedDown: BigDecimal = levyCalculation.totalRoundedDown
   }
 
   // cos coupling is bad, mkay
