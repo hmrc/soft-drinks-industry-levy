@@ -76,4 +76,5 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
     "<empty>;.*javascript;.*Routes.*;.*testonly.*;"+
       ".*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*"
 
+
 disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
