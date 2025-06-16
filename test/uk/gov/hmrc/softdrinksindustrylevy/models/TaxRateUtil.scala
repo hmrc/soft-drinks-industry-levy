@@ -17,7 +17,7 @@ object TaxRateUtil {
   def calculateLevy(litres: (Long, Long), taxYear: Int): BigDecimal = {
     val bandRates: (BigDecimal, BigDecimal) = taxYear match {
       case y if y < 2025 => (lowerBandCostPerLitre, higherBandCostPerLitre)
-      case _ => (lowerBandCostPerLitreMap(taxYear), higherBandCostPerLitreMap(taxYear))
+      case _             => (lowerBandCostPerLitreMap(taxYear), higherBandCostPerLitreMap(taxYear))
     }
     litres._1 * bandRates._1 + litres._2 * bandRates._2
   }
