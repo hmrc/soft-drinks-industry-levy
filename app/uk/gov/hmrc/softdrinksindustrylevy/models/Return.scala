@@ -38,11 +38,14 @@ case class ReturnVariationData(
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
 
   def revisedTotalDifference(implicit returnPeriod: ReturnPeriod): BigDecimal = {
-    val originalLeviedLitres = original.leviedLitres
-    val revisedLeviedLitres = revised.leviedLitres
-    val comparedLeviedLitres =
-      (revisedLeviedLitres._1 - originalLeviedLitres._1, revisedLeviedLitres._2 - originalLeviedLitres._2)
-    LitreOps(comparedLeviedLitres).dueLevy
+//    val originalLeviedLitres = original.leviedLitres
+//    val revisedLeviedLitres = revised.leviedLitres
+//    val comparedLeviedLitres =
+//      (revisedLeviedLitres._1 - originalLeviedLitres._1, revisedLeviedLitres._2 - originalLeviedLitres._2)
+//    LitreOps(comparedLeviedLitres).dueLevy
+    val originalReturnTotal = LitreOps(original.leviedLitres).dueLevyRoundedDown
+    val revisedReturnTotal = LitreOps(revised.leviedLitres).dueLevyRoundedDown
+    revisedReturnTotal - originalReturnTotal
   }
 }
 object ReturnVariationData {

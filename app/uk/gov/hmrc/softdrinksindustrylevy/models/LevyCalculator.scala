@@ -40,6 +40,7 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val highLevy = high.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val total = (low + high).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val totalRoundedDown = (low + high).setScale(2, BigDecimal.RoundingMode.DOWN)
 }
 
 object LevyCalculator {

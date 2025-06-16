@@ -84,6 +84,6 @@ case class InternalActivity(activity: Map[ActivityType.Value, LitreBands], isLar
       case _ =>
         val biggestNumberThatETMPCanHandle = BigDecimal("99999999999.99")
         implicit val returnPeriod = explicitReturnPeriod
-        totalLiableLitres.dueLevy.min(biggestNumberThatETMPCanHandle)
+        totalLiableLitres.dueLevyRoundedDown.min(biggestNumberThatETMPCanHandle)
     }
 }
