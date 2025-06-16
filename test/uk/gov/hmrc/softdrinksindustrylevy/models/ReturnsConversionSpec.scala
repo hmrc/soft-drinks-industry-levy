@@ -583,7 +583,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert(
                 (json \ "netLevyDueTotal")
-                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.DOWN)
               )
             }
           }
@@ -603,7 +603,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
               val netLevySubtotal = calculateLevy((liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2), year)
               assert(
                 (json \ "netLevyDueTotal")
-                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+                  .as[BigDecimal] == netLevySubtotal.setScale(2, BigDecimal.RoundingMode.DOWN)
               )
             }
           }

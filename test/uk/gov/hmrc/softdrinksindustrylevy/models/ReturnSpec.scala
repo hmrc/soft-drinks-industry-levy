@@ -414,13 +414,11 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
             revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
           val expectedRevisedLeviedHighLitres =
             revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
-          val changeInLeviedLitres = (
-            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
-            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
-          )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+          val expectedRevisedReturnTotal = calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+          val expectedOriginalReturnTotal = calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+          returnVariationData.revisedTotalDifference shouldBe expectedRevisedReturnTotal - expectedOriginalReturnTotal
         }
       }
 
@@ -437,13 +435,11 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
             revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
           val expectedRevisedLeviedHighLitres =
             revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
-          val changeInLeviedLitres = (
-            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
-            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
-          )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
+          val expectedRevisedReturnTotal = calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+          val expectedOriginalReturnTotal = calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+          returnVariationData.revisedTotalDifference shouldBe expectedRevisedReturnTotal - expectedOriginalReturnTotal
         }
       }
     }
@@ -462,14 +458,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
             revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
           val expectedRevisedLeviedHighLitres =
             revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
-          val changeInLeviedLitres = (
-            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
-            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
-          )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
-            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          val expectedRevisedReturnTotal = calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+          val expectedOriginalReturnTotal = calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+          returnVariationData.revisedTotalDifference shouldBe
+            expectedRevisedReturnTotal.setScale(2, BigDecimal.RoundingMode.DOWN) - expectedOriginalReturnTotal.setScale(2, BigDecimal.RoundingMode.DOWN)
         }
       }
 
@@ -486,14 +480,12 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
             revisedSdilReturn.ownBrand._1 + revisedSdilReturn.packLarge._1 + revisedSdilReturn.importLarge._1 - revisedSdilReturn.`export`._1 - revisedSdilReturn.wastage._1
           val expectedRevisedLeviedHighLitres =
             revisedSdilReturn.ownBrand._2 + revisedSdilReturn.packLarge._2 + revisedSdilReturn.importLarge._2 - revisedSdilReturn.`export`._2 - revisedSdilReturn.wastage._2
-          val changeInLeviedLitres = (
-            expectedRevisedlLeviedLowLitres - expectedOriginalLeviedLowLitres,
-            expectedRevisedLeviedHighLitres - expectedOriginalLeviedHighLitres
-          )
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
-          returnVariationData.revisedTotalDifference shouldBe calculateLevy(changeInLeviedLitres, year)
-            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          val expectedRevisedReturnTotal = calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+          val expectedOriginalReturnTotal = calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+          returnVariationData.revisedTotalDifference shouldBe
+            expectedRevisedReturnTotal.setScale(2, BigDecimal.RoundingMode.DOWN) - expectedOriginalReturnTotal.setScale(2, BigDecimal.RoundingMode.DOWN)
         }
       }
     }

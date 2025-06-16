@@ -252,7 +252,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
           val totalLevy = leviedLitres.map(calculateLevy(_, year))
-          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.DOWN)
         }
       }
 
@@ -275,7 +275,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
             wa  <- returnsRequest.wastage
           } yield (plp._1 + ilp._1 - ex._1 - wa._1, plp._2 + ilp._2 - ex._2 - wa._2)
           val totalLevy = leviedLitres.map(calculateLevy(_, year))
-          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.HALF_UP)
+          returnsRequest.totalLevy mustEqual totalLevy.get.setScale(2, BigDecimal.RoundingMode.DOWN)
         }
       }
 

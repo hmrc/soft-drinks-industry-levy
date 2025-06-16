@@ -172,7 +172,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(ProducedOwnBrand), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -182,7 +182,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(CopackerAll), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -192,7 +192,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(Imported), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -211,7 +211,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getFullInternalActivity
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.totalLiableLitres, year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -230,7 +230,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasProduced = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(ProducedOwnBrand), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -240,7 +240,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasCopackedAll = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(CopackerAll), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -250,7 +250,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getInternalActivity(hasImported = true)
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.activity(Imported), year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
 
@@ -269,7 +269,7 @@ class ActivitySpec extends PlaySpec with AppendedClues with ScalaCheckPropertyCh
             val internalActivity = getFullInternalActivity
             val taxEstimation = internalActivity.taxEstimationWithExplicitReturnPeriod(returnPeriod)
             taxEstimation mustBe calculateLevy(internalActivity.totalLiableLitres, year)
-              .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           }
         }
       }
