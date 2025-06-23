@@ -40,6 +40,7 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val highLevy = high.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val total = (low + high).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val totalRoundedDown = (low + high).setScale(2, BigDecimal.RoundingMode.DOWN)
 }
 
 object LevyCalculator {
@@ -66,10 +67,6 @@ object LevyCalculator {
     )
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
-    if (lowLitres < 0 || highLitres < 0) {
-      throw new IllegalArgumentException("Litres cannot be negative")
-    }
-
     val taxYear: TaxYear = getTaxYear(returnPeriod)
     val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites

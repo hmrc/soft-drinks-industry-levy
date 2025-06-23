@@ -16,6 +16,8 @@
 
 package sdil.models
 
+import cats.implicits.catsSyntaxSemigroup
+
 import java.time.LocalDateTime
 import java.time.LocalDate
 import play.api.libs.json.{Format, Json}
@@ -34,6 +36,12 @@ case class ReturnVariationData(
   def changedLitreages: Map[String, (Long, Long)] = original.compare(revised)
   def removedSmallProducers: List[SmallProducer] = original.packSmall.filterNot(revised.packSmall.toSet)
   def addedSmallProducers: List[SmallProducer] = revised.packSmall.filterNot(original.packSmall.toSet)
+
+  def revisedTotalDifference(implicit returnPeriod: ReturnPeriod): BigDecimal = {
+    val originalReturnTotal = LitreOps(original.leviedLitres).dueLevyRoundedDown
+    val revisedReturnTotal = LitreOps(revised.leviedLitres).dueLevyRoundedDown
+    revisedReturnTotal - originalReturnTotal
+  }
 }
 object ReturnVariationData {
   implicit val format: Format[ReturnVariationData] = Json.format[ReturnVariationData]
@@ -49,7 +57,7 @@ case class SdilReturn(
   wastage: (Long, Long) = (0, 0), // negative charge
   submittedOn: Option[LocalDateTime]
 ) {
-  private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, export, wastage)
+  private def toLongs: List[(Long, Long)] = List(ownBrand, packLarge, importSmall, importLarge, `export`, wastage)
   private val keys = List("ownBrand", "packLarge", "importSmall", "importLarge", "export", "wastage")
   def compare(other: SdilReturn): Map[String, (Long, Long)] = {
     val y = this.toLongs
@@ -60,10 +68,15 @@ case class SdilReturn(
       .map(x => keys(x._2) -> x._1)
       .toMap
   }
-  private def sumLitres(l: List[(Long, Long)])(implicit returnPeriod: ReturnPeriod) =
-    l.map(x => LitreOps(x).dueLevy).sum
+
+  private[models] def leviedLitres: (Long, Long) = {
+    val chargedLitres = ownBrand |+| packLarge |+| importLarge
+    val creditsLitres = `export` |+| wastage
+    (chargedLitres._1 - creditsLitres._1, chargedLitres._2 - creditsLitres._2)
+  }
+
   def total(implicit returnPeriod: ReturnPeriod): BigDecimal =
-    sumLitres(List(ownBrand, packLarge, importLarge)) - sumLitres(List(export, wastage))
+    LitreOps(leviedLitres).dueLevy
 }
 
 case class ReturnPeriod(year: Int, quarter: Int) {
