@@ -72,10 +72,7 @@ object LevyCalculator extends Logging {
     val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
-    logger.info(
-      s"getLevyCalculation called with lowLitres $lowLitres highLitres $highLitres year ${returnPeriod.year} quarter ${returnPeriod.quarter}"
-    )
-    logger.info(s"getLevyCalculation calculated taxYear ${taxYear.toString} lowLevy $lowLevy highLevy $highLevy")
+    logger.info(s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} using bandRates lower ${bandRates.lowerBandCostPerLites} higher ${bandRates.higherBandCostPerLitre}")
     LevyCalculation(lowLevy, highLevy)
   }
 
