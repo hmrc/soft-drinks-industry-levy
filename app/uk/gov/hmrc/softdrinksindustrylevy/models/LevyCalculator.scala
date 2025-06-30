@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import play.api.Logging
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.config.Rates._
 
@@ -43,7 +44,7 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val totalRoundedDown = (low + high).setScale(2, BigDecimal.RoundingMode.DOWN)
 }
 
-object LevyCalculator {
+object LevyCalculator extends Logging {
 
   // Map tax years to their corresponding band rates using the Rates object
   private val bandRatesByTaxYear: Map[TaxYear, BandRates] = Map(
@@ -71,6 +72,10 @@ object LevyCalculator {
     val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
+    logger.info(
+      s"getLevyCalculation called with lowLitres $lowLitres highLitres $highLitres year ${returnPeriod.year} quarter ${returnPeriod.quarter}"
+    )
+    logger.info(s"getLevyCalculation calculated taxYear ${taxYear.toString} lowLevy $lowLevy highLevy $highLevy")
     LevyCalculation(lowLevy, highLevy)
   }
 
