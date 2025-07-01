@@ -471,9 +471,11 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
           val expectedRevisedReturnTotal =
-            calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year).setScale(2, BigDecimal.RoundingMode.DOWN)
+            calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           val expectedOriginalReturnTotal =
-            calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year).setScale(2, BigDecimal.RoundingMode.DOWN)
+            calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           returnVariationData.revisedTotalDifference shouldBe expectedRevisedReturnTotal - expectedOriginalReturnTotal
         }
       }
@@ -494,9 +496,11 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
           val returnVariationData =
             ReturnVariationData(originalSdilReturn, revisedSdilReturn, returnPeriod, "testOrg", rvdAddress, "", None)
           val expectedRevisedReturnTotal =
-            calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year).setScale(2, BigDecimal.RoundingMode.DOWN)
+            calculateLevy((expectedRevisedlLeviedLowLitres, expectedRevisedLeviedHighLitres), year)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           val expectedOriginalReturnTotal =
-            calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year).setScale(2, BigDecimal.RoundingMode.DOWN)
+            calculateLevy((expectedOriginalLeviedLowLitres, expectedOriginalLeviedHighLitres), year)
+              .setScale(2, BigDecimal.RoundingMode.DOWN)
           returnVariationData.revisedTotalDifference shouldBe expectedRevisedReturnTotal - expectedOriginalReturnTotal
         }
       }
