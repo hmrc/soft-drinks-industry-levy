@@ -116,10 +116,10 @@
     @table_helper("return-value") {
         @table_row_helper("original", s"&pound;${variation.original.total.formatted("%,1.2f")}")
         @table_row_helper("revised", s"&pound;${variation.revised.total.formatted("%,1.2f")}")
-        @if(variation.revised.total - variation.original.total < 0) {
-            @table_row_helper("change", s"-&pound;${(variation.revised.total - variation.original.total).abs.formatted("%,1.2f")}")
+        @if(variation.revisedTotalDifference < 0) {
+            @table_row_helper("change", s"-&pound;${(variation.revisedTotalDifference).abs.formatted("%,1.2f")}")
         } else {
-            @table_row_helper("change", s"&pound;${(variation.revised.total - variation.original.total).formatted("%,1.2f")}")
+            @table_row_helper("change", s"&pound;${(variation.revisedTotalDifference).formatted("%,1.2f")}")
         }
     }
     @variation.repaymentMethod.map { method =>

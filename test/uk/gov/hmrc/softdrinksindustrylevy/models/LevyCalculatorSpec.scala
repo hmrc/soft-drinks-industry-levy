@@ -102,13 +102,8 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
 
     val smallPosInts = Gen.choose(0, 1000)
     val largePosInts = Gen.choose(1000, 10000000)
-    val janToMarInt = Gen.choose(1, 3)
-    val aprToDecInt = Gen.choose(4, 12)
 
     (2018 to 2024).foreach { year =>
-      val lowerBandCostPerLitre = BigDecimal("0.18")
-      val higherBandCostPerLitre = BigDecimal("0.24")
-
       s"calculate low levy, high levy, and total correctly with zero litres totals using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
@@ -195,10 +190,6 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
     }
 
     (2025 to 2025).foreach { year =>
-      val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-
-      val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
-
       s"calculate low levy, high levy, and total correctly with zero litres totals using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))

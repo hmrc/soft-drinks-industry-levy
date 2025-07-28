@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
+import play.api.Logging
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.config.Rates._
 
@@ -40,9 +41,10 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val highLevy = high.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val total = (low + high).setScale(2, BigDecimal.RoundingMode.HALF_UP)
+  lazy val totalRoundedDown = (low + high).setScale(2, BigDecimal.RoundingMode.DOWN)
 }
 
-object LevyCalculator {
+object LevyCalculator extends Logging {
 
   // Map tax years to their corresponding band rates using the Rates object
   private val bandRatesByTaxYear: Map[TaxYear, BandRates] = Map(
@@ -66,14 +68,11 @@ object LevyCalculator {
     )
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
-    if (lowLitres < 0 || highLitres < 0) {
-      throw new IllegalArgumentException("Litres cannot be negative")
-    }
-
     val taxYear: TaxYear = getTaxYear(returnPeriod)
     val bandRates: BandRates = getBandRates(taxYear)
     val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
+    logger.info(s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} using bandRates lower ${bandRates.lowerBandCostPerLites} higher ${bandRates.higherBandCostPerLitre}")
     LevyCalculation(lowLevy, highLevy)
   }
 

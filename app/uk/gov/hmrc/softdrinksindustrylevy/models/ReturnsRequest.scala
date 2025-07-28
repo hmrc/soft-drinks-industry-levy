@@ -27,13 +27,14 @@ case class ReturnsRequest(
   exported: Option[LitreBands],
   wastage: Option[LitreBands]
 ) {
+  def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal =
+    (liableVolumes._1 - nonLiableVolumes._1, liableVolumes._2 - nonLiableVolumes._2).dueLevyRoundedDown
 
-  def totalLevy(implicit returnPeriod: ReturnPeriod): BigDecimal = liableVolumes.dueLevy - nonLiableVolumes.dueLevy
+  private[models] lazy val liableVolumes =
+    (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
+      .getOrElse(Monoid[LitreBands].empty)
 
-  private lazy val liableVolumes = (packaged.map(_.largeProducerVolumes) |+| imported.map(_.largeProducerVolumes))
-    .getOrElse(Monoid[LitreBands].empty)
-
-  private lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
+  private[models] lazy val nonLiableVolumes: LitreBands = (exported |+| wastage).getOrElse(Monoid[LitreBands].empty)
 
 }
 
@@ -59,7 +60,7 @@ object ReturnsRequest {
     ReturnsRequest(
       packaged = pack.some,
       imported = ReturnsImporting(sdilReturn.importSmall, sdilReturn.importLarge).some,
-      exported = sdilReturn.export.some,
+      exported = sdilReturn.`export`.some,
       wastage = sdilReturn.wastage.some
     )
   }
