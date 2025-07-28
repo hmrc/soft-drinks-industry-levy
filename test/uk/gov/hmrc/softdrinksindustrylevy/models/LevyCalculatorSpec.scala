@@ -22,15 +22,13 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator._
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 
 import java.time.LocalDate
 
 class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
   "getTaxYear" should {
-    val janToMarInt = Gen.choose(1, 3)
-    val aprToDecInt = Gen.choose(4, 12)
-
     (2018 to 2024).foreach { year =>
       s"return Pre2025 when in April - December $year" in {
         forAll(aprToDecInt) { month =>
