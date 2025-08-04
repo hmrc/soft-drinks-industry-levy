@@ -79,7 +79,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
       val bandRates: BandRates = getBandRates(TaxYear.fromYear(taxYear))
 
       s"return 0.18 for lower band when tax year is $taxYear" in {
-        bandRates.lowerBandCostPerLites shouldBe BigDecimal("0.18")
+        bandRates.lowerBandCostPerLitre shouldBe BigDecimal("0.18")
       }
 
       s"return 0.24 for higher band when tax year is $taxYear" in {
@@ -89,7 +89,7 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
 
     "return 0.194 for lower band when tax year is 2025" in {
       val bandRates: BandRates = getBandRates(TaxYear.fromYear(2025))
-      bandRates.lowerBandCostPerLites shouldBe BigDecimal("0.194")
+      bandRates.lowerBandCostPerLitre shouldBe BigDecimal("0.194")
     }
 
     "return 0.259 for higher band when tax year is 2025" in {
