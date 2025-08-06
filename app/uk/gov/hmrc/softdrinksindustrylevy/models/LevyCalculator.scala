@@ -35,7 +35,7 @@ object TaxYear {
   }
 }
 
-case class BandRates(lowerBandCostPerLites: BigDecimal, higherBandCostPerLitre: BigDecimal)
+case class BandRates(lowerBandCostPerLitre: BigDecimal, higherBandCostPerLitre: BigDecimal)
 
 case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -70,9 +70,9 @@ object LevyCalculator extends Logging {
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
     val taxYear: TaxYear = getTaxYear(returnPeriod)
     val bandRates: BandRates = getBandRates(taxYear)
-    val lowLevy = lowLitres * bandRates.lowerBandCostPerLites
+    val lowLevy = lowLitres * bandRates.lowerBandCostPerLitre
     val highLevy = highLitres * bandRates.higherBandCostPerLitre
-    logger.info(s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} using bandRates lower ${bandRates.lowerBandCostPerLites} higher ${bandRates.higherBandCostPerLitre}")
+    logger.info(s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} using bandRates lower ${bandRates.lowerBandCostPerLitre} higher ${bandRates.higherBandCostPerLitre}")
     LevyCalculation(lowLevy, highLevy)
   }
 
