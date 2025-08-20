@@ -4,8 +4,8 @@ import sbt._
 object AppDependencies {
 
   private val playVersion = "play-30"
-  private val bootstrapVersion = "9.7.0"
-  private val hmrcMongoVersion = "2.4.0"
+  private val bootstrapVersion = "10.1.0"
+  private val hmrcMongoVersion = "2.7.0"
 
   val compile: Seq[ModuleID] = Seq(
     ws,
@@ -13,9 +13,7 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"        %% s"hmrc-mongo-$playVersion"        % hmrcMongoVersion,
     "com.github.fge"           %  "json-schema-validator"           % "2.2.6",
     "org.typelevel"            %% "cats-core"                       % "2.12.0",
-    "org.scala-stm"            %% "scala-stm"                       % "0.11.1",
-    "com.github.ghik" % "silencer-lib" % "1.7.17" % Provided cross CrossVersion.full,
-    compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.17" cross CrossVersion.full)
+    "org.scala-stm"            %% "scala-stm"                       % "0.11.1"
   )
 
   val test: Seq[ModuleID] = Seq(
