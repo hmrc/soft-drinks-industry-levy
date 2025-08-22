@@ -98,7 +98,7 @@ class VariationsController @Inject() (
     data: VariationsRequest,
     sdilNumber: String,
     outcome: String,
-    maybeError: Option[String] = None
+    error: Option[String] = None
   )(implicit hc: HeaderCarrier): JsValue = {
 
     val core: JsObject = Json.obj(
@@ -128,7 +128,7 @@ class VariationsController @Inject() (
       )
     )
 
-    core ++ payload ++ maybeError.fold(Json.obj())(e => Json.obj("error" -> e))
+    core ++ payload ++ error.fold(Json.obj())(e => Json.obj("error" -> e))
   }
 
 }
