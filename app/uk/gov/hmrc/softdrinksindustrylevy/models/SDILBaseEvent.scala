@@ -61,3 +61,10 @@ class BalanceQueryEvent(path: String, detail: JsValue)(implicit headerCarrier: H
       path = path,
       detailJson = detail
     )
+class VariationsSubmissionEvent(path: String, detail: JsValue)(implicit hc: HeaderCarrier)
+    extends SDILBaseEvent(
+      auditType = "SDILVariationsSubmission",
+      transactionName = "Soft Drinks Industry Levy balance requested",
+      path = path,
+      detailJson = detail
+    )

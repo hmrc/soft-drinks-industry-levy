@@ -28,6 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
@@ -47,11 +48,13 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockVariationSubmissionService = mock[VariationSubmissionService]
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
+  val mockAuditing: AuditConnector = mock[AuditConnector]
   val cc = app.injector.instanceOf[ControllerComponents]
 
   val controller: VariationsController = new VariationsController(
     messagesApi,
     mockGformConnector,
+    mockAuditing,
     mockVariationSubmissionService,
     mockReturnsVariationSubmissionService,
     mockReturnsAdjustmentSubmissionService,
@@ -91,6 +94,8 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
 
       when(mockVariationSubmissionService.save(any(), any()))
         .thenReturn(Future.successful(()))
+
+      when(mockAuditing.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
 
