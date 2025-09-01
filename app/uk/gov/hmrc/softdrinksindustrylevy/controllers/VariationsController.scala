@@ -18,15 +18,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import com.google.inject.{Inject, Singleton}
 import play.api.Logger
+import play.api.libs.json._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
 import sdil.models.ReturnVariationData
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, VariationsRequest, VariationsSubmissionEvent, formatReturnVariationData}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, ReturnsVariationRequest, SdilActivity, VariationsRequest, VariationsSubmissionEvent, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 
 import scala.concurrent.ExecutionContext
@@ -94,41 +95,71 @@ class VariationsController @Inject() (
       }
     }
 
+  private object AuditJson {
+    val activityFlagsWrites: Writes[Activity] = Writes { a =>
+      Json.obj(
+        "isProducer"              -> a.isProducer,
+        "isLarge"                 -> a.isLarge,
+        "isContractPacker"        -> a.isContractPacker,
+        "isImporter"              -> a.isImporter,
+        "isVoluntaryRegistration" -> a.isVoluntaryRegistration,
+        "isSmallProducer"         -> a.isSmallProducer,
+        "taxEstimation"           -> a.taxEstimation
+      )
+    }
+
+    private def fieldOpt[A](name: String, oa: Option[A])(implicit w: Writes[A]): JsObject =
+      oa.fold(Json.obj())(a => Json.obj(name -> Json.toJson(a)))
+
+    implicit val sdilActivityWrites: OWrites[SdilActivity] = OWrites { sa =>
+      Json.obj(
+        "produceLessThanOneMillionLitres" -> sa.produceLessThanOneMillionLitres,
+        "smallProducerExemption"          -> sa.smallProducerExemption,
+        "usesContractPacker"              -> sa.usesContractPacker,
+        "voluntarilyRegistered"           -> sa.voluntarilyRegistered,
+        "reasonForAmendment"              -> sa.reasonForAmendment,
+        "taxObligationStartDate"          -> sa.taxObligationStartDate
+      ) ++ fieldOpt("activity", sa.activity.map(Json.toJson(_)(activityFlagsWrites)))
+    }
+  }
+
   private def buildVariationsAudit(
     data: VariationsRequest,
     sdilNumber: String,
     outcome: String,
     error: Option[String] = None
   )(implicit hc: HeaderCarrier): JsValue = {
+    import AuditJson._
 
-    val core: JsObject = Json.obj(
-      "sdilNumber"       -> sdilNumber,
-      "outcome"          -> outcome,
-      "authProviderType" -> "GovernmentGateway",
-      "deviceId"         -> hc.deviceID,
-      "formTemplateId"   -> "SDIL-VAR-1"
-    )
+    val core =
+      Json.obj(
+        "sdilNumber"       -> sdilNumber,
+        "outcome"          -> outcome,
+        "authProviderType" -> "GovernmentGateway",
+        "formTemplateId"   -> "SDIL-VAR-1"
+      ) ++ (hc.deviceID match {
+        case Some(id) => Json.obj("deviceId" -> id)
+        case None     => Json.obj()
+      })
 
-    val payload: JsObject = Json.obj(
-      "tradingName"           -> data.tradingName,
-      "orgName"               -> data.displayOrgName,
-      "address"               -> data.ppobAddress,
-      "businessContact"       -> data.businessContact,
-      "correspondenceContact" -> data.correspondenceContact,
-      "primaryPersonContact"  -> data.primaryPersonContact,
-      "litreageActivity"      -> data.sdilActivity,
-      "deregistration" -> Json.obj(
-        "date"   -> data.deregistrationDate,
-        "reason" -> data.deregistrationText
-      ),
-      "sites" -> Json.obj(
-        "new"   -> data.newSites,
-        "amend" -> data.amendSites,
-        "close" -> data.closeSites
-      )
-    )
+    val payload =
+      Json.obj(
+        "tradingName" -> data.tradingName,
+        "orgName"     -> data.displayOrgName,
+        "deregistration" -> Json.obj(
+          "date"   -> data.deregistrationDate,
+          "reason" -> data.deregistrationText
+        ),
+        "sites" -> Json.obj(
+          "new"   -> data.newSites,
+          "amend" -> data.amendSites,
+          "close" -> data.closeSites
+        )
+      ) ++ (data.sdilActivity match {
+        case Some(sa) => Json.obj("litreageActivity" -> Json.toJson(sa))
+        case None     => Json.obj()
+      })
 
     core ++ payload ++ error.fold(Json.obj())(e => Json.obj("error" -> e))
   }
-
 }
