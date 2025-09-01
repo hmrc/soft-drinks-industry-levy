@@ -123,7 +123,7 @@ class VariationsController @Inject() (
     }
   }
 
-  private def buildVariationsAudit(
+  private[controllers] def buildVariationsAudit(
     data: VariationsRequest,
     sdilNumber: String,
     outcome: String,
