@@ -28,6 +28,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
+import org.mongodb.scala.ObservableFuture
 
 class ReturnsPersistenceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsWrapper] with MockitoSugar
@@ -36,11 +37,12 @@ class ReturnsPersistenceSpec
   implicit val defaultTimeout: FiniteDuration = 5 seconds
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  val repository = new ReturnsPersistence(mongoComponent)
+  override protected val repository = new ReturnsPersistence(mongoComponent)
+  val service = new ReturnsPersistence(mongoComponent)
 
-  val sReturnsMongo: MongoCollection[ReturnsWrapper] = repository.collection
-  implicit val nilFormat: OFormat[Nil.type] = Json.format[Nil.type]
-  implicit val listFormat: OFormat[List[SmallProducer]] = Json.format[List[SmallProducer]]
+  val sReturnsMongo: MongoCollection[ReturnsWrapper] = service.collection
+  implicit val spFormat: OFormat[SmallProducer] = Json.format[SmallProducer]
+
   implicit val sdilFormat: OFormat[SdilReturn] = Json.format[SdilReturn]
   val rFormat: OFormat[ReturnsWrapper] = Json.format[ReturnsWrapper]
 
@@ -51,7 +53,7 @@ class ReturnsPersistenceSpec
     val sdilReturn = SdilReturn((3, 3), (3, 3), Nil, (3, 3), (3, 3), (3, 3), (3, 3), None)
 
     "update => create if one does not exist successfully saves new record" in {
-      await(repository.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn))
 
       val result = await(sReturnsMongo.find().toFuture()).toString
 
@@ -59,8 +61,8 @@ class ReturnsPersistenceSpec
     }
 
     "update => successfully updated the record" in {
-      await(repository.update(utr, returnPeriod, sdilReturn))
-      await(repository.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn))
 
       val result = await(sReturnsMongo.find().toFuture())
       result.size mustBe 1
@@ -71,41 +73,41 @@ class ReturnsPersistenceSpec
     }
 
     "get => successfully get Tuple(sdilReturn, BsonObjectId) when matching utr & returnPeriod" in {
-      await(repository.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn))
 
-      val result: SdilReturn = await(repository.get(utr, returnPeriod)).get
+      val result: SdilReturn = await(service.get(utr, returnPeriod)).get
 
       result mustBe sdilReturn
 
     }
 
     "get => if exists get first from collection" in {
-      await(repository.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (123, 123))))
-      await(repository.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (123, 123))))
+      await(service.update(utr, returnPeriod, sdilReturn))
 
-      val result = await(repository.get(utr, returnPeriod)).get
+      val result = await(service.get(utr, returnPeriod)).get
 
       result mustBe sdilReturn
     }
 
     "get => None when match not found" in {
-      val result = await(repository.get(utr, returnPeriod))
+      val result = await(service.get(utr, returnPeriod))
 
       result.isDefined mustBe false
     }
 
     "list => get all results that match a given UTR but exclusively: (1/returnperiod, returning the latest submitted)" in {
-      await(repository.update(utr, returnPeriod.copy(year = 9999), sdilReturn))
-      await(repository.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (1230000, 123))))
-      await(repository.update(utr, returnPeriod, sdilReturn))
+      await(service.update(utr, returnPeriod.copy(year = 9999), sdilReturn))
+      await(service.update(utr, returnPeriod, sdilReturn.copy(ownBrand = (1230000, 123))))
+      await(service.update(utr, returnPeriod, sdilReturn))
 
-      val result = await(repository.list(utr))
+      val result = await(service.list(utr))
       result.size mustBe 2
       result.get(returnPeriod).get.ownBrand mustBe sdilReturn.ownBrand
     }
 
     "list => get all" in {
-      val result = await(repository.list(utr))
+      val result = await(service.list(utr))
       result.size mustBe 0
     }
   }

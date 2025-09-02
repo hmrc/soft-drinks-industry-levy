@@ -16,13 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.http.{HttpClient, HttpResponse}
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-
+import uk.gov.hmrc.http.HttpResponse
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 

@@ -56,7 +56,7 @@ class ReturnsRequestSpec extends FakeApplicationSpec with MockitoSugar with Scal
         importLarge = testImportLarge,
         packLarge = testPackLarge,
         ownBrand = testOwnBrand,
-        export = testExport,
+        `export` = testExport,
         wastage = testWastage,
         packSmall = List(testPackSmall),
         submittedOn = None

@@ -21,6 +21,7 @@ import org.scalatest.RecoverMethods.recoverToExceptionIf
 import play.api.Mode
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UnauthorizedException}
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
 
 import scala.concurrent.{ExecutionContext, Future}
 

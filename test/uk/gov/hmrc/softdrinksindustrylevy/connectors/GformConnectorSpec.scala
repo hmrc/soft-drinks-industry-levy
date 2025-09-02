@@ -21,7 +21,6 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 

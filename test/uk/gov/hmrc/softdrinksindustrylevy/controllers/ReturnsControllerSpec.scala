@@ -21,7 +21,6 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.http.Status.BAD_REQUEST
 import play.api.libs.json.JsNull
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest

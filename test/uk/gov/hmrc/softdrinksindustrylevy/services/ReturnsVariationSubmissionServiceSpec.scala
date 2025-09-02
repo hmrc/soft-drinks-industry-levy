@@ -27,6 +27,7 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import org.mongodb.scala.ObservableFuture
 
 class ReturnsVariationSubmissionServiceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnsVariationWrapper] with MockitoSugar

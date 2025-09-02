@@ -106,7 +106,7 @@ package object get {
       (JsPath \ "siteReference").formatNullable[String] and
       (JsPath \ "tradingName").formatNullable[String] and
       (__ \ "closureDate").formatNullable[LocalDate]
-  )(Site.apply, unlift(Site.unapply))
+  )(Site.apply, site => (site.address, site.ref, site.tradingName, site.closureDate))
 
   implicit val subscriptionFormat: Format[Subscription] = new Format[Subscription] {
 
