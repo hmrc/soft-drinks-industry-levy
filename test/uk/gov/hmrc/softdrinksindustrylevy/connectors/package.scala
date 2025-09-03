@@ -229,7 +229,7 @@ package object connectors {
     None,
     UkAddress(List("line1"), "AA11AA"),
     activity,
-    LocalDate.now().minusYears(2),
+    LocalDate.now(),
     List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
     List(Site(UkAddress(List("line1"), "AA11AA"), None, None, None)),
     Contact(None, None, "0843858438", "test@test.com"),
