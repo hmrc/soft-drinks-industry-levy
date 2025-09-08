@@ -31,7 +31,7 @@ package object connectors {
 
   private val nonEmptyString =
     Gen.alphaStr.flatMap { t =>
-      Gen.alphaChar.map(_ + t)
+      Gen.alphaChar.map(c => s"$c$t")
     }
 
   val genEmail: Gen[String] = for {
@@ -58,20 +58,20 @@ package object connectors {
   } yield item
 
   // could be part of scalacheck?
-  def subset[A <: Enumeration](a: A): Gen[Set[A#Value]] =
+  def subset[A <: Enumeration](a: A): Gen[Set[a.Value]] =
     Gen
-      .sequence(a.values.toSet.map { x: A#Value =>
+      .sequence(a.values.toSet.map { (x: a.Value) =>
         Gen.const(x).sometimes
       })
       .map(_.asScala.toSet.flatten)
 
   val genLitreBands: Gen[LitreBands] = for {
-    l <- Gen.choose(0, 1000000L)
-    h <- Gen.choose(0, 1000000L)
+    l <- Gen.choose(0L, 1000000L)
+    h <- Gen.choose(0L, 1000000L)
   } yield l -> h
 
   val genActivityTypes: Gen[Gen[Seq[Option[ActivityType.Value]]]] =
-    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map { x: ActivityType.Value =>
+    Gen.oneOf(ActivityType.Copackee, ActivityType.ProducedOwnBrand) map { (x: ActivityType.Value) =>
       Gen.sequence[Seq[Option[ActivityType.Value]], Option[ActivityType.Value]](
         Seq(
           Gen.const(x).sometimes,
@@ -87,13 +87,12 @@ package object connectors {
                  t.flatten
                }
              )
-    typeTuples <- Gen.sequence(types.map { typeL =>
-                    genLitreBands.flatMap {
-                      typeL -> _
-                    }
-                  })
+    typeTuples <- Gen.sequence[List[(ActivityType.Value, LitreBands)], (ActivityType.Value, LitreBands)](
+                    types.map(typeL => genLitreBands.map(lb => (typeL, lb)))
+                  )
+
     isLarge <- Gen.boolean
-  } yield InternalActivity(typeTuples.asScala.toMap, isLarge)
+  } yield InternalActivity(typeTuples.toMap, isLarge)
 
   def genIsProducer(isLarge: Boolean) =
     Gen.boolean map { y =>

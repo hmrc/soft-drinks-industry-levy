@@ -19,15 +19,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 import com.google.inject.{Inject, Singleton}
 import org.apache.commons.lang3.StringUtils
 import play.api.Mode
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, ControllerComponents}
 import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolmentEvent
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.services.MongoBufferService
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -25,9 +25,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.{UkAddress, VariationsRequest}
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
+import org.mongodb.scala.ObservableFuture
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 class VariationSubmissionServiceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[VariationWrapper] with MockitoSugar with BeforeAndAfterEach
@@ -37,7 +39,10 @@ class VariationSubmissionServiceSpec
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  val repository = new VariationSubmissionService(mongoComponent)
+  override protected val repository: PlayMongoRepository[VariationWrapper] = new VariationSubmissionService(
+    mongoComponent
+  )
+  val service = new VariationSubmissionService(mongoComponent)
 
   val address = UkAddress(List("My House", "My Lane"), "AA111A")
   val tradingName = "Generic Soft Drinks Company Inc Ltd LLC Intl GB UK"
@@ -47,9 +52,9 @@ class VariationSubmissionServiceSpec
 
   "save" should {
     "successfully save the data within a VariationWrapper" in {
-      await(repository.save(variationsRequest, sdilRef))
+      await(service.save(variationsRequest, sdilRef))
 
-      val storedItem = await(repository.collection.find().toFuture()).head
+      val storedItem = await(service.collection.find().toFuture()).head
 
       storedItem.isInstanceOf[VariationWrapper] mustBe true
       storedItem.submission mustBe variationsRequest
@@ -60,18 +65,18 @@ class VariationSubmissionServiceSpec
 
   "get" should {
     "retrieve a match of existing variaionRequest when looked up using sdilRef" in {
-      await(repository.save(variationsRequest, sdilRef))
+      await(service.save(variationsRequest, sdilRef))
 
-      val storedItem = await(repository.get(sdilRef)).get
+      val storedItem = await(service.get(sdilRef)).get
       storedItem mustBe variationsRequest
     }
 
     "assure the result is headOption from list when sortedWith _.timestamp isAfter _.timestamp" in {
       val tradingNameToCompare: String = "checkOrderOfThisObjectCreationUsingThis"
-      await(repository.save(variationsRequest, sdilRef))
-      await(repository.save(variationsRequest.copy(tradingName = Some(tradingNameToCompare)), sdilRef))
+      await(service.save(variationsRequest, sdilRef))
+      await(service.save(variationsRequest.copy(tradingName = Some(tradingNameToCompare)), sdilRef))
 
-      val storedItem = await(repository.get(sdilRef)).get
+      val storedItem = await(service.get(sdilRef)).get
       storedItem.tradingName.get mustBe tradingNameToCompare
     }
   }

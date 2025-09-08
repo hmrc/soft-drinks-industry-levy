@@ -34,6 +34,7 @@ import java.net.URLEncoder.encode
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 @Singleton
 class DesConnector @Inject() (

@@ -18,11 +18,13 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.google.inject.{Inject, Singleton}
 import play.api.Mode
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Json
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.models.DmsSubmission
 
 import java.util.Base64
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,9 +33,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class GformConnector @Inject() (http: HttpClientV2, val mode: Mode, servicesConfig: ServicesConfig) {
 
   val gformBaseUrl: String = servicesConfig.baseUrl("gform")
+  val dmsSubmission = new DmsSubmission
 
   def submitToDms(html: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
-    val payload = DmsHtmlSubmission(encode(html), DmsMetadata("SDIL-VAR-1", sdilNumber, "BT-NRU-SDIL", "BT"))
+    val payload = dmsSubmission.DmsHtmlSubmission(
+      encode(html),
+      dmsSubmission.DmsMetadata("SDIL-VAR-1", sdilNumber, "BT-NRU-SDIL", "BT")
+    )
     val gformUrl = s"$gformBaseUrl/gform/dms/submit"
 
     http
@@ -46,16 +52,4 @@ class GformConnector @Inject() (http: HttpClientV2, val mode: Mode, servicesConf
   }
 
   private val encode = (s: String) => new String(Base64.getEncoder.encode(s.getBytes))
-}
-
-case class DmsHtmlSubmission(html: String, metadata: DmsMetadata)
-
-object DmsHtmlSubmission {
-  implicit val format: Format[DmsHtmlSubmission] = Json.format[DmsHtmlSubmission]
-}
-
-case class DmsMetadata(dmsFormId: String, customerId: String, classificationType: String, businessArea: String)
-
-object DmsMetadata {
-  implicit val format: Format[DmsMetadata] = Json.format[DmsMetadata]
 }

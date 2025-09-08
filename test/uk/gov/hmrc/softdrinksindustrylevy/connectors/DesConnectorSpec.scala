@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.http.Response.response
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
-import org.scalacheck.Gen.const
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.RecoverMethods.{recoverToExceptionIf, recoverToSucceededIf}
 import org.scalatestplus.mockito.MockitoSugar
@@ -27,13 +25,12 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
 import play.api.http.Status.SERVICE_UNAVAILABLE
 import play.api.libs.json.Format.GenericFormat
-import play.api.libs.json._
-import play.api.mvc.ControllerHelpers.TODO.executionContext
+import play.api.libs.json.*
 import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer, des}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.sub
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest}
 import uk.gov.hmrc.softdrinksindustrylevy.services.SdilMongoPersistence
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
@@ -54,32 +51,32 @@ class DesConnectorSpecPropertyBased
   "DesConnectorSpec" should {
 
     "parse Activity as expected" in {
-      forAll { r: Activity =>
+      forAll { (r: Activity) =>
         Json.toJson(r).as[Activity] mustBe r
       }
     }
   }
 
   "parse UkAddress as expected" in {
-    forAll { r: Address =>
+    forAll { (r: Address) =>
       Json.toJson(r).as[Address] mustBe r
     }
   }
 
   "parse Contact as expected" in {
-    forAll { r: Contact =>
+    forAll { (r: Contact) =>
       Json.toJson(r).as[Contact] mustBe r
     }
   }
 
   "parse Subscription as expected" in {
-    forAll { r: Subscription =>
+    forAll { (r: Subscription) =>
       Json.toJson(r).as[Subscription] mustBe r
     }
   }
 
   "parse DisplayDirectDebitResponse as expected" in {
-    forAll { r: DisplayDirectDebitResponse =>
+    forAll { (r: DisplayDirectDebitResponse) =>
       Json.toJson(r).as[DisplayDirectDebitResponse] mustBe r
     }
   }
@@ -91,7 +88,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
-  implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val desConnector = app.injector.instanceOf[DesConnector]
 
@@ -134,8 +131,8 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
         .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
 
       val response = desConnector.displayDirectDebit("XMSDIL000000001")
-      response.map { directDebitMandateFound =>
-        directDebitMandateFound mustBe true
+      response.map { res =>
+        res.directDebitMandateFound mustBe true
       }
     }
 
@@ -143,8 +140,8 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
       when(requestBuilderExecute[HttpResponse])
         .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : false }""")))
       val response = desConnector.displayDirectDebit("XMSDIL000000001")
-      response.map { directDebitMandateFound =>
-        directDebitMandateFound mustBe false
+      response.map { res =>
+        res.directDebitMandateFound mustBe false
       }
     }
 
@@ -170,30 +167,43 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
       val response = the[Exception] thrownBy (desConnector
         .createSubscription(sub, "utr", "11111111119")
         .futureValue)
-      response.map { x =>
-        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
-      }
+      response.getMessage must include("BadGatewayException")
     }
 
     "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
       when(requestBuilderExecute[Option[Subscription]])
         .thenReturn(
           Future.failed(
-            new Exception("The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse")
+            new UpstreamErrorResponse(
+              message = "Too many requests",
+              statusCode = 429,
+              reportAs = 503,
+              headers = Map.empty
+            )
           )
         )
-      lazy val ex = the[Throwable] thrownBy (desConnector
-        .retrieveSubscriptionDetails("utr", "11111111120"))
-      response.map { x =>
-        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+      recoverToExceptionIf[UpstreamErrorResponse] {
+        desConnector.retrieveSubscriptionDetails("utr", "11111111120")
+      }.map { ex =>
+        ex.getMessage must include("Too many requests")
+        ex.statusCode mustBe 503
       }
     }
 
     "return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
-      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse(429, "429")))
-      lazy val ex = the[Exception] thrownBy (desConnector.retrieveFinancialData("utr", None).futureValue)
-      response.map { x =>
-        x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+      when(requestBuilderExecute[HttpResponse]).thenReturn(
+        Future.failed(
+          new UpstreamErrorResponse(
+            message = "Too many requests",
+            statusCode = 429,
+            reportAs = 503,
+            headers = Map.empty
+          )
+        )
+      )
+      recoverToExceptionIf[UpstreamErrorResponse](desConnector.retrieveFinancialData("utr", None)).map { ex =>
+        ex.getMessage must include("Too many requests")
+        ex.statusCode mustBe 503
       }
     }
   }
@@ -208,7 +218,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
         packSmall = List.empty[SmallProducer],
         importSmall = (0L, 0L),
         importLarge = (0L, 0L),
-        export = (0L, 0L),
+        `export` = (0L, 0L),
         wastage = (0L, 0L),
         submittedOn = None
       )
@@ -236,7 +246,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
         packSmall = List.empty[SmallProducer],
         importSmall = (0L, 0L),
         importLarge = (0L, 0L),
-        export = (0L, 0L),
+        `export` = (0L, 0L),
         wastage = (0L, 0L),
         submittedOn = None
       )
@@ -414,12 +424,22 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
   }
 
   "create subscription should throw an exception if des is returning 429" in {
-    when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse(429, "429")))
-    lazy val response = the[Exception] thrownBy (desConnector
-      .createSubscription(sub, "utr", "11111111119")
-      .futureValue)
-    response.map { x =>
-      x mustBe "The future returned an exception of type: uk.gov.hmrc.http.Upstream5xxResponse"
+    when(requestBuilderExecute[HttpResponse]).thenReturn(
+      Future.failed(
+        new UpstreamErrorResponse(
+          message = "Too many requests",
+          statusCode = 429,
+          reportAs = 503,
+          headers = Map.empty
+        )
+      )
+    )
+
+    recoverToExceptionIf[UpstreamErrorResponse] {
+      desConnector.createSubscription(sub, "utr", "11111111119")
+    }.map { ex =>
+      ex.statusCode mustBe 503
+      ex.getMessage must include("Too many requests")
     }
   }
   "should get no response back if des is not available" in {
@@ -428,7 +448,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
       .thenReturn(Future.successful(HttpResponse(429, "429")))
     val response: Future[HttpResponse] = desConnector.submitReturn("utr", returnsRequest)
     response.map { x =>
-      x mustBe None
+      x.status mustBe 429
     }
   }
 

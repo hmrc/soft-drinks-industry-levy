@@ -27,13 +27,13 @@ import org.mongodb.scala.bson.BsonDocument
 import org.scalatest.BeforeAndAfterEach
 import play.api.libs.json.{JsString, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
-import uk.gov.hmrc.softdrinksindustrylevy.connectors._
-import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper._
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
+import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilMongoPersistence, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 import org.scalatest.concurrent.ScalaFutures
@@ -41,6 +41,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.audit.serialiser.{AuditSerialiser, AuditSerialiserLike}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 
 import scala.concurrent.{ExecutionContext, Future}
 

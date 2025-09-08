@@ -17,24 +17,25 @@
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import play.api.Logger
-import play.api.libs.json._
-import play.api.mvc._
+import play.api.libs.json.*
+import play.api.mvc.*
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.*
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors._
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
-import uk.gov.hmrc.softdrinksindustrylevy.services._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.*
+import uk.gov.hmrc.softdrinksindustrylevy.services.*
 
 import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.DuplicateKeyException
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
 
 @Singleton

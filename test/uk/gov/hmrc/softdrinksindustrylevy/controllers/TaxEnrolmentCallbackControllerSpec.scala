@@ -29,11 +29,12 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, Identifier, TaxEnrolmentConnector, TaxEnrolmentsSubscription}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 
 import scala.concurrent.{ExecutionContext, Future}
 

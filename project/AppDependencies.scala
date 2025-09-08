@@ -18,7 +18,7 @@ object AppDependencies {
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                %% s"bootstrap-test-$playVersion"  % bootstrapVersion,
-    "uk.gov.hmrc"                %% "stub-data-generator"           % "1.1.0",
+    "uk.gov.hmrc"                %% "stub-data-generator"           % "1.5.0",
     "uk.gov.hmrc.mongo"          %% s"hmrc-mongo-test-$playVersion" % hmrcMongoVersion,
     "org.playframework"          %% "play-test"                     % play.core.PlayVersion.current,
     "com.fasterxml.jackson.core" %  "jackson-core"                  % "2.17.2",
@@ -26,10 +26,9 @@ object AppDependencies {
     "org.wiremock"               %  "wiremock"                      % "3.9.1",
     "org.jsoup"                  %  "jsoup"                         % "1.18.1",
     "org.mockito"                %  "mockito-core"                  % "5.11.0",
-    "org.scalacheck"             %% "scalacheck"                    % "1.18.0",
     "org.scalatest"              %% "scalatest-funsuite"            % "3.2.19",
-    "org.scalatestplus"          %% "scalatestplus-scalacheck"      % "3.1.0.0-RC2",
-    "org.scalatestplus"          %% "scalatestplus-mockito"         % "1.0.0-M2",
+    "org.scalatestplus"          %% "mockito-5-18"                  % "3.2.19.0",
+    "org.scalatestplus"          %% "scalacheck-1-17"               % "3.2.18.0",
     "org.apache.pekko"           %% "pekko-testkit"                 % "1.0.3"
   ).map(_ % "test")
 

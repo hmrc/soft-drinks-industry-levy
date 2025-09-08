@@ -18,13 +18,16 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.google.inject.{Inject, Singleton}
 import play.api.{Logger, Mode}
-import play.api.libs.json.{Format, JsObject, Json}
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http._
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
 
 @Singleton
 class TaxEnrolmentConnector @Inject() (http: HttpClientV2, val mode: Mode, servicesConfig: ServicesConfig) {
@@ -71,21 +74,4 @@ class TaxEnrolmentConnector @Inject() (http: HttpClientV2, val mode: Mode, servi
       "etmpId"      -> safeId
     )
 
-}
-
-case class TaxEnrolmentsSubscription(
-  identifiers: Option[Seq[Identifier]],
-  etmpId: String,
-  state: String,
-  errorResponse: Option[String]
-)
-
-object TaxEnrolmentsSubscription {
-  implicit val format: Format[TaxEnrolmentsSubscription] = Json.format[TaxEnrolmentsSubscription]
-}
-
-case class Identifier(key: String, value: String)
-
-object Identifier {
-  implicit val format: Format[Identifier] = Json.format[Identifier]
 }
