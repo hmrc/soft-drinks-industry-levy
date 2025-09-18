@@ -16,24 +16,28 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.{any, argThat, eq => meq}
+import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import play.api.libs.json.Json
+import play.api.libs.json.Format.GenericFormat
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{ControllerComponents, Request}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import sdil.models.{ReturnPeriod, ReturnVariationData, SdilReturn}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest}
+import uk.gov.hmrc.softdrinksindustrylevy.models.{ReturnsVariationRequest, UkAddress, VariationsContact, VariationsRequest, VariationsSubmissionEvent}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
@@ -47,11 +51,13 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val mockVariationSubmissionService = mock[VariationSubmissionService]
   val mockReturnsVariationSubmissionService = mock[ReturnsVariationSubmissionService]
   val mockReturnsAdjustmentSubmissionService = mock[ReturnsAdjustmentSubmissionService]
+  val mockAuditing: AuditConnector = mock[AuditConnector]
   val cc = app.injector.instanceOf[ControllerComponents]
 
   val controller: VariationsController = new VariationsController(
     messagesApi,
     mockGformConnector,
+    mockAuditing,
     mockVariationSubmissionService,
     mockReturnsVariationSubmissionService,
     mockReturnsAdjustmentSubmissionService,
@@ -77,55 +83,144 @@ class VariationsControllerSpec extends FakeApplicationSpec with MockitoSugar wit
   val sdilNumber = "XCSDIL000000000"
 
   "generateVariations" should {
+
     val variationRequest = VariationsRequest(
       displayOrgName = tradingName,
       ppobAddress = address,
       correspondenceContact = Some(contactDetails)
     )
 
-    "204 successfully generate Variations" in {
+    "204 successfully generate Variations (and audit SUCCESS)" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
 
-      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
-        .thenReturn(Future.successful(()))
-
-      when(mockVariationSubmissionService.save(any(), any()))
-        .thenReturn(Future.successful(()))
+      when(mockGformConnector.submitToDms(any(), meq(sdilNumber))(any(), any()))
+        .thenReturn(Future.unit)
+      when(mockVariationSubmissionService.save(any(), meq(sdilNumber)))
+        .thenReturn(Future.unit)
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
+      status(result) mustBe NO_CONTENT
 
-      status(result) mustBe 204
+      val captor = ArgumentCaptor.forClass(classOf[VariationsSubmissionEvent])
+      verify(mockAuditing).sendExtendedEvent(captor.capture())(any(), any())
+      val detail = captor.getValue.detail
+      (detail \ "outcome").as[String] mustBe "SUCCESS"
+      (detail \ "sdilNumber").as[String] mustBe sdilNumber
+      (detail \ "formTemplateId").as[String] mustBe "SDIL-VAR-1"
     }
 
-    "400 bad request when requestBody json does not match the VariationRequest model" in {
+    "400 bad request when requestBody json does not match the VariationRequest model (no side effects)" in {
       val requestInput = FakeRequest().withBody(Json.obj("wrongJson" -> "not the same model"))
 
       val result = controller.generateVariations(sdilNumber)(requestInput)
+      status(result) mustBe BAD_REQUEST
 
-      status(result) mustBe 400
+      verify(mockGformConnector, never()).submitToDms(any(), any())(any(), any())
+      verify(mockVariationSubmissionService, never()).save(any(), any())
     }
 
-    "throwException when gform connector throws exception" in {
+    "throwException when gform connector throws exception (and audit ERROR)" in {
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+      val ex = new RuntimeException("dms error")
 
       when(mockGformConnector.submitToDms(any(), any())(any(), any()))
-        .thenThrow(new RuntimeException)
+        .thenReturn(Future.failed(ex))
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
-      an[RuntimeException] shouldBe thrownBy(controller.generateVariations(sdilNumber)(requestInput))
+      val generatedVariation = controller.generateVariations(sdilNumber)(requestInput)
+      whenReady(generatedVariation.failed)(_ mustBe ex)
+
+      verify(mockAuditing, times(1)).sendExtendedEvent(
+        argThat[VariationsSubmissionEvent](evt =>
+          (evt.detail \ "outcome").as[String] == "ERROR" &&
+            (evt.detail \ "error").as[String].contains("dms error")
+        )
+      )(any(), any())
     }
 
-    "throwException when repository service throws exception" in {
+    "throwException when repository service throws exception (and audit ERROR)" in {
+      reset(mockAuditing)
+
       val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+      val ex = new RuntimeException("save error")
 
       when(mockGformConnector.submitToDms(any(), any())(any(), any()))
-        .thenReturn(Future.successful(()))
+        .thenReturn(Future.unit)
       when(mockVariationSubmissionService.save(any(), any()))
-        .thenThrow(new RuntimeException)
+        .thenReturn(Future.failed(ex))
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
-      val result = controller.generateVariations(sdilNumber)(requestInput)
+      val generatedVariation = controller.generateVariations(sdilNumber)(requestInput)
+      whenReady(generatedVariation.failed)(_ mustBe ex)
 
-      whenReady(result.failed)(e => e mustBe a[RuntimeException])
+      val captor = ArgumentCaptor.forClass(classOf[VariationsSubmissionEvent])
+      verify(mockAuditing, atLeastOnce()).sendExtendedEvent(captor.capture())(any(), any())
+
+      val events = captor.getAllValues.asScala.toList
+
+      val errorEvents = events.filter(e => (e.detail \ "outcome").as[String] == "ERROR")
+      errorEvents.size mustBe 1
+      (errorEvents.head.detail \ "error").as[String] must include("save error")
+
+      val successEvents = events.filter(e => (e.detail \ "outcome").as[String] == "SUCCESS")
+      successEvents.size mustBe 0
     }
+
+    "fail the request if SUCCESS-path auditing fails" in {
+      val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
+        .thenReturn(Future.unit)
+      when(mockVariationSubmissionService.save(any(), any()))
+        .thenReturn(Future.unit)
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.failed(new RuntimeException("audit failed")))
+
+      val generatedVariation = controller.generateVariations(sdilNumber)(requestInput)
+      whenReady(generatedVariation.failed)(e => e.getMessage must include("audit failed"))
+    }
+
+    "surface audit error if upstream fails and ERROR-path auditing also fails" in {
+      val requestInput = FakeRequest().withBody(Json.toJson(variationRequest))
+      val orig = new RuntimeException("upstream boom")
+      val auditEx = new RuntimeException("audit failed")
+
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
+        .thenReturn(Future.failed(orig))
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.failed(auditEx))
+
+      val generatedVariation = controller.generateVariations(sdilNumber)(requestInput)
+      whenReady(generatedVariation.failed)(_ mustBe auditEx)
+    }
+
+    "propagate request.uri into VariationsSubmissionEvent" in {
+      when(mockGformConnector.submitToDms(any(), any())(any(), any()))
+        .thenReturn(Future.unit)
+      when(mockVariationSubmissionService.save(any(), any()))
+        .thenReturn(Future.unit)
+      when(mockAuditing.sendExtendedEvent(any())(any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
+
+      val requestInput = FakeRequest("POST", "/variations?x=1").withBody(Json.toJson(variationRequest))
+      await(controller.generateVariations(sdilNumber)(requestInput))
+
+    }
+
+    "include deviceId only when present in HeaderCarrier (unit of buildVariationsAudit)" in {
+      implicit val hcWith = HeaderCarrier(deviceID = Some("abc"))
+      val js1 = controller.buildVariationsAudit(variationRequest, sdilNumber, "SUCCESS")(hcWith).as[JsObject]
+      (js1 \ "deviceId").as[String] mustBe "abc"
+
+      implicit val hcWithout = HeaderCarrier(deviceID = None)
+      val js2 = controller.buildVariationsAudit(variationRequest, sdilNumber, "SUCCESS")(hcWithout).as[JsObject]
+      (js2 \ "deviceId").toOption mustBe None
+    }
+
   }
 
   "returnsVariation" should {

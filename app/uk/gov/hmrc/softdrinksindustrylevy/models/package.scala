@@ -50,7 +50,7 @@ package object models {
       (JsPath \ "higher").format[Long]
   )(
     (a: Long, b: Long) => (a, b),
-    unlift { x: (Long, Long) =>
+    unlift { (x: (Long, Long)) =>
       Tuple2.unapply(x)
     }
   )

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2025 HM Revenue & Customs
  *
@@ -108,7 +107,7 @@ object TaxRateUtil {
     numberOfPackSmall: Int = 0,
     importSmall: Boolean = false,
     importLarge: Boolean = false,
-    export: Boolean = false,
+    `export`: Boolean = false,
     wastage: Boolean = false
   ): SdilReturn = {
     val smallProducers: Seq[SmallProducer] = (0 to numberOfPackSmall)
@@ -119,7 +118,7 @@ object TaxRateUtil {
       packSmall = smallProducers.toList,
       importSmall = if (importSmall) getRandomLitreage else zero,
       importLarge = if (importLarge) getRandomLitreage else zero,
-      export = if (export) getRandomLitreage else zero,
+      `export` = if (`export`) getRandomLitreage else zero,
       wastage = if (wastage) getRandomLitreage else zero,
       submittedOn = None
     )
@@ -131,7 +130,7 @@ object TaxRateUtil {
     numberOfPackSmall = 5,
     importSmall = true,
     importLarge = true,
-    export = true,
+    `export` = true,
     wastage = true
   )
 

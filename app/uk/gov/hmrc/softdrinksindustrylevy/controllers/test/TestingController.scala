@@ -24,6 +24,8 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, ReturnsP
 import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
+import org.mongodb.scala.ObservableFuture
+
 @Singleton
 class TestingController @Inject() (
   override val messagesApi: MessagesApi,

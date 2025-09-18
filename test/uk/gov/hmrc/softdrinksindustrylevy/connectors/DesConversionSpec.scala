@@ -37,7 +37,7 @@ class DesConversionSpec
     "parse Subscription as expected" in {
       val validator = JsonSchemaFactory.byDefault.getValidator
       val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
-      forAll { r: Subscription =>
+      forAll { (r: Subscription) =>
         val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
         val report = validator.validate(schema, json)
         assert(report.isSuccess, report)

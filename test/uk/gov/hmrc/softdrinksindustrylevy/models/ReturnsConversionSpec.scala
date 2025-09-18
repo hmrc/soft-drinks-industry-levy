@@ -46,7 +46,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
       stream.close
       val schema = JsonLoader.fromString(schemaText)
       implicit val clock: Clock = Clock.systemDefaultZone()
-      forAll { r: ReturnsRequest =>
+      forAll { (r: ReturnsRequest) =>
         val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
         val report = validator.validate(schema, json)
         assert(report.isSuccess, report)
@@ -56,7 +56,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "Period key is first quarter when date is before 1st April" in {
       val date = LocalDateTime.of(2018, 1, 1, 12, 0).atZone(zone).toInstant
       implicit val clock: Clock = Clock.fixed(date, zone)
-      forAll { r: ReturnsRequest =>
+      forAll { (r: ReturnsRequest) =>
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C1")
       }
@@ -65,7 +65,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "Period key is second quarter when date is equal to or after 1st April and before 1st July" in {
       val date = LocalDateTime.of(2018, 6, 30, 12, 0).atZone(zone).toInstant
       implicit val clock: Clock = Clock.fixed(date, zone)
-      forAll { r: ReturnsRequest =>
+      forAll { (r: ReturnsRequest) =>
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C2")
       }
@@ -74,7 +74,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "Period key is third quarter when date is equal to or after 1st July and before 1st October" in {
       val date = LocalDateTime.of(2018, 7, 1, 12, 0).atZone(zone).toInstant
       implicit val clock: Clock = Clock.fixed(date, zone)
-      forAll { r: ReturnsRequest =>
+      forAll { (r: ReturnsRequest) =>
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C3")
       }
@@ -83,7 +83,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "Period key is fourth quarter when date is equal to or after 1st October and equal to or before 31st December" in {
       val date = LocalDateTime.of(2018, 12, 31, 12, 0).atZone(zone).toInstant
       implicit val clock: Clock = Clock.fixed(date, zone)
-      forAll { r: ReturnsRequest =>
+      forAll { (r: ReturnsRequest) =>
         val json = Json.toJson(r)
         assert((json \ "periodKey").as[String] == "18C4")
       }
@@ -92,7 +92,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "packaged" should {
       "volumeSmall" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.packaged map { returnsPackaging =>
             def getSmallProducerAsJsValue(smallProducerVolume: SmallProducerVolume): JsObject = {
@@ -111,7 +111,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
 
       "volumeLarge" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.packaged map { returnsPackaging =>
             val volumeLargeFields: Seq[(String, JsValue)] = Seq(
@@ -128,7 +128,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.packaged map { returnsPackaging =>
                   val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitre
@@ -148,7 +148,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.packaged map { returnsPackaging =>
                   val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitre
@@ -170,7 +170,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.packaged map { returnsPackaging =>
                   val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
@@ -190,7 +190,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.packaged map { returnsPackaging =>
                   val lowVolumeLevy = returnsPackaging.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
@@ -213,7 +213,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "imported" should {
       "volumeSmall" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.imported map { returnsImporting =>
             val volumeSmallFields: Seq[(String, JsValue)] = Seq(
@@ -227,7 +227,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
 
       "volumeLarge" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.imported map { returnsImporting =>
             val volumeLargeFields: Seq[(String, JsValue)] = Seq(
@@ -244,7 +244,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.imported map { returnsImporting =>
                   val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
@@ -264,7 +264,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.imported map { returnsImporting =>
                   val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitre
@@ -286,7 +286,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.imported map { returnsImporting =>
                   val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
@@ -306,7 +306,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.imported map { returnsImporting =>
                   val lowVolumeLevy = returnsImporting.largeProducerVolumes._1 * lowerBandCostPerLitreMap(year)
@@ -329,7 +329,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "exported" should {
       "volumes" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.exported map { returnsExported =>
             val volumesFields: Seq[(String, JsValue)] = Seq(
@@ -346,7 +346,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.exported map { returnsExported =>
                   val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
@@ -366,7 +366,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.exported map { returnsExported =>
                   val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitre
@@ -388,7 +388,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.exported map { returnsExported =>
                   val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
@@ -408,7 +408,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.exported map { returnsExported =>
                   val lowVolumeLevy = returnsExported._1 * lowerBandCostPerLitreMap(year)
@@ -431,7 +431,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "wastage" should {
       "volumes" in {
         implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(2024, 1, 1))
-        forAll { r: ReturnsRequest =>
+        forAll { (r: ReturnsRequest) =>
           val json = Json.toJson(r)
           r.wastage map { returnsWastage =>
             val volumesFields: Seq[(String, JsValue)] = Seq(
@@ -448,7 +448,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.wastage map { returnsWastage =>
                   val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
@@ -468,7 +468,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.wastage map { returnsWastage =>
                   val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitre
@@ -490,7 +490,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Apr - Dec $year" in {
             forAll(aprToDecInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.wastage map { returnsWastage =>
                   val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
@@ -510,7 +510,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
           s"write lowVolume, highVolume, and levySubtotal - using original rates for Jan - Mar ${year + 1}" in {
             forAll(janToMarInt) { month =>
               implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-              forAll { r: ReturnsRequest =>
+              forAll { (r: ReturnsRequest) =>
                 val json = Json.toJson(r)
                 r.wastage map { returnsWastage =>
                   val lowVolumeLevy = returnsWastage._1 * lowerBandCostPerLitreMap(year)
@@ -535,7 +535,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-            forAll { r: ReturnsRequest =>
+            forAll { (r: ReturnsRequest) =>
               val json = Json.toJson(r)
               val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
               val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
@@ -553,7 +553,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         s"write netLevyDueTotal - using original rates for Jan - Mar ${year + 1}" in {
           forAll(janToMarInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-            forAll { r: ReturnsRequest =>
+            forAll { (r: ReturnsRequest) =>
               val json = Json.toJson(r)
               val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
               val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
@@ -574,7 +574,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         s"write netLevyDueTotal - using original rates for Apr - Dec $year" in {
           forAll(aprToDecInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-            forAll { r: ReturnsRequest =>
+            forAll { (r: ReturnsRequest) =>
               val json = Json.toJson(r)
               val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
               val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)
@@ -595,7 +595,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
         s"write netLevyDueTotal - using original rates for Jan - Mar ${year + 1}" in {
           forAll(janToMarInt) { month =>
             implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-            forAll { r: ReturnsRequest =>
+            forAll { (r: ReturnsRequest) =>
               val json = Json.toJson(r)
               val plp = r.packaged.map(_.largeProducerVolumes).getOrElse(zero)
               val ilp = r.imported.map(_.largeProducerVolumes).getOrElse(zero)

@@ -37,7 +37,7 @@ object IndividualResponse {
   implicit val format: Format[IndividualResponse] = Json.format[IndividualResponse]
 }
 
-abstract case class RosmResponseAddress private[models] (
+case class RosmResponseAddress private[models] (
   addressLine1: String,
   addressLine2: Option[String],
   addressLine3: Option[String],

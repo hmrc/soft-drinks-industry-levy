@@ -130,7 +130,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       s"calculate levied litres, total for SdilReturn with export correctly - using original rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          val sdilReturn: SdilReturn = getSdilReturn(`export` = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
           sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
         }
@@ -206,7 +206,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       s"calculate levied litres, total for SdilReturn with export correctly - using original rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          val sdilReturn: SdilReturn = getSdilReturn(`export` = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
           sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
         }
@@ -288,7 +288,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Apr - Dec $year" in {
         forAll(aprToDecInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          val sdilReturn: SdilReturn = getSdilReturn(`export` = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
           sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
             .setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -370,7 +370,7 @@ class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks
       s"calculate levied litres, total for SdilReturn with export correctly - using $year rates for Jan - Mar ${year + 1}" in {
         forAll(janToMarInt) { month =>
           implicit val returnPeriod: ReturnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-          val sdilReturn: SdilReturn = getSdilReturn(export = true)
+          val sdilReturn: SdilReturn = getSdilReturn(`export` = true)
           sdilReturn.leviedLitres shouldBe (-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2)
           sdilReturn.total shouldBe calculateLevy((-1 * sdilReturn.`export`._1, -1 * sdilReturn.`export`._2), year)
             .setScale(2, BigDecimal.RoundingMode.HALF_UP)

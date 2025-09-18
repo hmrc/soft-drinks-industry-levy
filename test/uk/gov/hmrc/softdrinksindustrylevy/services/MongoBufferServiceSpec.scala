@@ -26,8 +26,10 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.{Contact, InternalActivity, Sit
 
 import java.time.{Instant, LocalDate}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
+import org.mongodb.scala.ObservableFuture
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 class MongoBufferServiceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[SubscriptionWrapper] with MockitoSugar
@@ -36,7 +38,8 @@ class MongoBufferServiceSpec
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  val repository = new MongoBufferService(mongoComponent)
+  override protected val repository: PlayMongoRepository[SubscriptionWrapper] = new MongoBufferService(mongoComponent)
+  val service = new MongoBufferService(mongoComponent)
 
   val testUtr = "testUtr"
   val testSdilRef = "someSdilRef"
@@ -79,18 +82,18 @@ class MongoBufferServiceSpec
   "update status method" should {
 
     "not set any collection document if record is found" in {
-      await(repository.insert(subscriptionWrapper))
-      await(repository.updateStatus("SubscriptionWrapperId2", "finished"))
+      await(service.insert(subscriptionWrapper))
+      await(service.updateStatus("SubscriptionWrapperId2", "finished"))
 
-      val itemFetched = await(repository.collection.find(Filters.equal("status", "finished")).headOption())
+      val itemFetched = await(service.collection.find(Filters.equal("status", "finished")).headOption())
       itemFetched mustBe None
     }
 
     "update one record if found" in {
-      await(repository.insert(subscriptionWrapper))
-      await(repository.updateStatus("SubscriptionWrapperId1", "finished"))
+      await(service.insert(subscriptionWrapper))
+      await(service.updateStatus("SubscriptionWrapperId1", "finished"))
       val itemFetched: SubscriptionWrapper =
-        await(repository.collection.find(Filters.equal("_id", "SubscriptionWrapperId1")).toFuture()).head
+        await(service.collection.find(Filters.equal("_id", "SubscriptionWrapperId1")).toFuture()).head
       itemFetched.subscription mustBe subscription
       itemFetched.status mustBe "finished"
     }
@@ -99,26 +102,26 @@ class MongoBufferServiceSpec
 
   "find overdue method" should {
     "retrieve no records if  created Before criteria is not met" in {
-      await(repository.insert(subscriptionWrapper)) // created date 20 oct
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
+      await(service.insert(subscriptionWrapper)) // created date 20 oct
+      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve no records if  created Before criteria is met but status is not pending" in {
       await(
-        repository.insert(
+        service.insert(
           subscriptionWrapper
             .copy(status = "finished", timestamp = Instant.ofEpochMilli(1666089585))
         )
       ) // created date 18 oct
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
+      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items mustBe Seq.empty
     }
 
     "retrieve one record if  created Before criteria is  met" in {
-      await(repository.insert(subscriptionWrapper)) // created date of 20 oct
+      await(service.insert(subscriptionWrapper)) // created date of 20 oct
       await(
-        repository.insert(
+        service.insert(
           subscriptionWrapper.copy(
             timestamp = Instant.ofEpochMilli(1666089585), // created date 18 oct
             _id = "SubscriptionWrapperId2",
@@ -126,15 +129,15 @@ class MongoBufferServiceSpec
           )
         )
       )
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
+      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items.size mustBe 1
       items.head.subscription.sdilRef.get mustBe sdilRef1
     }
 
     "retrieve more  record if  created Before criteria is  met" in {
-      await(repository.insert(subscriptionWrapper)) // created date of 20 oct
+      await(service.insert(subscriptionWrapper)) // created date of 20 oct
       await(
-        repository.insert(
+        service.insert(
           subscriptionWrapper.copy(
             timestamp = Instant.ofEpochMilli(1666089585), // created date 18 oct
             _id = "SubscriptionWrapperId2",
@@ -143,7 +146,7 @@ class MongoBufferServiceSpec
         )
       )
       await(
-        repository.insert(
+        service.insert(
           subscriptionWrapper.copy(
             timestamp = Instant.ofEpochMilli(1665484785), // created date 11 oct
             _id = "SubscriptionWrapperId3",
@@ -151,7 +154,7 @@ class MongoBufferServiceSpec
           )
         )
       )
-      val items = await(repository.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
+      val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items.size mustBe 2
       items.map(_._id) mustBe Seq("SubscriptionWrapperId3", "SubscriptionWrapperId2")
       items.map(_.subscription.sdilRef.get) mustBe Seq(sdilRef2, sdilRef1)
@@ -161,48 +164,48 @@ class MongoBufferServiceSpec
 
   "remove method" should {
     "do nothing if no record exists with the given UTR" in {
-      val deleteResult = await(repository.remove("nonExistingUtr"))
+      val deleteResult = await(service.remove("nonExistingUtr"))
       deleteResult.getDeletedCount mustBe 0
     }
   }
 
   "findById method" should {
     "retrieve a record by ID if it exists" in {
-      await(repository.insert(subscriptionWrapper))
-      val item = await(repository.findById(subscriptionWrapper._id))
+      await(service.insert(subscriptionWrapper))
+      val item = await(service.findById(subscriptionWrapper._id))
       item mustBe subscriptionWrapper
     }
 
     "throw an exception if no record exists with the given ID" in {
       intercept[NoSuchElementException] {
-        await(repository.findById("nonExistingId"))
+        await(service.findById("nonExistingId"))
       }
     }
   }
 
   "removeById method" should {
     "remove a record by ID if it exists" in {
-      await(repository.insert(subscriptionWrapper))
-      val deleteResult = await(repository.removeById(subscriptionWrapper._id))
+      await(service.insert(subscriptionWrapper))
+      val deleteResult = await(service.removeById(subscriptionWrapper._id))
       deleteResult.getDeletedCount mustBe 1
 
       intercept[NoSuchElementException] {
-        await(repository.findById(subscriptionWrapper._id))
+        await(service.findById(subscriptionWrapper._id))
       }
     }
 
     "do nothing if no record exists with the given ID" in {
-      val deleteResult = await(repository.removeById("nonExistingId"))
+      val deleteResult = await(service.removeById("nonExistingId"))
       deleteResult.getDeletedCount mustBe 0
     }
   }
 
   "insert method" should {
     "throw an exception if a record with the same ID already exists" in {
-      await(repository.insert(subscriptionWrapper))
+      await(service.insert(subscriptionWrapper))
 
       intercept[Exception] {
-        await(repository.insert(subscriptionWrapper))
+        await(service.insert(subscriptionWrapper))
       }
     }
   }

@@ -28,6 +28,7 @@ import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import org.mongodb.scala.ObservableFuture
 
 class ReturnsAdjustmentSubmissionSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[ReturnVariationWrapper] with MockitoSugar
@@ -47,7 +48,7 @@ class ReturnsAdjustmentSubmissionSpec
     packSmall = Nil,
     importSmall = (3, 3),
     importLarge = (3, 3),
-    export = (3, 3),
+    `export` = (3, 3),
     wastage = (3, 3),
     submittedOn = None
   )

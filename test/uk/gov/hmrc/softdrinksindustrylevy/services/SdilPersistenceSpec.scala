@@ -30,9 +30,11 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.subReads
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
+import org.mongodb.scala.ObservableFuture
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 class SdilPersistenceSpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[SubscriptionWrap] with MockitoSugar with BeforeAndAfterAll
@@ -44,7 +46,8 @@ class SdilPersistenceSpec
 
   implicit val readsSubscription: Reads[Subscription] = subReads
 
-  val repository = new SdilMongoPersistence(mongoComponent)
+  override protected val repository: PlayMongoRepository[SubscriptionWrap] = new SdilMongoPersistence(mongoComponent)
+  val service = new SdilMongoPersistence(mongoComponent)
 
   val sSubscriptionsMongo = repository.collection
 
@@ -61,7 +64,7 @@ class SdilPersistenceSpec
     packSmall = List.empty[SmallProducer],
     importSmall = (5L, 6L),
     importLarge = (7L, 8L),
-    export = (9L, 10L),
+    `export` = (9L, 10L),
     wastage = (11L, 12L),
     submittedOn = None
   )
@@ -70,7 +73,7 @@ class SdilPersistenceSpec
     val subscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get
 
     "insert => successfully insert subscription" in {
-      await(repository.insert(utr, subscription))
+      await(service.insert(utr, subscription))
 
       val result = await(sSubscriptionsMongo.find().toFuture()).toString
 
@@ -80,8 +83,8 @@ class SdilPersistenceSpec
     }
 
     "insert => allow for duplicate submissions" in {
-      await(repository.insert(utr, subscription))
-      await(repository.insert(utr, subscription))
+      await(service.insert(utr, subscription))
+      await(service.insert(utr, subscription))
 
       val result = await(sSubscriptionsMongo.find().toFuture())
 
@@ -89,18 +92,18 @@ class SdilPersistenceSpec
     }
 
     "list => find all subscriptions for given utr" in {
-      await(repository.insert(utr, subscription))
-      await(repository.insert(utr, subscription))
-      await(repository.insert(utr, subscription))
+      await(service.insert(utr, subscription))
+      await(service.insert(utr, subscription))
+      await(service.insert(utr, subscription))
 
-      val result = await(repository.list(utr))
+      val result = await(service.list(utr))
       result.size mustBe 3
     }
 
     "list => get 0 results when no results for specified utr" in {
-      await(repository.insert(utr, subscription))
+      await(service.insert(utr, subscription))
 
-      val result = await(repository.list("otherUtr"))
+      val result = await(service.list("otherUtr"))
       result.size mustBe 0
     }
   }
@@ -171,7 +174,7 @@ class SdilPersistenceSpec
         packSmall = List.empty[SmallProducer],
         importSmall = (0L, 0L),
         importLarge = (0L, 0L),
-        export = (0L, 0L),
+        `export` = (0L, 0L),
         wastage = (0L, 0L),
         submittedOn = Some(LocalDateTime.now())
       )
@@ -181,15 +184,13 @@ class SdilPersistenceSpec
 
       val result = await(returnsPersistenceRepository.list(utr))
 
-      println("test", result)
-
       result.size mustBe 2
       result(period) mustBe sampleReturn
       result(otherPeriod) mustBe anotherReturn
     }
 
     "list => return an empty map for no returns with a given utr" in {
-      val result = await(repository.list("nonexistentUtr"))
+      val result = await(service.list("nonexistentUtr"))
 
       result mustBe empty
     }
@@ -205,7 +206,7 @@ class SdilPersistenceSpec
         packSmall = List.empty[SmallProducer],
         importSmall = (0L, 0L),
         importLarge = (0L, 0L),
-        export = (0L, 0L),
+        `export` = (0L, 0L),
         wastage = (0L, 0L),
         submittedOn = Some(LocalDateTime.now())
       )
@@ -215,7 +216,7 @@ class SdilPersistenceSpec
         packSmall = List.empty[SmallProducer],
         importSmall = (0L, 0L),
         importLarge = (0L, 0L),
-        export = (0L, 0L),
+        `export` = (0L, 0L),
         wastage = (0L, 0L),
         submittedOn = Some(LocalDateTime.now().minusYears(5))
       )

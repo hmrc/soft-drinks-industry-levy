@@ -22,27 +22,23 @@ import scala.language.implicitConversions
 /** Utility class for creating json formatters for enumerations.
   */
 object EnumUtils {
-  def enumReads[E <: Enumeration](`enum`: E): Reads[E#Value] = new Reads[E#Value] {
-    def reads(json: JsValue): JsResult[E#Value] = json match {
-      case JsString(s) =>
-        try
-          JsSuccess(enum.withName(s))
-        catch {
-          case _: NoSuchElementException =>
-            JsError(
-              s"Enumeration expected of type: '${enum.getClass}'," ++
-                s" but it does not appear to contain the value: '$s'"
-            )
-        }
-      case _ => JsError("String value expected")
-    }
+  def enumReads[E <: Enumeration](`enum`: E): Reads[`enum`.Value] = Reads[`enum`.Value] {
+    case JsString(s) =>
+      `enum`.values.find(_.toString == s) match {
+        case Some(value) => JsSuccess(value)
+        case None =>
+          JsError(
+            s"Enumeration expected of type: '${`enum`.getClass}', but it does not appear to contain the value: '$s'"
+          )
+      }
+    case _ => JsError("String value expected")
   }
 
-  implicit def enumWrites[E <: Enumeration]: Writes[E#Value] = new Writes[E#Value] {
-    def writes(v: E#Value): JsValue = JsString(v.toString)
+  implicit def enumWrites[E <: Enumeration](`enum`: E): Writes[`enum`.Value] = new Writes[`enum`.Value] {
+    def writes(v: `enum`.Value): JsValue = JsString(v.toString)
   }
 
-  implicit def enumFormat[E <: Enumeration](`enum`: E): Format[E#Value] =
-    Format(enumReads(enum), enumWrites)
+  implicit def enumFormat[E <: Enumeration](`enum`: E): Format[`enum`.Value] =
+    Format(enumReads(`enum`), enumWrites(`enum`))
 
 }

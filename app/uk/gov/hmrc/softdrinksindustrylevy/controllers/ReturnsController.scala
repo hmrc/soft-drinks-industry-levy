@@ -172,7 +172,7 @@ class ReturnsController @Inject() (
         }.filter {
           _.end.isBefore(LocalDate.now())
         }
-        returns.list(utr).map { posted: Map[ReturnPeriod, SdilReturn] =>
+        returns.list(utr).map { (posted: Map[ReturnPeriod, SdilReturn]) =>
           Ok(Json.toJson(all.toList diff posted.keys.toList))
         }
       }
