@@ -16,7 +16,9 @@ dependencyOverrides ++= Seq(
 // ================================================================================
 // Dependencies
 // ================================================================================
+
 scalaVersion := "3.3.4"
+
 
 // ================================================================================
 // Compiler flags
@@ -59,5 +61,6 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
   ScoverageKeys.coverageExcludedFiles :=
     "<empty>;.*javascript;.*Routes.*;.*testonly.*;"+
       ".*BuildInfo.scala.*;.*controllers.test.*;.*connectors.TestConnector.*;.*models.*;"
+
 
 disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
