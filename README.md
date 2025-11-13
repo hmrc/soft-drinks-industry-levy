@@ -76,7 +76,7 @@ password=PASSWORD
 
 Ensure your service manager config is up to date, and run the following command:
 
-`sm --start SDIL_ALL -f`
+`sm2 --start SDIL_ALL -f`
 
 This will start all the required services
 
@@ -101,6 +101,48 @@ sbt clean coverage test coverageReport
 10. Add `2026 -> BigDecimal(NEW_HIGHER_BAND_VALUE)` to `higherBandCostPerLitreMap` function in `TaxRateUtil.scala`
 11. Test the behaviour out and make sure it works!
 12. When happy with the changes, update these instructions for 'Adding 2027 rates'
+
+## How to test Dms submission
+
+In order to verify successful submission to Dms, run the following services:
+
+```
+sm2 --start INTERNAL_AUTH_FRONTEND
+sm2 --start DMS_SUBMISSION_ADMIN_FRONTEND
+```
+
+Then, navigate to http://localhost:8471/test-only/sign-in and complete the login form:
+
+| Field              | Value                                                                                     |
+|--------------------|-------------------------------------------------------------------------------------------|
+| Principal          | Any string                                                                                |
+| Redirect Url       | http://localhost:8224/dms-submission-admin-frontend/soft-drinks-industry-levy/submissions |
+| Resource Type      | dms-submission                                                                            |
+| Resource Locations | soft-drinks-industry-levy                                                                 |
+| Action             | READ                                                                                      |
+
+You should now see a list of submissions, click on each link to view the submission metadata.
+
+In order to view the contents of the envelope, the form.pdf and any attachments, run the following service:
+
+```
+sm2 --start INTERNAL_AUTH_FRONTEND
+sm2 --start OBJECT_STORE_ADMIN_FRONTEND
+```
+
+Then, navigate to http://localhost:8471/test-only/sign-in and complete the login form:
+
+| Field              | Value                                                                    |
+|--------------------|--------------------------------------------------------------------------|
+| Principal          | Any string                                                               |
+| Redirect Url       | http://localhost:8467/object-store-admin-frontend/objects/dms-submission |
+| Resource Type      | object-store-admin-frontend                                              |
+| Resource Locations | *                                                                        |
+| Action             | READ                                                                     |
+
+You should now see a folder titled `sdes/soft-drinks-industry-levy`, click on it. You will now see a list of zip files,
+each of which can be downloaded.
+
 
 ### License
 
