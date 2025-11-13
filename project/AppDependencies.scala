@@ -13,7 +13,8 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"        %% s"hmrc-mongo-$playVersion"        % hmrcMongoVersion,
     "com.github.fge"           %  "json-schema-validator"           % "2.2.6",
     "org.typelevel"            %% "cats-core"                       % "2.12.0",
-    "org.scala-stm"            %% "scala-stm"                       % "0.11.1"
+    "org.scala-stm"            %% "scala-stm"                       % "0.11.1",
+    "io.github.openhtmltopdf"  % "openhtmltopdf-pdfbox"             % "1.1.31"
   )
 
   val test: Seq[ModuleID] = Seq(

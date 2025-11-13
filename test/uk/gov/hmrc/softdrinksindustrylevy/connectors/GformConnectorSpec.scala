@@ -21,6 +21,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.Mode
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.dms.DmsConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,7 +30,7 @@ class GformConnectorSpec
 
   val mode = mock[Mode]
 
-  val connector = new GformConnector(mockHttpClient, mode, mockServicesConfig)
+  val connector = new DmsConnector(mockHttpClient, mode, mockServicesConfig)
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import com.google.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
@@ -26,7 +26,7 @@ import sdil.models.ReturnVariationData
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.GformConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.dms.DmsConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, ReturnsVariationRequest, SdilActivity, VariationsRequest, VariationsSubmissionEvent, formatReturnVariationData}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsAdjustmentSubmissionService, ReturnsVariationSubmissionService, VariationSubmissionService}
 
@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class VariationsController @Inject() (
   override val messagesApi: MessagesApi,
-  gforms: GformConnector,
+  dmsConnector: DmsConnector,
   auditing: AuditConnector,
   variationSubmissions: VariationSubmissionService,
   returnSubmission: ReturnsVariationSubmissionService,
@@ -50,7 +50,7 @@ class VariationsController @Inject() (
     withJsonBody[VariationsRequest] { data =>
       val page = views.html.variations_pdf(data, sdilNumber).toString
       (for {
-        _ <- gforms.submitToDms(page, sdilNumber)
+        _ <- dmsConnector.submitToDms(page, sdilNumber)
         _ <- variationSubmissions.save(data, sdilNumber)
         _ <- auditing.sendExtendedEvent(
                new VariationsSubmissionEvent(
@@ -75,7 +75,7 @@ class VariationsController @Inject() (
     withJsonBody[ReturnsVariationRequest] { data =>
       val page = views.html.returns_variation_pdf(data, sdilNumber).toString
       for {
-        _ <- gforms.submitToDms(page, sdilNumber)
+        _ <- dmsConnector.submitToDms(page, sdilNumber)
         _ <- returnSubmission.save(data, sdilNumber)
       } yield NoContent
     }
@@ -88,7 +88,7 @@ class VariationsController @Inject() (
         implicit val returnPeriod = data.period
         val page = views.html.return_variation_pdf(data, sdilRef).toString
         for {
-          _ <- gforms.submitToDms(page, sdilRef)
+          _ <- dmsConnector.submitToDms(page, sdilRef)
           _ <- returnsAdjustmentSubmissionService.save(data, sdilRef)
         } yield NoContent
 
