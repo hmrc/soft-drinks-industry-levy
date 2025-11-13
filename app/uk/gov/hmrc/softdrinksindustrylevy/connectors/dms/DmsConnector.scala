@@ -24,17 +24,14 @@ import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.libs.ws.WSBodyWritables.bodyWritableOf_Multipart
 import play.api.mvc.MultipartFormData
 import play.api.{Logging, Mode}
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.softdrinksindustrylevy.models.DmsSubmission
-import uk.gov.hmrc.softdrinksindustrylevy.models.dms.DmsSubmissionPayload
+import uk.gov.hmrc.softdrinksindustrylevy.models.dms.DmsEnvelopeId
 import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, LocalDateTime}
-import java.util.Base64
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -43,15 +40,16 @@ class DmsConnector @Inject() (
   val mode: Mode,
   servicesConfig: ServicesConfig,
   pdfGeneratorService: PdfGenerationService,
-  dmsSubmissionPayload: DmsSubmissionPayload,
   clock: Clock
 ) extends Logging {
 
   private val sdilUrl = servicesConfig.baseUrl("soft-drinks-industry-levy")
   private val url = s"${servicesConfig.baseUrl("dms")}/dms-submission/submit"
-  val dmsSubmission = new DmsSubmission
 
-  def submitToDms(html: String, sdilNumber: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] = {
+  def submitToDms(html: String, sdilNumber: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[Unit] = {
 
     val dataParts: Seq[MultipartFormData.DataPart] = Seq(
       MultipartFormData.DataPart("callbackUrl", s"$sdilUrl/soft-drinks-industry-levy/dms/callback"),
@@ -64,7 +62,7 @@ class DmsConnector @Inject() (
       MultipartFormData.DataPart("metadata.businessArea", "BI")
     )
 
-    val pdfBytes = pdfGeneratorService.generatePDFBytes(decode(html))
+    val pdfBytes = pdfGeneratorService.generatePDFBytes(html)
 
     val fileParts: Seq[MultipartFormData.FilePart[Source[ByteString, ?]]] =
       Seq(
@@ -76,18 +74,8 @@ class DmsConnector @Inject() (
         )
       )
 
-    val attachmentParts: Seq[MultipartFormData.FilePart[Source[ByteString, ?]]] = dmsSubmissionPayload.attachments.map {
-      attachment =>
-        MultipartFormData.FilePart(
-          key = "attachment",
-          filename = attachment.filename,
-          contentType = Some("application/octet-stream"),
-          ref = Source.apply(attachment.data)
-        )
-    }
-
     val source: Source[MultipartFormData.Part[Source[ByteString, ?]], NotUsed] = Source(
-      dataParts ++ fileParts ++ attachmentParts
+      dataParts ++ fileParts
     )
 
     logger.info("Sending payload to dms service...")
@@ -95,11 +83,9 @@ class DmsConnector @Inject() (
       .post(url"$url")
       .setHeader(AUTHORIZATION -> servicesConfig.getString("internal-auth.token"))
       .withBody(source)
-      .execute[HttpResponse]
+      .execute[DmsEnvelopeId]
       .map { _ =>
         ()
       }
   }
-
-  private val decode = (s: String) => new String(Base64.getDecoder.decode(s))
 }

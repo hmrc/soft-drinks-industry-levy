@@ -16,15 +16,10 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models.dms
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Json, OFormat}
 
-final case class DmsMetadata(
-  dmsFormId: String,
-  customerId: String,
-  classificationType: String,
-  businessArea: String
-)
+final case class DmsEnvelopeId(id: String)
 
-object DmsMetadata {
-  implicit val format: Format[DmsMetadata] = Json.format[DmsMetadata]
+object DmsEnvelopeId {
+  implicit val format: OFormat[DmsEnvelopeId] = Json.format[DmsEnvelopeId]
 }
