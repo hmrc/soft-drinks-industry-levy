@@ -1,8 +1,23 @@
+import sbt.Def.settings
 import scoverage.ScoverageKeys
+lazy val ItTest = config("it") extend Test
 enablePlugins(
   play.sbt.PlayScala,
   SbtDistributablesPlugin
 )
+settings(
+  Test / testOptions += Tests.Argument(
+    TestFrameworks.ScalaTest,
+    "-oNCHPQR",
+    "-u",
+    "target/test-reports",
+    "-h",
+    "target/test-reports/html-report"
+  )
+)
+configs(ItTest)
+settings(inConfig(ItTest)(Defaults.testSettings) *)
+settings(ItTest / unmanagedSourceDirectories := Seq((ItTest / baseDirectory).value / "it"))
 
 PlayKeys.playDefaultPort := 8701
 
@@ -50,7 +65,7 @@ uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 // ================================================================================
 // Testing
 // ================================================================================
-  import scoverage.ScoverageKeys._
+  import scoverage.ScoverageKeys.*
 
   ScoverageKeys.coverageExcludedPackages := """uk\.gov\.hmrc\.BuildInfo;.*\.models\.json.*;views\.html;.*\.Routes;.*\.RoutesPrefix;.*\.Reverse[^.]*;testonly"""
   coverageMinimumStmtTotal := 80

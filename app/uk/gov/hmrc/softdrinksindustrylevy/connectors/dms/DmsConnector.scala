@@ -49,7 +49,7 @@ class DmsConnector @Inject() (
   def submitToDms(html: String, sdilNumber: String)(implicit
     hc: HeaderCarrier,
     ec: ExecutionContext
-  ): Future[Unit] = {
+  ): Future[DmsEnvelopeId] = {
 
     val dataParts: Seq[MultipartFormData.DataPart] = Seq(
       MultipartFormData.DataPart("callbackUrl", s"$sdilUrl/soft-drinks-industry-levy/dms/callback"),
@@ -84,8 +84,8 @@ class DmsConnector @Inject() (
       .setHeader(AUTHORIZATION -> servicesConfig.getString("internal-auth.token"))
       .withBody(source)
       .execute[DmsEnvelopeId]
-      .map { _ =>
-        ()
-      }
+//      .map { _ =>
+//        ()
+//      }
   }
 }

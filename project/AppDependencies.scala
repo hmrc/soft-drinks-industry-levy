@@ -29,7 +29,7 @@ object AppDependencies {
     "org.scalatestplus"          %% "mockito-5-18"                  % "3.2.19.0",
     "org.scalatestplus"          %% "scalacheck-1-17"               % "3.2.18.0",
     "org.apache.pekko"           %% "pekko-testkit"                 % "1.0.3"
-  ).map(_ % "test")
+  ).map(_ % "test, it")
 
   val all: Seq[ModuleID] = compile ++ test
 }
