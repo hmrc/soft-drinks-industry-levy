@@ -18,9 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors.dms
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.http.Fault
-import com.google.inject.matcher.Matchers.returns
 import com.typesafe.config.ConfigFactory
-import org.apache.pekko.util.ByteString
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -31,17 +29,13 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.{AUTHORIZATION, await, defaultAwaitTimeout}
 import play.api.{Application, Configuration}
-import uk.gov.hmrc.http.BadRequestException
-//import uk.gov.hmrc.softdrinksindustrylevy.models.Error
-//import uk.gov.hmrc.softdrinksindustrylevy.models.Generators.{dmsMetadataGen, sample}
-import uk.gov.hmrc.softdrinksindustrylevy.models.dms.*
-import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
 import uk.gov.hmrc.http.test.WireMockSupport
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.softdrinksindustrylevy.models.dms.*
+import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, Instant, LocalDateTime, ZoneId}
-import java.util.Base64
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -106,7 +100,7 @@ class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport wi
     val sdilNumber = "XZSDIL0009999"
     "return an error if the http call fails" in new Setup {
       stubFor(
-        stubHttpRequest(blankHtml, sdilNumber).willReturn(
+        stubHttpRequest(sdilNumber).willReturn(
           aResponse().withFault(Fault.EMPTY_RESPONSE)
         )
       )
@@ -118,12 +112,12 @@ class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport wi
 
     "return an error if the downstream returns an error" in new Setup {
       List(
-        HttpResponse(503, "Received response status 503 from dms service"),
+        HttpResponse(400, "Received response status 400 from dms service"),
         HttpResponse(500, "Received response status 500 from dms service")
       ).foreach { httpResponse =>
         withClue(s"For http response [${httpResponse.toString}]") {
           stubFor(
-            stubHttpRequest(blankHtml, sdilNumber).willReturn(
+            stubHttpRequest(sdilNumber).willReturn(
               aResponse().withStatus(httpResponse.status).withBody(httpResponse.body)
             )
           )
@@ -133,21 +127,9 @@ class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport wi
       }
     }
 
-    "return an Bad Request Exception if the downstream returns an error" in new Setup {
-      val httpResponse = HttpResponse(400, "Received response status 400 from dms service")
-
-      stubFor(
-        stubHttpRequest(blankHtml, sdilNumber).willReturn(
-          aResponse().withStatus(httpResponse.status).withBody(httpResponse.body)
-        )
-      )
-
-      intercept[BadRequestException](await(connector.submitToDms(blankHtml, sdilNumber)))
-    }
-
     "return an envelope id if downstream returns success" in new Setup {
       stubFor(
-        stubHttpRequest(blankHtml, sdilNumber).willReturn(
+        stubHttpRequest(sdilNumber).willReturn(
           aResponse().withStatus(202).withBody(Json.obj("id" -> "test envelope id").toString())
         )
       )
@@ -157,7 +139,7 @@ class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport wi
     }
   }
 
-  private def stubHttpRequest(html: String, sdilNumber: String) =
+  private def stubHttpRequest(sdilNumber: String) =
     post(urlPathMatching("/dms-submission/submit"))
       .withHeader(AUTHORIZATION, equalTo("auth-token-id"))
       .withMultipartRequestBody(

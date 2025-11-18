@@ -29,6 +29,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.dms.DmsEnvelopeId
 import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, LocalDateTime}
@@ -84,8 +85,5 @@ class DmsConnector @Inject() (
       .setHeader(AUTHORIZATION -> servicesConfig.getString("internal-auth.token"))
       .withBody(source)
       .execute[DmsEnvelopeId]
-//      .map { _ =>
-//        ()
-//      }
   }
 }

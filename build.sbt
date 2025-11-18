@@ -15,6 +15,9 @@ settings(
     "target/test-reports/html-report"
   )
 )
+Global / excludeLintKeys += ItTest / javaSource
+Global / excludeLintKeys += ItTest / scalaSource
+Global / excludeLintKeys += ItTest / semanticdbTargetRoot
 configs(ItTest)
 settings(inConfig(ItTest)(Defaults.testSettings) *)
 settings(ItTest / unmanagedSourceDirectories := Seq((ItTest / baseDirectory).value / "it"))
