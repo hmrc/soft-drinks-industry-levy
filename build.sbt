@@ -32,7 +32,8 @@ scalacOptions ++= Seq(
   "-Wconf:src=html/.*:s",
   "-Wconf:src=routes/.*:s",
   "-Wconf:msg=Flag.*repeatedly:s",
-  "-Wconf:msg=unused implicit.*:s"
+  "-Wconf:msg=unused implicit.*:s",
+  "-Wconf:msg=unused explicit parameter:s"
 )
 
 
