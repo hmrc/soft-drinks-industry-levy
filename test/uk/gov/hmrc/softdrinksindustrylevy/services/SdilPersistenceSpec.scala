@@ -198,7 +198,7 @@ class SdilPersistenceSpec
     "listVariable => retrieve returns within the last 4 years" in {
       createIndexes()
 
-      val recentPeriod = ReturnPeriod(LocalDate.now.getYear, (LocalDate.now.getMonthValue - 1) / 3 + 1)
+      val recentPeriod = ReturnPeriod(LocalDate.now.getYear, (LocalDate.now.getMonthValue - 1) / 3)
       val oldPeriod = ReturnPeriod(LocalDate.now.getYear - 5, 1)
       val recentReturn = SdilReturn(
         ownBrand = (10L, 20L),
