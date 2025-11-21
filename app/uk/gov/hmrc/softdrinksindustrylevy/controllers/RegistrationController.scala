@@ -223,7 +223,7 @@ class RegistrationController @Inject() (
         "authProviderId"   -> providerId,
         "deviceId"         -> hc.deviceID
       )
-      .++(Json.toJson(subscription)(subWrites).as[JsObject])
+      .++(Json.toJson(subscription)(using subWrites).as[JsObject])
   }
 
   private def toName: String => String = {

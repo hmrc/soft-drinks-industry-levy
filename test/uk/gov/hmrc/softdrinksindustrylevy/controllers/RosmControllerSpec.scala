@@ -53,33 +53,33 @@ class RosmControllerSpec extends FakeApplicationSpec with MockitoSugar with Befo
   override def beforeEach(): Unit =
     reset(mockRosmConnector)
 
-  when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+  when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any())).thenReturn(Future.successful(()))
   when(serviceConfig.getString(any())).thenReturn("someBaseUrl")
 
   "RosmController" should {
     "return Status: OK Body: RosmRegisterResponse for successful valid Rosm lookup" in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any()))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(using any(), any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse)))
 
       val response = testRosmController.lookupRegistration("1111111111")(FakeRequest())
 
       status(response) mustBe OK
-      verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(any(), any())
+      verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(using any(), any())
       contentAsJson(response) mustBe Json.toJson(validRosmRegisterResponse)
     }
 
     "return Status: NOT_FOUND for response with missing organisation " in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any()))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(using any(), any()))
         .thenReturn(Future.successful(Some(validRosmRegisterResponse.copy(organisation = None))))
 
       val response = testRosmController.lookupRegistration("1111111111")(FakeRequest())
 
       status(response) mustBe NOT_FOUND
-      verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(any(), any())
+      verify(mockRosmConnector, times(1)).retrieveROSMDetails(any(), any())(using any(), any())
     }
 
     "return Not Found when there is no ROSM record" in {
-      when(mockRosmConnector.retrieveROSMDetails(any(), any())(any(), any())).thenReturn(Future.successful(None))
+      when(mockRosmConnector.retrieveROSMDetails(any(), any())(using any(), any())).thenReturn(Future.successful(None))
 
       val res = testRosmController.lookupRegistration("3334445556")(FakeRequest())
       status(res) mustBe NOT_FOUND

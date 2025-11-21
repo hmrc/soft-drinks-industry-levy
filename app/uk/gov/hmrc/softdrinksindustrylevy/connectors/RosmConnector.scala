@@ -42,7 +42,7 @@ class RosmConnector @Inject() (val http: HttpClientV2, val mode: Mode, servicesC
     val desUrl = s"$desBaseURL/$serviceURL/utr/$utr"
     http
       .post(url"$desUrl")
-      .transform(_.addHttpHeaders(desHeaders: _*))
+      .transform(_.addHttpHeaders(desHeaders *))
       .withBody(Json.toJson(request))
       .execute[Option[RosmRegisterResponse]]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>

@@ -33,15 +33,15 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
   "vals" should {
     val configMock: Configuration = mock[Configuration]
-    when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
-    when(configMock.getOptional[Long](contains("Minutes"))(any())) thenReturn Option(minutesTestVal)
+    when(configMock.getOptional[Boolean](contains("enabled"))(using any())).thenReturn(Option(false))
+    when(configMock.getOptional[Long](contains("Minutes"))(using any())).thenReturn(Option(minutesTestVal))
     val overdueSubmissionsCheckerMock = new OverdueSubmissionsChecker(
       mock[MongoLockRepository],
       mock[MongoBufferService],
       configMock,
       mock[ActorSystem],
       mock[ContactFrontendConnector]
-    )(mock[ExecutionContext])
+    )(using mock[ExecutionContext])
 
     "jobEnabled correct" in {
       overdueSubmissionsCheckerMock.jobEnabled mustBe false
@@ -64,7 +64,7 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
     "jobEnabled throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn None
+      when(configMock.getOptional[Boolean](contains("enabled"))(using any())).thenReturn(None)
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         mock[MongoLockRepository],
@@ -72,13 +72,13 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         configMock,
         mock[ActorSystem],
         mock[ContactFrontendConnector]
-      )(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.enabled"
+      )(using mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.enabled"
     }
 
     "jobStartDelay throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn None
-      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(using any())).thenReturn(None)
+      when(configMock.getOptional[Boolean](contains("enabled"))(using any())).thenReturn(Option(false))
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         mock[MongoLockRepository],
@@ -86,16 +86,20 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         configMock,
         mock[ActorSystem],
         mock[ContactFrontendConnector]
-      )(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.startDelayMinutes"
+      )(
+        using mock[ExecutionContext]
+      ) must have message "Missing configuration value overdueSubmissions.startDelayMinutes"
     }
 
     "overduePeriod throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
-        minutesTestVal
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(using any())).thenReturn(
+        Option(
+          minutesTestVal
+        )
       )
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn None
-      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(using any())).thenReturn(None)
+      when(configMock.getOptional[Boolean](contains("enabled"))(using any())).thenReturn(Option(false))
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         mock[MongoLockRepository],
@@ -103,19 +107,25 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         configMock,
         mock[ActorSystem],
         mock[ContactFrontendConnector]
-      )(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.overduePeriodMinutes"
+      )(
+        using mock[ExecutionContext]
+      ) must have message "Missing configuration value overdueSubmissions.overduePeriodMinutes"
     }
 
     "jobInterval throw exception" in {
       val configMock: Configuration = mock[Configuration]
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
-        minutesTestVal
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(using any())).thenReturn(
+        Option(
+          minutesTestVal
+        )
       )
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn Option(
-        minutesTestVal
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(using any())).thenReturn(
+        Option(
+          minutesTestVal
+        )
       )
-      when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(any())) thenReturn None
-      when(configMock.getOptional[Boolean](contains("enabled"))(any())) thenReturn Option(false)
+      when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(using any())).thenReturn(None)
+      when(configMock.getOptional[Boolean](contains("enabled"))(using any())).thenReturn(Option(false))
 
       the[MissingConfiguration] thrownBy new OverdueSubmissionsChecker(
         mock[MongoLockRepository],
@@ -123,7 +133,9 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         configMock,
         mock[ActorSystem],
         mock[ContactFrontendConnector]
-      )(mock[ExecutionContext]) must have message "Missing configuration value overdueSubmissions.jobIntervalMinutes"
+      )(
+        using mock[ExecutionContext]
+      ) must have message "Missing configuration value overdueSubmissions.jobIntervalMinutes"
     }
 
     "edge cases" should {
@@ -134,15 +146,21 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
         val actorSystemMock: ActorSystem = ActorSystem("TestActorSystem")
         val contactFrontendConnectorMock: ContactFrontendConnector = mock[ContactFrontendConnector]
 
-        when(configMock.getOptional[Boolean](mEq("overdueSubmissions.enabled"))(any())) thenReturn Option(true)
-        when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(any())) thenReturn Option(
-          minutesTestVal
+        when(configMock.getOptional[Boolean](mEq("overdueSubmissions.enabled"))(using any())).thenReturn(Option(true))
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.startDelayMinutes"))(using any())).thenReturn(
+          Option(
+            minutesTestVal
+          )
         )
-        when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(any())) thenReturn Option(
-          minutesTestVal
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.overduePeriodMinutes"))(using any())).thenReturn(
+          Option(
+            minutesTestVal
+          )
         )
-        when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(any())) thenReturn Option(
-          minutesTestVal
+        when(configMock.getOptional[Long](mEq("overdueSubmissions.jobIntervalMinutes"))(using any())).thenReturn(
+          Option(
+            minutesTestVal
+          )
         )
 
         val overdueSubmissionsCheckerMock = new OverdueSubmissionsChecker(
@@ -151,7 +169,7 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
           configMock,
           actorSystemMock,
           contactFrontendConnectorMock
-        )(mock[ExecutionContext])
+        )(using mock[ExecutionContext])
 
         overdueSubmissionsCheckerMock.jobEnabled mustBe true
         overdueSubmissionsCheckerMock.jobStartDelay.toMinutes mustBe minutesTestVal

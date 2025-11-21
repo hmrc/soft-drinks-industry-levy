@@ -89,7 +89,7 @@ class DesConnector @Inject() (
     val subscriptionUrl = s"$desURL/$serviceURL/subscription/$idType/$idNumber"
     http
       .post(url"$subscriptionUrl")
-      .transform(_.addHttpHeaders(desHeaders: _*))
+      .transform(_.addHttpHeaders(desHeaders *))
       .withBody(Json.toJson(submission))
       .execute[CreateSubscriptionResponse]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>
@@ -109,7 +109,7 @@ class DesConnector @Inject() (
       import json.des.get._
       http
         .get(url"$subscriptionUrl")
-        .transform(_.addHttpHeaders(desHeaders: _*))
+        .transform(_.addHttpHeaders(desHeaders *))
         .execute[Option[Subscription]]
     }
 
@@ -131,7 +131,7 @@ class DesConnector @Inject() (
     val returnUrl = s"$desURL/$serviceURL/$sdilRef/return"
     http
       .post(url"$returnUrl")
-      .transform(_.addHttpHeaders(desHeaders: _*))
+      .transform(_.addHttpHeaders(desHeaders *))
       .withBody(Json.toJson(returnsRequest))
       .execute[HttpResponse]
       .recover { case UpstreamErrorResponse(_, 429, _, _) =>
@@ -182,7 +182,7 @@ class DesConnector @Inject() (
         .mkString("&")
     http
       .get(url"$uri")
-      .transform(_.addHttpHeaders(desHeaders: _*))
+      .transform(_.addHttpHeaders(desHeaders *))
       .execute[Option[des.FinancialTransactionResponse]]
       .flatMap { x =>
         x.map { y =>
@@ -196,7 +196,7 @@ class DesConnector @Inject() (
     val uri = s"$desDirectDebitUrl/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
     http
       .get(url"$uri")
-      .transform(_.addHttpHeaders(desHeaders: _*))
+      .transform(_.addHttpHeaders(desHeaders *))
       .execute[DisplayDirectDebitResponse]
   }
 

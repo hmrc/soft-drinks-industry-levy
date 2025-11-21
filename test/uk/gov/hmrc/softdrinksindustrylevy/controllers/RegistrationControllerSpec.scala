@@ -74,13 +74,14 @@ class RegistrationControllerSpec
   override def beforeEach(): Unit =
     reset(mockDesConnector)
 
-  when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
+  when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(using any(), any()))
     .thenReturn(Future.successful(()))
 
-  when(mockEmailConnector.sendSubmissionReceivedEmail(any(), any())(any(), any())).thenReturn(Future.successful(()))
+  when(mockEmailConnector.sendSubmissionReceivedEmail(any(), any())(using any(), any()))
+    .thenReturn(Future.successful(()))
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
@@ -93,14 +94,14 @@ class RegistrationControllerSpec
       lazy val auditSerialiser: AuditSerialiserLike = AuditSerialiser
 
       auditSerialiser.serialise(sdilSubscriionEvent)
-      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
+      when(mockDesConnector.createSubscription(any(), any(), any())(using any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockBuffer.insert(any()))
         .thenReturn(Future.successful(()))
-      when(mockTaxEnrolmentConnector.subscribe(any(), any())(any(), any()))
+      when(mockTaxEnrolmentConnector.subscribe(any(), any())(using any(), any()))
         .thenReturn(Future.successful(HttpResponse(418)))
-      when(mockAuditing.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditing.sendExtendedEvent(any())(using any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(
         FakeRequest()
@@ -108,7 +109,7 @@ class RegistrationControllerSpec
       )
 
       status(response) mustBe OK
-      verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(any())
+      verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(using any())
       contentAsJson(response) mustBe Json.toJson(validSubscriptionResponse)
     }
 
@@ -129,7 +130,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: Conflict for duplicate subscription submission" in {
-      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
+      when(mockDesConnector.createSubscription(any(), any(), any())(using any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       when(mockBuffer.insert(any())).thenReturn(
@@ -152,7 +153,7 @@ class RegistrationControllerSpec
     }
 
     "return Status: Exception rethrown for error code other than 11000" in {
-      when(mockDesConnector.createSubscription(any(), any(), any())(any()))
+      when(mockDesConnector.createSubscription(any(), any(), any())(using any()))
         .thenReturn(Future.successful(validSubscriptionResponse))
 
       val testLastError = new WriteConcernException(BsonDocument(("err", "error E21543")), null, null)
@@ -170,7 +171,7 @@ class RegistrationControllerSpec
 
     "return Status: NOT_FOUND for subscription for a sub that isn't in Des or the pending queue (Mongo)" in {
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful None)
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -184,7 +185,7 @@ class RegistrationControllerSpec
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber
       )
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful None)
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -194,7 +195,7 @@ class RegistrationControllerSpec
 
     "return Status: OK for subscription for a sub that is in Des but is not in the pending queue (Mongo)" in {
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -208,7 +209,7 @@ class RegistrationControllerSpec
           Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
           formBundleNumber
         )
-        when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        when(mockTaxEnrolmentConnector.getSubscription(any())(using any(), any())).thenReturn(
           Future.successful(
             TaxEnrolmentsSubscription(
               Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
@@ -219,7 +220,7 @@ class RegistrationControllerSpec
           )
         )
         when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
           .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
         when(mockBuffer.remove(any()))
           .thenReturn(Future successful (new DeleteResult() {
@@ -238,7 +239,7 @@ class RegistrationControllerSpec
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber
       )
-      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+      when(mockTaxEnrolmentConnector.getSubscription(any())(using any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
@@ -249,7 +250,7 @@ class RegistrationControllerSpec
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
@@ -268,7 +269,7 @@ class RegistrationControllerSpec
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber
       )
-      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+      when(mockTaxEnrolmentConnector.getSubscription(any())(using any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
@@ -279,7 +280,7 @@ class RegistrationControllerSpec
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
@@ -298,7 +299,7 @@ class RegistrationControllerSpec
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
         formBundleNumber
       )
-      when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+      when(mockTaxEnrolmentConnector.getSubscription(any())(using any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
@@ -309,7 +310,7 @@ class RegistrationControllerSpec
         )
       )
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
       when(mockBuffer.remove(any()))
         .thenReturn(Future successful (new DeleteResult() {
@@ -329,11 +330,11 @@ class RegistrationControllerSpec
           Json.fromJson[Subscription](validCreateSubscriptionRequest).get,
           formBundleNumber
         )
-        when(mockTaxEnrolmentConnector.getSubscription(any())(any(), any())).thenReturn(
+        when(mockTaxEnrolmentConnector.getSubscription(any())(using any(), any())).thenReturn(
           Future.failed(new NotFoundException("foo"))
         )
         when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(List(wrapper)))
-        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+        when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
           .thenReturn(Future successful Some(Json.fromJson[Subscription](validCreateSubscriptionRequest).get))
 
         val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -344,7 +345,7 @@ class RegistrationControllerSpec
       when(mockBuffer.findByUtr(any())).thenReturn(Future.successful(Nil))
       val deregisteredSubscription =
         Json.fromJson[Subscription](validCreateSubscriptionRequest).get.copy(deregDate = Some(LocalDate.now))
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 
       val response = testSdilController.checkEnrolmentStatus("123")(FakeRequest())
@@ -354,7 +355,7 @@ class RegistrationControllerSpec
 
   "retrieveSubscriptionDetails" should {
     "retrieveSubscriptionDetails returning None" in {
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful None)
 
       val response = testSdilController.retrieveSubscriptionDetails("", "123")(FakeRequest())
@@ -363,7 +364,7 @@ class RegistrationControllerSpec
 
     "retrieveSubscriptionDetails returning Some" in {
       val deregisteredSubscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful Some(deregisteredSubscription))
 
       val response = testSdilController.retrieveSubscriptionDetails("", "123")(FakeRequest())
@@ -374,7 +375,7 @@ class RegistrationControllerSpec
 
   "checkSmallProducerStatus" should {
     "retrieveSubscriptionDetails returning None" in {
-      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+      when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
         .thenReturn(Future successful None)
 
       val response = testSdilController.checkSmallProducerStatus("123", "123", 2018, 1)(FakeRequest())

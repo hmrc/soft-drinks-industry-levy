@@ -54,10 +54,10 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   override def beforeEach(): Unit =
     reset(mockDesConnector)
 
-  when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(any(), any()))
+  when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(using any(), any()))
     .thenReturn(Future.successful(()))
 
   "variable method" should {
@@ -65,7 +65,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testReturnPeriod = ReturnPeriod(2018, 1)
       val testUtr = "someTestUtr"
       val sdilReturn = mock[SdilReturn]
-      when(returns.listVariable(any())(any())).thenReturn(Future(Map(testReturnPeriod -> sdilReturn)))
+      when(returns.listVariable(any())(using any())).thenReturn(Future(Map(testReturnPeriod -> sdilReturn)))
       returns.update(testUtr, testReturnPeriod, sdilReturn)
 
       val response = testReturnsContoller.variable(testUtr)(FakeRequest())
@@ -80,7 +80,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   "get method" should {
     "None returned" in {
       val testUtr = "someTestUtr"
-      when(returns.get(any(), any())(any())).thenReturn(Future(None))
+      when(returns.get(any(), any())(using any())).thenReturn(Future(None))
       val response = testReturnsContoller.get(testUtr, 2018, 1)(FakeRequest())
 
       status(response) mustBe NOT_FOUND
@@ -92,10 +92,12 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testYear = 2018
       val testQuarter = 1
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        None
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          None
+        )
       )
-      when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
+      when(subscriptions.list(any())(using any())).thenReturn(Future(List.empty))
       val response =
         testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
 
@@ -108,23 +110,25 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testQuarter = 1
       val testUtr = "testUtr"
       val testSdilRef = "someSdilRef"
-      when(subscriptions.list(any())(any())).thenReturn(Future(List.empty))
+      when(subscriptions.list(any())(using any())).thenReturn(Future(List.empty))
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        Some(
-          Subscription(
-            testUtr,
-            Some(testSdilRef),
-            "someOrgName",
-            None,
-            mock[Address],
-            mock[Activity],
-            LocalDate.now,
-            Nil,
-            Nil,
-            mock[Contact],
-            None,
-            None
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          Some(
+            Subscription(
+              testUtr,
+              Some(testSdilRef),
+              "someOrgName",
+              None,
+              mock[Address],
+              mock[Activity],
+              LocalDate.now,
+              Nil,
+              Nil,
+              mock[Contact],
+              None,
+              None
+            )
           )
         )
       )
@@ -175,7 +179,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     )
     val sdilReturn1 = new SdilReturn((0, 0), (0, 0), Nil, (0, 0), (0, 0), (0, 0), (0, 0), None)
     val returnPeriod1 = new ReturnPeriod(2024, 2)
-    when(returns.get(any(), any())(any())).thenReturn(Future(None))
+    when(returns.get(any(), any())(using any())).thenReturn(Future(None))
     testReturnsContoller.buildReturnAuditDetail(sdilReturn1, returnsRequest, "", returnPeriod1, None, "", "")
   }
   "pending method" should {
@@ -184,26 +188,28 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val startDate = LocalDate.of(2018, 1, 1)
       val liabilityDate = startDate
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        Some(
-          Subscription(
-            testUtr,
-            Some("testSdilRef"),
-            "someOrgName",
-            None,
-            mock[Address],
-            mock[Activity],
-            liabilityDate,
-            Nil,
-            Nil,
-            mock[Contact],
-            None,
-            None
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          Some(
+            Subscription(
+              testUtr,
+              Some("testSdilRef"),
+              "someOrgName",
+              None,
+              mock[Address],
+              mock[Activity],
+              liabilityDate,
+              Nil,
+              Nil,
+              mock[Contact],
+              None,
+              None
+            )
           )
         )
       )
 
-      when(returns.list(any())(any())) thenReturn Future.successful(Map.empty)
+      when(returns.list(any())(using any())).thenReturn(Future.successful(Map.empty))
 
       val response = testReturnsContoller.pending(testUtr)(FakeRequest())
 

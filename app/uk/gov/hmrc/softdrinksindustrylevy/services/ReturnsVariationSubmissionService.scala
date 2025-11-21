@@ -53,7 +53,7 @@ class ReturnsVariationSubmissionService @Inject() (mongo: MongoComponent)(implic
     collection
       .find(Filters.equal("sdilRef", sdilRef))
       .toFuture()
-      .map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
+      .map(_.sortWith((a, b) => a.timestamp.isAfter(b.timestamp)).headOption.map(_.submission))
 
 }
 

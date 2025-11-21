@@ -372,7 +372,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
       servicesConfig = mockServicesConfig,
       persistence = mock[SdilMongoPersistence],
       auditing = mockAuditConnector
-    )(executionContext)
+    )(using executionContext)
 
     val financialData = des.FinancialTransactionResponse(
       idType = "ZSDL",

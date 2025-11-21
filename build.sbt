@@ -16,7 +16,7 @@ dependencyOverrides ++= Seq(
 // ================================================================================
 // Dependencies
 // ================================================================================
-scalaVersion := "3.3.4"
+scalaVersion := "3.7.1"
 
 // ================================================================================
 // Compiler flags
@@ -31,7 +31,8 @@ scalacOptions ++= Seq(
   "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
   "-Wconf:src=html/.*:s",
   "-Wconf:src=routes/.*:s",
-  "-Wconf:msg=Flag.*repeatedly:s"
+  "-Wconf:msg=Flag.*repeatedly:s",
+  "-Wconf:msg=unused implicit.*:s"
 )
 
 
