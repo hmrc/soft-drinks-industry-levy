@@ -36,8 +36,6 @@ import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, Instant, LocalDateTime, ZoneId}
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport with GuiceOneAppPerSuite {
   private val config = Configuration(
@@ -141,7 +139,7 @@ class DmsConnectorSpec extends AnyWordSpec with Matchers with WireMockSupport wi
 
   private def stubHttpRequest(sdilNumber: String) =
     post(urlPathMatching("/dms-submission/submit"))
-      .withHeader(AUTHORIZATION, equalTo("auth-token-id"))
+      .withHeader(AUTHORIZATION, equalTo("2c66ca76-80bc-4050-ae75-4ec16cc95aee"))
       .withMultipartRequestBody(
         aMultipart()
           .withName("callbackUrl")

@@ -84,7 +84,7 @@ This will start all the required services
 
 To run tests coverage and generate a report use:
 ```
-sbt clean coverage test coverageReport
+sbt clean coverage test it:test coverageReport
 ```
 
 ## Adding 2026 rates

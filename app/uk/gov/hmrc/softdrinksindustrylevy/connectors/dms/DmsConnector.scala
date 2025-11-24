@@ -24,16 +24,17 @@ import play.api.http.HeaderNames.AUTHORIZATION
 import play.api.libs.ws.WSBodyWritables.bodyWritableOf_Multipart
 import play.api.mvc.MultipartFormData
 import play.api.{Logging, Mode}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.models.dms.DmsEnvelopeId
 import uk.gov.hmrc.softdrinksindustrylevy.services.dms.PdfGenerationService
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.softdrinksindustrylevy.util.FileIOExecutionContext
 
 import java.time.format.DateTimeFormatter
 import java.time.{Clock, LocalDateTime}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class DmsConnector @Inject() (
@@ -42,14 +43,14 @@ class DmsConnector @Inject() (
   servicesConfig: ServicesConfig,
   pdfGeneratorService: PdfGenerationService,
   clock: Clock
-) extends Logging {
+)(implicit ex: FileIOExecutionContext)
+    extends Logging {
 
   private val sdilUrl = servicesConfig.baseUrl("soft-drinks-industry-levy")
   private val url = s"${servicesConfig.baseUrl("dms")}/dms-submission/submit"
 
   def submitToDms(html: String, sdilNumber: String)(implicit
-    hc: HeaderCarrier,
-    ec: ExecutionContext
+    hc: HeaderCarrier
   ): Future[DmsEnvelopeId] = {
 
     val dataParts: Seq[MultipartFormData.DataPart] = Seq(
