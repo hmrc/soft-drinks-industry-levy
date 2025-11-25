@@ -139,8 +139,11 @@ Then, navigate to http://localhost:8471/test-only/sign-in and complete the login
 | Resource Type      | object-store-admin-frontend                                              |
 | Resource Locations | *                                                                        |
 | Action             | READ                                                                     |
+| Resource Type      | object-store                                                             |
+| Resource Locations | *                                                                        |
+| Action             | *                                                                        |
 
-You should now see a folder titled `sdes/soft-drinks-industry-levy`, click on it. You will now see a list of zip files,
+You should now see a folder titled `dms-submission/soft-drinks-industry-levy`, click on it. You will now see a list of zip files,
 each of which can be downloaded.
 
 
