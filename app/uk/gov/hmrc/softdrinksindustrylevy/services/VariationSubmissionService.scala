@@ -55,7 +55,7 @@ class VariationSubmissionService @Inject() (mongoComponent: MongoComponent)(impl
         Filters.equal("sdilRef", sdilRef)
       )
       .toFuture()
-      .map(_.sortWith(_.timestamp isAfter _.timestamp).headOption.map(_.submission))
+      .map(_.sortWith((a, b) => a.timestamp.isAfter(b.timestamp)).headOption.map(_.submission))
 
 }
 

@@ -46,7 +46,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   implicit lazy val hc: HeaderCarrier = new HeaderCarrier
 
   implicit val messages: Messages = messagesApi.preferred(request)
-  implicit lazy val request: Request[_] = FakeRequest()
+  implicit lazy val request: Request[?] = FakeRequest()
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -60,10 +60,10 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   override def beforeEach(): Unit =
     reset(mockDesConnector)
 
-  when(mockAuthConnector.authorise[Credentials](any(), any())(any(), any()))
+  when(mockAuthConnector.authorise[Credentials](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Credentials("cred-id", "GovernmentGateway")))
 
-  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(any(), any()))
+  when(mockAuthConnector.authorise[Unit](any(), matching(EmptyRetrieval))(using any(), any()))
     .thenReturn(Future.successful(()))
 
   "financial data with 2 payments with contractAccountCategory of 32 and one charge should be converted using 'convert' to 3 line items" in {
@@ -123,7 +123,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   }
 
   "return Status: OK Body: None when checking for balance which has no financial transaction data" in {
-    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+    when(mockDesConnector.retrieveFinancialData(any(), any())(using any()))
       .thenReturn(Future successful None)
     when(serviceConfig.getBoolean(any())).thenReturn(true)
     val response = testBalanceController.balance("0000222200", false)(FakeRequest())
@@ -155,7 +155,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
     when(serviceConfig.getBoolean(any())).thenReturn(true)
 
-    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+    when(mockDesConnector.retrieveFinancialData(any(), any())(using any()))
       .thenReturn(Future successful Some(financialTransactionResponseIncludingOutstandingBalance))
     val response = testBalanceController.balance("0000222200", false)(FakeRequest())
 
@@ -199,7 +199,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
     when(serviceConfig.getBoolean(any())).thenReturn(true)
 
-    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+    when(mockDesConnector.retrieveFinancialData(any(), any())(using any()))
       .thenReturn(Future successful Some(financialTransactionResponseIncludingOutstandingBalance))
     val response = testBalanceController.balance("0000222200", false)(FakeRequest())
 
@@ -208,7 +208,7 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   }
 
   "return Status: OK Body: None when checking for balance history but no data is found" in {
-    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+    when(mockDesConnector.retrieveFinancialData(any(), any())(using any()))
       .thenReturn(Future successful None)
     val response = testBalanceController.balanceHistory("0000222200", 2018)(FakeRequest())
 
@@ -216,9 +216,9 @@ class BalanceControllerSpec extends FakeApplicationSpec with MockitoSugar with B
   }
 
   "return Status: OK Body: None when checking for balance history all but no data is found" in {
-    when(mockDesConnector.retrieveFinancialData(any(), any())(any()))
+    when(mockDesConnector.retrieveFinancialData(any(), any())(using any()))
       .thenReturn(Future successful None)
-    when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(any()))
+    when(mockDesConnector.retrieveSubscriptionDetails(any(), any())(using any()))
       .thenReturn(Future successful Some(sub))
     val response = testBalanceController.balanceHistoryAll("0000222200", false)(FakeRequest())
 

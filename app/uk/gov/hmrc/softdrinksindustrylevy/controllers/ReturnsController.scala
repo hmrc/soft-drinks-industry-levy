@@ -93,7 +93,7 @@ class ReturnsController @Inject() (
       "outcome"          -> outcome,
       "authProviderType" -> "GovernmentGateway",
       "authProviderId"   -> providerId,
-      "return"           -> Json.toJson(returnsRequest)(writesForAuditing(period, sdilReturn)).as[JsObject]
+      "return"           -> Json.toJson(returnsRequest)(using writesForAuditing(using period, sdilReturn)).as[JsObject]
     )
   }
 

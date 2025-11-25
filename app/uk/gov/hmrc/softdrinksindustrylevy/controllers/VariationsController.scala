@@ -119,7 +119,7 @@ class VariationsController @Inject() (
         "voluntarilyRegistered"           -> sa.voluntarilyRegistered,
         "reasonForAmendment"              -> sa.reasonForAmendment,
         "taxObligationStartDate"          -> sa.taxObligationStartDate
-      ) ++ fieldOpt("activity", sa.activity.map(Json.toJson(_)(activityFlagsWrites)))
+      ) ++ fieldOpt("activity", sa.activity.map(Json.toJson(_)(using activityFlagsWrites)))
     }
   }
 

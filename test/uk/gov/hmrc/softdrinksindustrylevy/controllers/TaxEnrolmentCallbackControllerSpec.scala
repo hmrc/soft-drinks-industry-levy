@@ -69,7 +69,7 @@ class TaxEnrolmentCallbackControllerSpec
 
   "POST /tax-enrolment" should {
     "remove the buffer record on success" in {
-      when(mockTaxEnrolments.getSubscription(matching("123"))(any(), any())).thenReturn(
+      when(mockTaxEnrolments.getSubscription(matching("123"))(using any(), any())).thenReturn(
         Future
           .successful(
             TaxEnrolmentsSubscription(
@@ -82,7 +82,8 @@ class TaxEnrolmentCallbackControllerSpec
       )
 
       when(mockConfiguration.baseUrl(any())).thenReturn("urlString")
-      when(mockAuditConnector.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditConnector.sendExtendedEvent(any())(using any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
       val wrapper = SubscriptionWrapper(
         "safe-id",
@@ -96,7 +97,7 @@ class TaxEnrolmentCallbackControllerSpec
 
           override def getDeletedCount: Long = 1
         }))
-      when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockEmail.sendConfirmationEmail(any(), any(), any())(using any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
@@ -105,7 +106,7 @@ class TaxEnrolmentCallbackControllerSpec
     }
 
     "send a notification email on success" in {
-      when(mockTaxEnrolments.getSubscription(matching("123"))(any(), any())).thenReturn(
+      when(mockTaxEnrolments.getSubscription(matching("123"))(using any(), any())).thenReturn(
         Future.successful(
           TaxEnrolmentsSubscription(
             Some(Seq(Identifier("SdilRegistrationNumber", "XZSDIL0009999"))),
@@ -116,7 +117,8 @@ class TaxEnrolmentCallbackControllerSpec
         )
       )
       when(mockConfiguration.baseUrl(any())).thenReturn("urlString")
-      when(mockAuditConnector.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditConnector.sendExtendedEvent(any())(using any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
       val wrapper = SubscriptionWrapper(
         "safe-id",
@@ -130,7 +132,7 @@ class TaxEnrolmentCallbackControllerSpec
 
           override def getDeletedCount: Long = 1
         }))
-      when(mockEmail.sendConfirmationEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockEmail.sendConfirmationEmail(any(), any(), any())(using any(), any())).thenReturn(Future.successful(()))
 
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "SUCCEEDED")))
 
@@ -145,7 +147,8 @@ class TaxEnrolmentCallbackControllerSpec
 
     "body state other than SUCCEEDED" in {
       when(mockConfiguration.baseUrl(any())).thenReturn("urlString")
-      when(mockAuditConnector.sendExtendedEvent(any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditConnector.sendExtendedEvent(any())(using any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
       val res = testController.callback("123")(FakeRequest().withBody(Json.obj("state" -> "FAILED")))
 
       status(res) mustBe NO_CONTENT

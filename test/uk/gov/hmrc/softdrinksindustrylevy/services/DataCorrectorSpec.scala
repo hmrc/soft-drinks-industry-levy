@@ -74,8 +74,10 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
 
     "getUtrFromSdil with None" in {
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        None
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          None
+        )
       )
 
       val result = testReturnsCorrector.underlyingActor.getUtrFromSdil(testSdilRef)
@@ -88,20 +90,22 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
 
     "getUtrFromSdil with Some" in {
       val testUtr = "someTestUtr"
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(any())) thenReturn Future.successful(
-        Some(
-          Subscription(
-            testUtr,
-            Some(testSdilRef),
-            "",
-            None,
-            mock[Address],
-            mock[Activity],
-            LocalDate.now(),
-            Nil,
-            Nil,
-            mock[Contact],
-            None
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          Some(
+            Subscription(
+              testUtr,
+              Some(testSdilRef),
+              "",
+              None,
+              mock[Address],
+              mock[Activity],
+              LocalDate.now(),
+              Nil,
+              Nil,
+              mock[Contact],
+              None
+            )
           )
         )
       )

@@ -199,5 +199,5 @@ class VariationsSpec extends FakeApplicationSpec {
   val address = UkAddress(List("My House", "My Lane"), "AA111A")
   val sdilNumber = "XCSDIL000000000"
   implicit val messages: Messages = messagesApi.preferred(request)
-  implicit lazy val request: Request[_] = FakeRequest()
+  implicit lazy val request: Request[?] = FakeRequest()
 }
