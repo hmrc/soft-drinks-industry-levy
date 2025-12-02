@@ -1,3 +1,4 @@
 # Add all the application routes to the app.routes file
 ->         /                          app.Routes
 ->         /                          health.Routes
+->         /soft-drinks-industry-levy/dms        dms.Routes

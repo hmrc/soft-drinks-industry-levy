@@ -19,6 +19,8 @@ package uk.gov.hmrc.softdrinksindustrylevy.util
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import org.scalatestplus.play.PlaySpec
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.i18n.MessagesApi
 import play.api.libs.ws.WSClient
 import play.api.mvc.ControllerComponents
@@ -26,6 +28,12 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
 
 trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar {
+
+  override def fakeApplication(): Application = new GuiceApplicationBuilder()
+    .configure(
+      "create-internal-auth-token-on-start" -> false
+    )
+    .build()
 
   lazy val messagesApi = app.injector.instanceOf[MessagesApi]
   lazy val wsClient = app.injector.instanceOf[WSClient]
