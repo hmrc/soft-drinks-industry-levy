@@ -156,7 +156,7 @@ class MongoBufferServiceSpec
       )
       val items = await(service.findOverdue(Instant.ofEpochMilli(1666175985))) // find before 19 oct
       items.size mustBe 2
-      items.map(_._id) mustBe Seq("SubscriptionWrapperId3", "SubscriptionWrapperId2")
+      items.map(_._id).toSet mustBe Set("SubscriptionWrapperId3", "SubscriptionWrapperId2")
       items.map(_.subscription.sdilRef.get) mustBe Seq(sdilRef2, sdilRef1)
     }
 

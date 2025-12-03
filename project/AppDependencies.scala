@@ -19,7 +19,7 @@ object AppDependencies {
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                %% s"bootstrap-test-$playVersion"  % bootstrapVersion,
-    "uk.gov.hmrc"                %% "stub-data-generator"           % "1.5.0",
+    "uk.gov.hmrc"                %% "stub-data-generator"           % "1.6.0",
     "uk.gov.hmrc.mongo"          %% s"hmrc-mongo-test-$playVersion" % hmrcMongoVersion,
     "org.wiremock"               % "wiremock"                       % "3.13.1",
     "com.fasterxml.jackson.core" %  "jackson-core"                  % "2.20.0",
