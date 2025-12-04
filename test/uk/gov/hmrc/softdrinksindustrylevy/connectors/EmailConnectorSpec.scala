@@ -34,13 +34,13 @@ class EmailConnectorSpec extends HttpClientV2Helper with WireMockMethods {
     when(POST, "/hmrc/email")
       .thenReturn(Status.OK)
 
-    await(connector.sendConfirmationEmail("test", "test", "dfg"))  shouldBe ()
+    await(connector.sendConfirmationEmail("test", "test", "dfg")) shouldBe ()
   }
 
   "attempted email should fail when the response from email service is a failure" in {
     when(POST, "/hmrc/email")
       .thenReturn(Status.INTERNAL_SERVER_ERROR)
-    await(connector.sendConfirmationEmail("test", "test", "dfg"))  shouldBe ()
+    await(connector.sendConfirmationEmail("test", "test", "dfg")) shouldBe ()
   }
 
   "attempted submission email should succeed" in {
