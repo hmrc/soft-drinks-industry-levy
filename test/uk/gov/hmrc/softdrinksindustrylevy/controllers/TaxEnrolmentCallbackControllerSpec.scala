@@ -44,7 +44,6 @@ class TaxEnrolmentCallbackControllerSpec
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockEmail: EmailConnector = mock[EmailConnector]
   val mockTaxEnrolments: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
-  val mockAuditConnector: AuditConnector = mock[AuditConnector]
   val mockConfiguration: ServicesConfig = mock[ServicesConfig]
   val mockMode: Mode = mock[Mode]
   val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]

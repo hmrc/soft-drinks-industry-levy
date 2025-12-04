@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.Mockito.when
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Mode
+import org.scalatest.matchers.should.Matchers.shouldBe
+import play.api.http.Status
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
+import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class RosmConnectorSpec extends HttpClientV2Helper with ScalaCheckPropertyChecks {
+class RosmConnectorSpec extends HttpClientV2Helper with WireMockMethods {
 
-  val mode = mock[Mode]
-
-  val connector = new RosmConnector(mockHttpClient, mode, mockServicesConfig)
+  val connector: RosmConnector = app.injector.instanceOf[RosmConnector]
 
   val req = RosmRegisterRequest("CT", false, false)
   val res = RosmRegisterResponse(
@@ -49,12 +48,13 @@ class RosmConnectorSpec extends HttpClientV2Helper with ScalaCheckPropertyChecks
 
   "should get no response back if des is not available" in {
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(500, "500")))
+    when(POST, "/registration/organisation/utr/1234567890")
+      .thenReturn(Status.INTERNAL_SERVER_ERROR)
 
-    val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
-    response.map { x =>
-      x mustBe None
+    intercept[UpstreamErrorResponse] {
+      await {
+        connector.retrieveROSMDetails("1234567890", req)
+      }
     }
   }
 
@@ -67,12 +67,9 @@ class RosmConnectorSpec extends HttpClientV2Helper with ScalaCheckPropertyChecks
   }*/
 
   "should get a response back if des available" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
+    when(POST, "/registration/organisation/utr/1234567890")
+      .thenReturn(Status.OK, Json.toJson(res).toString())
 
-    val response: Future[Option[RosmRegisterResponse]] = connector.retrieveROSMDetails("1234567890", req)
-    response.map { x =>
-      x mustBe Some(res)
-    }
+    await(connector.retrieveROSMDetails("1234567890", req)) shouldBe Some(res)
   }
 }
