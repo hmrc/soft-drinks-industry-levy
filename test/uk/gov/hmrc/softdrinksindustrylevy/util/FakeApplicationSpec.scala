@@ -16,32 +16,79 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.util
 
+import com.typesafe.config.ConfigFactory
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import org.scalatestplus.play.PlaySpec
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.i18n.MessagesApi
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc.ControllerComponents
+import play.api.{Application, Configuration, inject}
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.test.WireMockSupport
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
 
-trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar {
+trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar with WireMockSupport {
+
+  private val config = Configuration(
+    ConfigFactory.parseString(
+      s"""
+         |create-internal-auth-token-on-start = false
+         |microservice {
+         |  services {
+         |      tax-enrolments {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    des {
+         |      protocol = http
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      token = token
+         |      environment = environment
+         |    }
+         |    email {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    contact-frontend {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |    des-direct-debit {
+         |      protocol = http
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |    }
+         |    file-upload {
+         |      protocol = http
+         |      host     = $wireMockHost
+         |      port     = $wireMockPort
+         |    }
+         |
+         |  }
+         |}
+         |""".stripMargin
+    )
+  )
+  val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
-    .configure(
-      "create-internal-auth-token-on-start" -> false
-    )
+    .overrides(inject.bind[AuditConnector].toInstance(mockAuditConnector))
+    .configure(config)
     .build()
 
-  lazy val messagesApi = app.injector.instanceOf[MessagesApi]
-  lazy val wsClient = app.injector.instanceOf[WSClient]
+  lazy val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
+  lazy val wsClient: WSClient = app.injector.instanceOf[WSClient]
   lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
   lazy val components: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
-  val returns = mock[ReturnsPersistence]
+  val returns: ReturnsPersistence = mock[ReturnsPersistence]
 
   val subscriptions: SdilMongoPersistence = mock[SdilMongoPersistence]
-
 }

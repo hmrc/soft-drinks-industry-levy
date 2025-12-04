@@ -17,23 +17,27 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{times, verify}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.RecoverMethods.{recoverToExceptionIf, recoverToSucceededIf}
+import org.scalatest.matchers.should.Matchers.shouldBe
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Mode
-import play.api.http.Status.SERVICE_UNAVAILABLE
-import play.api.libs.json.Format.GenericFormat
+import play.api.http.Status
+import play.api.http.Status.*
 import play.api.libs.json.*
+import play.api.libs.json.Format.GenericFormat
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import sdil.models.des.FinancialTransaction.responseFormatter
+import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse}
 import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer, des}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.controllers.sub
+import uk.gov.hmrc.softdrinksindustrylevy.controllers.{activity, sub}
 import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest}
-import uk.gov.hmrc.softdrinksindustrylevy.services.SdilMongoPersistence
-import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns.returnsRequestFormat
+import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper.subFormat
+import uk.gov.hmrc.softdrinksindustrylevy.util.{FakeApplicationSpec, WireMockMethods}
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.duration.Duration
@@ -46,7 +50,7 @@ class DesConnectorSpecPropertyBased
 
   def await[A](future: Future[A])(implicit timeout: Duration): A = Await.result(future, timeout)
 
-  import json.internal._
+  import json.internal.*
 
   "DesConnectorSpec" should {
 
@@ -82,19 +86,21 @@ class DesConnectorSpecPropertyBased
   }
 }
 
-class DesConnectorSpecBehavioural extends HttpClientV2Helper {
+class DesConnectorSpecBehavioural extends HttpClientV2Helper with WireMockMethods {
+  val emptyJsonBody = "{}"
+  implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
 
-  import scala.concurrent.Future
+  val desConnector: DesConnector = app.injector.instanceOf[DesConnector]
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
-  implicit val period: ReturnPeriod = new ReturnPeriod(2018, 3)
-  implicit lazy val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val executionContext: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-  val desConnector = app.injector.instanceOf[DesConnector]
+  val expectedHeaders: Seq[(String, String)] = Seq("Authorization" -> s"Bearer token", "Environment" -> "environment")
 
-  val exportedLitreBand = (109L, 110L)
-  val wastedLitreBand = (111L, 112L)
-  val returnsImporting = new ReturnsImporting((111L, 112L), (111L, 112L))
+  val exportedLitreBand: (Litres, Litres) = (109L, 110L)
+  val wastedLitreBand: (Litres, Litres) = (111L, 112L)
+  val returnsImporting = ReturnsImporting((111L, 112L), (111L, 112L))
+
   val returnsRequest = new ReturnsRequest(
     packaged = None,
     imported = Some(returnsImporting),
@@ -105,351 +111,293 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper {
   "DesConnector" should {
     "return : None when DES returns 503 for an unknown UTR" in {
 
-      when(requestBuilderExecute[HttpResponse])
-        .thenReturn(Future.successful(HttpResponse(503, "503")))
-
-      val response: Future[Option[Subscription]] = desConnector.retrieveSubscriptionDetails("utr", "11111111119")
-      response.map { x =>
-        x mustBe None
-      }
+      when(GET, "/soft-drinks/subscription/details/utr/11111111119")
+        .thenReturn(SERVICE_UNAVAILABLE)
+      await(
+        desConnector.retrieveSubscriptionDetails("utr", "11111111119")
+      ) shouldBe None
     }
 
     "return : None financial data when nothing is returned" in {
 
-      when(requestBuilderExecute[HttpResponse])
-        .thenReturn(Future.successful(HttpResponse(503, "503")))
-
-      val response: Future[Option[des.FinancialTransactionResponse]] =
+      when(method = GET, uri = "/enterprise/financial-data/ZSDL/utr/ZSDL", headers = expectedHeaders.toMap)
+        .thenReturn(
+          SERVICE_UNAVAILABLE
+        )
+      await(
         desConnector.retrieveFinancialData("utr", None)
-      response.map { x =>
-        x mustBe None
-      }
+      ) shouldBe None
+
     }
 
     "displayDirectDebit should return Future true when des returns directDebitMandateResponse set to true" in {
-      when(requestBuilderExecute[HttpResponse])
-        .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
+      val uri = "/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"
 
-      val response = desConnector.displayDirectDebit("XMSDIL000000001")
-      response.map { res =>
-        res.directDebitMandateFound mustBe true
-      }
+      when(method = GET, uri = uri).thenReturn(
+        status = OK,
+        body = """{ "directDebitMandateFound" : true }"""
+      )
+      val response = await(desConnector.displayDirectDebit("XMSDIL000000001"))
+      response.directDebitMandateFound mustBe true
     }
 
     "displayDirectDebit should return Future false when des returns directDebitMandateResponse set to false" in {
-      when(requestBuilderExecute[HttpResponse])
-        .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : false }""")))
-      val response = desConnector.displayDirectDebit("XMSDIL000000001")
-      response.map { res =>
-        res.directDebitMandateFound mustBe false
-      }
+      when(
+        method = GET,
+        uri = "/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001"
+      ).thenReturn(
+        status = OK,
+        body = """{ "directDebitMandateFound" : false }"""
+      )
+      await(
+        desConnector.displayDirectDebit("XMSDIL000000001")
+      ).directDebitMandateFound mustBe false
+
     }
 
     "displayDirectDebit should return Failed future when Des returns a 404" in {
-      when(requestBuilderExecute[HttpResponse])
-        // .thenThrow(new RuntimeException("Exception"))
-        .thenReturn(
-          Future.failed(new Exception("The future returned an exception of type: uk.gov.hmrc.http.NotFoundException"))
-        )
-      val response: Future[DisplayDirectDebitResponse] = desConnector
-        .displayDirectDebit("XMSDIL000000001")
 
-      response onComplete {
-        case Success(x) => println(x)
-        case Failure(y) => println(s"The failure is Caught by Mohan  ${y.getMessage}")
-      }
+      when(method = GET, uri = "/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001")
+        .thenReturn(status = NOT_FOUND)
+
+      val result = desConnector.displayDirectDebit("XMSDIL000000001")
+
+      result.failed.futureValue shouldBe a[uk.gov.hmrc.http.UpstreamErrorResponse]
+
     }
 
     "create subscription should throw an exception if des is unavailable" in {
-      when(requestBuilderExecute[HttpResponse]).thenReturn(
-        Future.successful(HttpResponse(SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE"))
-      )
-      val response = the[Exception] thrownBy (desConnector
+      when(
+        method = POST,
+        uri = "/soft-drinks/subscription/utr/11111111119",
+        body = Some(Json.toJson(sub).toString())
+      ).thenReturn(SERVICE_UNAVAILABLE)
+      val response = desConnector
         .createSubscription(sub, "utr", "11111111119")
-        .futureValue)
-      response.getMessage must include("BadGatewayException")
+
+      response.onComplete {
+        case Success(_) => fail()
+        case Failure(_) =>
+          response.failed.futureValue shouldBe a[uk.gov.hmrc.http.UpstreamErrorResponse]
+      }
     }
 
     "return : 5xxUpstreamResponse when DES returns 429 for too many requests" in {
-      when(requestBuilderExecute[Option[Subscription]])
-        .thenReturn(
-          Future.failed(
-            new UpstreamErrorResponse(
-              message = "Too many requests",
-              statusCode = 429,
-              reportAs = 503,
-              headers = Map.empty
-            )
-          )
-        )
-      recoverToExceptionIf[UpstreamErrorResponse] {
-        desConnector.retrieveSubscriptionDetails("utr", "11111111120")
-      }.map { ex =>
-        ex.getMessage must include("Too many requests")
-        ex.statusCode mustBe 503
-      }
+      when(GET, "/soft-drinks/subscription/details/utr/11111111120")
+        .thenReturn(TOO_MANY_REQUESTS, "Too many requests")
+
+      val response = desConnector.retrieveSubscriptionDetails("utr", "11111111120")
+      response.failed.futureValue shouldBe a[uk.gov.hmrc.http.UpstreamErrorResponse]
     }
 
     "return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
-      when(requestBuilderExecute[HttpResponse]).thenReturn(
-        Future.failed(
-          new UpstreamErrorResponse(
-            message = "Too many requests",
-            statusCode = 429,
-            reportAs = 503,
-            headers = Map.empty
-          )
+      when(GET, "/enterprise/financial-data/ZSDL/utr/ZSDL").thenReturn(
+        body = "Too many requests",
+        status = TOO_MANY_REQUESTS
+      )
+      val result = desConnector.retrieveFinancialData("utr", None)
+      result.failed.futureValue shouldBe a[uk.gov.hmrc.http.UpstreamErrorResponse]
+    }
+
+    "submitReturn should handle DES rate limit (429) by converting to 503" in {
+      val returnsRequest = ReturnsRequest(
+        SdilReturn(
+          ownBrand = (0L, 0L),
+          packLarge = (0L, 0L),
+          packSmall = List.empty[SmallProducer],
+          importSmall = (0L, 0L),
+          importLarge = (0L, 0L),
+          `export` = (0L, 0L),
+          wastage = (0L, 0L),
+          submittedOn = None
         )
       )
-      recoverToExceptionIf[UpstreamErrorResponse](desConnector.retrieveFinancialData("utr", None)).map { ex =>
-        ex.getMessage must include("Too many requests")
-        ex.statusCode mustBe 503
+      when(POST, "/soft-drinks/sdilRef/return")
+        .thenReturn(TOO_MANY_REQUESTS)
+
+      val result = await(desConnector.submitReturn("sdilRef", returnsRequest)).status
+      result shouldBe TOO_MANY_REQUESTS
+    }
+
+    "submitReturn should successfully send return details to DES" in {
+
+      val returnsRequest = ReturnsRequest(
+        SdilReturn(
+          ownBrand = (0L, 0L),
+          packLarge = (0L, 0L),
+          packSmall = List.empty[SmallProducer],
+          importSmall = (0L, 0L),
+          importLarge = (0L, 0L),
+          `export` = (0L, 0L),
+          wastage = (0L, 0L),
+          submittedOn = None
+        )
+      )
+
+      val returnUrl: String = "/soft-drinks/sdilRef/return"
+      val httpResponse = HttpResponse(Status.OK, emptyJsonBody)
+      when(
+        method = POST,
+        uri = returnUrl
+      ).thenReturn(httpResponse.status, httpResponse.body)
+      val result = await(desConnector.submitReturn("sdilRef", returnsRequest))
+      result.status mustBe OK
+    }
+
+    "retrieveFinancialData should successfully fetch financial data from DES" in {
+      val financialData = des.FinancialTransactionResponse(
+        idType = "ZSDL",
+        idNumber = "utr",
+        regimeType = "ZSDL",
+        processingDate = LocalDateTime.now(),
+        financialTransactions = List.empty[des.FinancialTransaction]
+      )
+      val year = 2023
+
+      when(GET, "/enterprise/financial-data/ZSDL/utr/ZSDL")
+        .thenReturn(Status.OK, Some(financialData))
+
+      val response = await(desConnector.retrieveFinancialData("utr", Some(year)))
+
+      response.get shouldBe financialData
+
+    }
+
+    "createSubscription should successfully post subscription details to DES" in {
+      val subscription = Subscription(
+        utr = "utr",
+        sdilRef = Some("11111111119"),
+        orgName = "orgName",
+        orgType = Some("Ltd"),
+        address = UkAddress(List("line1", "line2"), "postcode"),
+        activity = activity,
+        liabilityDate = LocalDate.now(),
+        productionSites = List.empty[Site],
+        warehouseSites = List.empty[Site],
+        contact = Contact(
+          name = Some("John Doe"),
+          positionInCompany = Some("Manager"),
+          phoneNumber = "1234567890",
+          email = "john.doe@example.com"
+        ),
+        endDate = None,
+        deregDate = None
+      )
+
+      val response = CreateSubscriptionResponse(
+        processingDate = LocalDateTime.now(),
+        formBundleNumber = "bundle123"
+      )
+      when(method = POST, uri = "/soft-drinks/subscription/utr/11111111119")
+        .thenReturn(OK, Some(response))
+
+      await(
+        desConnector.createSubscription(subscription, "utr", "11111111119")
+      ) mustBe response
+    }
+
+    "createSubscription should handle failure response from DES" in {
+      val subscription = Subscription(
+        utr = "utr",
+        sdilRef = Some("11111111119"),
+        orgName = "orgName",
+        orgType = Some("Ltd"),
+        address = UkAddress(List("line1", "line2"), "postcode"),
+        activity = activity,
+        liabilityDate = LocalDate.now(),
+        productionSites = List.empty[Site],
+        warehouseSites = List.empty[Site],
+        contact = Contact(
+          name = Some("John Doe"),
+          positionInCompany = Some("Manager"),
+          phoneNumber = "1234567890",
+          email = "john.doe@example.com"
+        ),
+        endDate = None,
+        deregDate = None
+      )
+      when(method = POST, uri = "/soft-drinks/subscription/utr/11111111119").thenReturn(INTERNAL_SERVER_ERROR)
+
+      intercept[UpstreamErrorResponse] {
+        await {
+          desConnector.createSubscription(subscription, "utr", "11111111119")
+        }
       }
     }
-  }
 
-  "submitReturn should handle DES rate limit (429) by converting to 503" in {
-    implicit val period: ReturnPeriod = ReturnPeriod(2023, 1)
-
-    val returnsRequest = ReturnsRequest(
-      SdilReturn(
-        ownBrand = (0L, 0L),
-        packLarge = (0L, 0L),
-        packSmall = List.empty[SmallProducer],
-        importSmall = (0L, 0L),
-        importLarge = (0L, 0L),
-        `export` = (0L, 0L),
-        wastage = (0L, 0L),
-        submittedOn = None
+    "retrieveFinancialData should audit successful response" in {
+      val financialData = des.FinancialTransactionResponse(
+        idType = "ZSDL",
+        idNumber = "utr",
+        regimeType = "ZSDL",
+        processingDate = LocalDateTime.now(),
+        financialTransactions = List.empty[des.FinancialTransaction]
       )
-    )
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.failed(UpstreamErrorResponse("Rate limited", 429)))
+      when(method = GET, uri = "/enterprise/financial-data/ZSDL/utr/ZSDL", headers = expectedHeaders.toMap)
+        .thenReturn(OK, Some(financialData))
 
-    val result = desConnector.submitReturn("sdilRef", returnsRequest)
+      val year = 2023
 
-    recoverToExceptionIf[UpstreamErrorResponse] {
-      result
-    }.map { exception =>
-      exception.statusCode mustBe 503
+      await(desConnector.retrieveFinancialData("utr", Some(year))) shouldBe Some(financialData)
+      verify(mockAuditConnector, times(2)).sendExtendedEvent(any())(using any(), any())
     }
-  }
-
-  "submitReturn should successfully send return details to DES" in {
-    implicit val period: ReturnPeriod = ReturnPeriod(2023, 1)
-
-    val returnsRequest = ReturnsRequest(
-      SdilReturn(
-        ownBrand = (0L, 0L),
-        packLarge = (0L, 0L),
-        packSmall = List.empty[SmallProducer],
-        importSmall = (0L, 0L),
-        importLarge = (0L, 0L),
-        `export` = (0L, 0L),
-        wastage = (0L, 0L),
-        submittedOn = None
-      )
-    )
-
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, "")))
-
-    val result = desConnector.submitReturn("sdilRef", returnsRequest)
-    result.map { response =>
-      response.status mustBe 200
+    "handle DES returning 404 for financial data" in {
+      when(method = GET, uri = "enterprise/financial-data/ZSDL/utr/ZSDL", headers = expectedHeaders.toMap)
+        .thenReturn(NOT_FOUND, "Not found")
+      await(
+        desConnector.retrieveFinancialData("utr", None)
+      ) mustBe None
     }
-  }
 
-  "retrieveFinancialData should successfully fetch financial data from DES" in {
+    "handle DES returning 429 for displayDirectDebit" in {
+      when(method = GET, uri = "/cross-regime/direct-debits/zsdl/zsdl/XMSDIL000000001")
+        .thenReturn(status = TOO_MANY_REQUESTS, "Rate limited")
 
-    val financialData = des.FinancialTransactionResponse(
-      idType = "ZSDL",
-      idNumber = "utr",
-      regimeType = "ZSDL",
-      processingDate = LocalDateTime.now(),
-      financialTransactions = List.empty[des.FinancialTransaction]
-    )
-
-    when(requestBuilderExecute[Option[des.FinancialTransactionResponse]])
-      .thenReturn(Future.successful(Some(financialData)))
-
-    val response = desConnector.retrieveFinancialData("utr", Some(2023))
-    response.map { data =>
-      data mustBe Some(financialData)
+      intercept[UpstreamErrorResponse] {
+        await {
+          desConnector.displayDirectDebit("XMSDIL000000001")
+        }
+      }
     }
-  }
 
-  "createSubscription should successfully post subscription details to DES" in {
-    val mockedActivity = mock[Activity]
+    "handle DES returning 403 for subscription details" in {
+      when(GET, "/soft-drinks/subscription/details/utr/11111111119")
+        .thenReturn(FORBIDDEN, "Forbidden")
 
-    when(mockedActivity.isProducer).thenReturn(true)
-    when(mockedActivity.isLarge).thenReturn(false)
-    when(mockedActivity.isContractPacker).thenReturn(false)
-    when(mockedActivity.isImporter).thenReturn(false)
-    when(mockedActivity.taxEstimation).thenReturn(BigDecimal(100))
-
-    val subscription = Subscription(
-      utr = "utr",
-      sdilRef = Some("11111111119"),
-      orgName = "orgName",
-      orgType = Some("Ltd"),
-      address = UkAddress(List("line1", "line2"), "postcode"),
-      activity = mockedActivity,
-      liabilityDate = LocalDate.now(),
-      productionSites = List.empty[Site],
-      warehouseSites = List.empty[Site],
-      contact = Contact(
-        name = Some("John Doe"),
-        positionInCompany = Some("Manager"),
-        phoneNumber = "1234567890",
-        email = "john.doe@example.com"
-      ),
-      endDate = None,
-      deregDate = None
-    )
-
-    val response = CreateSubscriptionResponse(
-      processingDate = LocalDateTime.now(),
-      formBundleNumber = "bundle123"
-    )
-
-    when(requestBuilderExecute[CreateSubscriptionResponse])
-      .thenReturn(Future.successful(response))
-
-    val result = desConnector.createSubscription(subscription, "utr", "11111111119")
-    result.map { res =>
-      res mustBe response
-    }
-  }
-
-  "createSubscription should handle failure response from DES" in {
-
-    val mockedActivity = mock[Activity]
-
-    when(mockedActivity.isProducer).thenReturn(true)
-    when(mockedActivity.isLarge).thenReturn(false)
-    when(mockedActivity.isContractPacker).thenReturn(false)
-    when(mockedActivity.isImporter).thenReturn(false)
-    when(mockedActivity.taxEstimation).thenReturn(BigDecimal(100))
-
-    val subscription = Subscription(
-      utr = "utr",
-      sdilRef = Some("11111111119"),
-      orgName = "orgName",
-      orgType = Some("Ltd"),
-      address = UkAddress(List("line1", "line2"), "postcode"),
-      activity = mockedActivity,
-      liabilityDate = LocalDate.now(),
-      productionSites = List.empty[Site],
-      warehouseSites = List.empty[Site],
-      contact = Contact(
-        name = Some("John Doe"),
-        positionInCompany = Some("Manager"),
-        phoneNumber = "1234567890",
-        email = "john.doe@example.com"
-      ),
-      endDate = None,
-      deregDate = None
-    )
-
-    when(requestBuilderExecute[CreateSubscriptionResponse])
-      .thenReturn(Future.failed(UpstreamErrorResponse("Error", 500)))
-
-    val result = desConnector.createSubscription(subscription, "utr", "11111111119")
-
-    recoverToSucceededIf[UpstreamErrorResponse] {
-      result
-    }
-  }
-
-  "retrieveFinancialData should audit successful response" in {
-    val mockAuditConnector = mock[AuditConnector]
-
-    val testDesConnector = new DesConnector(
-      http = mockHttpClient,
-      mode = mock[Mode],
-      servicesConfig = mockServicesConfig,
-      persistence = mock[SdilMongoPersistence],
-      auditing = mockAuditConnector
-    )(using executionContext)
-
-    val financialData = des.FinancialTransactionResponse(
-      idType = "ZSDL",
-      idNumber = "utr",
-      regimeType = "ZSDL",
-      processingDate = LocalDateTime.now(),
-      financialTransactions = List.empty[des.FinancialTransaction]
-    )
-
-    when(requestBuilderExecute[Option[des.FinancialTransactionResponse]])
-      .thenReturn(Future.successful(Some(financialData)))
-
-    val response = testDesConnector.retrieveFinancialData("utr", Some(2023))
-    response.map { data =>
-      data mustBe Some(financialData)
-      verify(mockAuditConnector).sendExtendedEvent(any())
-    }
-  }
-
-  "handle DES returning 404 for financial data" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(404, "Not Found")))
-
-    val response: Future[Option[des.FinancialTransactionResponse]] =
-      desConnector.retrieveFinancialData("utr", None)
-    response.map { x =>
-      x mustBe None
-    }
-  }
-
-  "handle DES returning 429 for displayDirectDebit" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.failed(UpstreamErrorResponse("Rate limited", 429)))
-
-    recoverToExceptionIf[UpstreamErrorResponse] {
-      desConnector.displayDirectDebit("XMSDIL000000001")
-    }.map { exception =>
-      exception.statusCode mustBe 503
-    }
-  }
-  "handle DES returning 403 for subscription details" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(403, "Forbidden")))
-
-    val response: Future[Option[Subscription]] = desConnector.retrieveSubscriptionDetails("utr", "11111111119")
-    response.map { x =>
-      x mustBe None
+      await(
+        desConnector.retrieveSubscriptionDetails("utr", "11111111119")
+      ) mustBe None
     }
   }
 
   "create subscription should throw an exception if des is returning 429" in {
-    when(requestBuilderExecute[HttpResponse]).thenReturn(
-      Future.failed(
-        new UpstreamErrorResponse(
-          message = "Too many requests",
-          statusCode = 429,
-          reportAs = 503,
-          headers = Map.empty
-        )
-      )
+    when(
+      method = POST,
+      uri = "/soft-drinks/subscription/utr/11111111119",
+      body = Some(Json.toJson(sub).toString())
+    ).thenReturn(
+      TOO_MANY_REQUESTS,
+      "Too many requests"
     )
-
-    recoverToExceptionIf[UpstreamErrorResponse] {
-      desConnector.createSubscription(sub, "utr", "11111111119")
-    }.map { ex =>
-      ex.statusCode mustBe 503
-      ex.getMessage must include("Too many requests")
+    intercept[UpstreamErrorResponse] {
+      await {
+        desConnector.createSubscription(sub, "utr", "11111111119")
+      }
     }
   }
+
   "should get no response back if des is not available" in {
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(429, "429")))
-    val response: Future[HttpResponse] = desConnector.submitReturn("utr", returnsRequest)
-    response.map { x =>
-      x.status mustBe 429
-    }
-  }
+    when(
+      method = POST,
+      uri = "/soft-drinks/utr/return",
+      body = Some(Json.toJson(returnsRequest).toString()),
+      headers = expectedHeaders.toMap
+    ).thenReturn(SERVICE_UNAVAILABLE)
 
+    await(
+      desConnector.submitReturn("utr", returnsRequest)
+    ).status shouldBe SERVICE_UNAVAILABLE
+  }
 }

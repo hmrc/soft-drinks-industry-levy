@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.{EmailConnector, TaxEnrolmentConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.models.Subscription
@@ -44,7 +44,6 @@ class TaxEnrolmentCallbackControllerSpec
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockEmail: EmailConnector = mock[EmailConnector]
   val mockTaxEnrolments: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
-  val mockAuditConnector: AuditConnector = mock[AuditConnector]
   val mockConfiguration: ServicesConfig = mock[ServicesConfig]
   val mockMode: Mode = mock[Mode]
   val cc: ControllerComponents = app.injector.instanceOf[ControllerComponents]

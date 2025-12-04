@@ -16,25 +16,25 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.Mockito.when
-import uk.gov.hmrc.http.HttpResponse
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import org.scalatest.matchers.should.Matchers.shouldBe
+import play.api.http.Status
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
-class FileUploadConnectorSpec extends HttpClientV2Helper {
+import scala.concurrent.ExecutionContext
 
-  val connector = app.injector.instanceOf[FileUploadConnector]
+class FileUploadConnectorSpec extends HttpClientV2Helper with WireMockMethods {
+
+  val connector: FileUploadConnector = app.injector.instanceOf[FileUploadConnector]
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "attempted get of file should succeed if the file is returned" in {
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, """{ "directDebitMandateFound" : true }""")))
+    when(GET, "/file-upload/envelopes/1234/files/testfile/content")
+      .thenReturn(Status.OK, """{ "directDebitMandateFound" : true }""")
 
-    connector.getFile("1234", "testfile") onComplete {
-      case Success(_) =>
-      case Failure(_) => fail()
-    }
+    await(connector.getFile("1234", "testfile")).utf8String shouldBe "{ \"directDebitMandateFound\" : true }"
+
   }
 }
