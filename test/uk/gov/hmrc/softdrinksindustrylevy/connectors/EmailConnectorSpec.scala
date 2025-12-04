@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.Status
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
@@ -33,25 +34,25 @@ class EmailConnectorSpec extends HttpClientV2Helper with WireMockMethods {
     when(POST, "/hmrc/email")
       .thenReturn(Status.OK)
 
-    connector.sendConfirmationEmail("test", "test", "dfg").value shouldBe None
+    await(connector.sendConfirmationEmail("test", "test", "dfg"))  shouldBe ()
   }
 
   "attempted email should fail when the response from email service is a failure" in {
     when(POST, "/hmrc/email")
       .thenReturn(Status.INTERNAL_SERVER_ERROR)
-    connector.sendConfirmationEmail("test", "test", "dfg").value shouldBe None
+    await(connector.sendConfirmationEmail("test", "test", "dfg"))  shouldBe ()
   }
 
   "attempted submission email should succeed" in {
     when(POST, "/hmrc/email")
       .thenReturn(Status.OK)
-    connector.sendSubmissionReceivedEmail("test", "test").value shouldBe None
+    await(connector.sendSubmissionReceivedEmail("test", "test")) shouldBe ()
   }
 
   "attempted submission email should fail if email service fails" in {
     when(POST, "/hmrc/email")
       .thenReturn(Status.INTERNAL_SERVER_ERROR)
-    connector.sendSubmissionReceivedEmail("test", "test").value shouldBe None
+    await(connector.sendSubmissionReceivedEmail("test", "test")) shouldBe ()
   }
 
 }
