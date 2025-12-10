@@ -16,34 +16,38 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.Mockito.when
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.softdrinksindustrylevy.models.connectors._
+import play.api.http.Status
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import uk.gov.hmrc.http.{BadGatewayException, HeaderCarrier}
+import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.*
+import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class ContactFrontendConnectorSpec extends HttpClientV2Helper {
+class ContactFrontendConnectorSpec extends HttpClientV2Helper with WireMockMethods {
 
-  val connector = app.injector.instanceOf[ContactFrontendConnector]
+  val connector: ContactFrontendConnector = app.injector.instanceOf[ContactFrontendConnector]
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "attempted contact form should fail if contact service is not available" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.failed(new Exception("")))
 
-    connector.raiseTicket(sub, "safeid1") onComplete {
-      case Success(_) => fail()
-      case Failure(_) =>
+    stopWireMock()
+
+    intercept[BadGatewayException] {
+      await {
+        connector.raiseTicket(sub, "safeid1")
+      }
     }
+    startWireMock()
   }
 
   "attempted contact form should succeed if contact service is available" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, "")))
+    when(POST, "/contact/contact-hmrc/form")
+      .thenReturn(Status.OK)
 
     connector.raiseTicket(sub, "test1") onComplete {
       case Success(_) =>

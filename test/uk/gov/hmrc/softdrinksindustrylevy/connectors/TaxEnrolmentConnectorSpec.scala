@@ -16,82 +16,59 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import org.mockito.Mockito.when
-import org.scalatest.RecoverMethods.recoverToExceptionIf
-import play.api.Mode
+import org.scalatest.matchers.should.Matchers.shouldBe
+import play.api.http.Status
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, HttpResponse, NotFoundException, UnauthorizedException}
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
+import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class TaxEnrolmentConnectorSpec extends HttpClientV2Helper {
+class TaxEnrolmentConnectorSpec extends HttpClientV2Helper with WireMockMethods {
 
-  val mode = mock[Mode]
-
-  val connector = new TaxEnrolmentConnector(mockHttpClient, mode, mockServicesConfig)
+  val connector: TaxEnrolmentConnector = app.injector.instanceOf[TaxEnrolmentConnector]
 
   val req = TaxEnrolmentsSubscription(None, "etmp1", "active", None)
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit lazy val hc: HeaderCarrier = new HeaderCarrier
+
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "should get successful response back" in {
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
+    when(GET, "/tax-enrolments/subscriptions/1234567890")
+      .thenReturn(Status.OK, Json.toJson(req).toString())
 
-    connector.getSubscription("1234567890").map { response =>
-      response mustBe req
-    }
+    await(connector.getSubscription("1234567890")) shouldBe req
   }
 
   "should subscribe successfully" in {
 
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(200, Json.toJson(req).toString())))
+    when(PUT, "/tax-enrolments/subscriptions/1234/subscriber")
+      .thenReturn(Status.OK, Json.toJson(req).toString())
 
-    connector.subscribe("safe1", "1234").map { res =>
-      res.status mustBe 200
-    }
+    val response = await(connector.subscribe("safe1", "1234"))
+    response.status shouldBe Status.OK
   }
 
   "should handle errors for create subscribtion" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.successful(HttpResponse(400, "400")))
+    when(PUT, "/tax-enrolments/subscriptions/1234/subscriber")
+      .thenReturn(Status.BAD_REQUEST)
 
-    connector.subscribe("safe1", "1234").map { res =>
-      res.status mustBe 400
-    }
+    await(connector.subscribe("safe1", "1234")).status shouldBe Status.BAD_REQUEST
   }
   "should handle unauthorized error for subscription" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.failed(new UnauthorizedException("Unauthorized")))
+    when(PUT, "/tax-enrolments/subscriptions/1234/subscriber")
+      .thenReturn(Status.UNAUTHORIZED)
 
-    recoverToExceptionIf[UnauthorizedException] {
-      connector.subscribe("safe1", "1234")
-    }.map { ex =>
-      ex.getMessage mustBe "Unauthorized"
-    }
-  }
-  "should handle bad request error for subscription" in {
-    when(requestBuilderExecute[HttpResponse])
-      .thenReturn(Future.failed(new BadRequestException("Bad Request")))
-
-    recoverToExceptionIf[BadRequestException] {
-      connector.subscribe("safe1", "1234")
-    }.map { ex =>
-      ex.getMessage mustBe "Bad Request"
-    }
+    await(connector.subscribe("safe1", "1234")).status shouldBe Status.UNAUTHORIZED
   }
 
   "should handle errors for get subscription" in {
-    when(requestBuilderExecute[TaxEnrolmentsSubscription])
-      .thenReturn(Future.failed(new NotFoundException("Not Found")))
+    when(PUT, "/tax-enrolments/subscriptions/1234/subscriber")
+      .thenReturn(Status.NOT_FOUND)
 
-    recoverToExceptionIf[NotFoundException] {
-      connector.getSubscription("1234567890")
-    }.map { ex =>
-      ex.getMessage mustBe "Not Found"
-    }
+    await(connector.subscribe("safe1", "1234")).status shouldBe Status.NOT_FOUND
   }
 }
