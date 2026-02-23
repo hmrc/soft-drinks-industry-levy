@@ -24,3 +24,5 @@ GET         /balance/:sdil/history/all/:withAssessment                       uk.
 GET         /balance/:sdil/:withAssessment                                   uk.gov.hmrc.softdrinksindustrylevy.controllers.BalanceController.balance(sdil: String, withAssessment: Boolean)
 
 GET         /check-direct-debit-status/:sdilRef                              uk.gov.hmrc.softdrinksindustrylevy.controllers.DirectDebitController.checkDirectDebitStatus(sdilRef: String)
+
+POST        /levy/calculate                                                  uk.gov.hmrc.softdrinksindustrylevy.controllers.LevyCalculationController.calculateLevy
