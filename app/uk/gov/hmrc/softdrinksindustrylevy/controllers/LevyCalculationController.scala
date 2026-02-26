@@ -20,73 +20,67 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsError, Json}
-import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisationException, AuthorisedFunctions, MissingBearerToken}
 import uk.gov.hmrc.softdrinksindustrylevy.models.{LevyCalculationRequest, LevyCalculationResponse, LevyCalculator}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LevyCalculationController @Inject() (
-  cc: ControllerComponents,
-  override val authConnector: AuthConnector
+  cc: ControllerComponents
 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) with AuthorisedFunctions {
+    extends BackendController(cc) {
 
   def calculateLevy: Action[AnyContent] = Action.async { implicit request =>
-    authorised(AuthProviders(GovernmentGateway))
-      .apply {
-        request.body.asJson match {
-          case None =>
-            Future.successful(BadRequest(Json.obj("code" -> "INVALID_JSON", "message" -> "Expected JSON body")))
+    request.body.asJson match {
+      case None =>
+        Future.successful(
+          BadRequest(Json.obj("code" -> "INVALID_JSON", "message" -> "Expected JSON body"))
+        )
 
-          case Some(json) =>
-            json
-              .validate[LevyCalculationRequest]
-              .fold(
-                errors =>
+      case Some(json) =>
+        json
+          .validate[LevyCalculationRequest]
+          .fold(
+            errors =>
+              Future.successful(
+                BadRequest(
+                  Json.obj(
+                    "code"    -> "INVALID_REQUEST",
+                    "message" -> "Invalid request payload",
+                    "details" -> JsError.toJson(errors)
+                  )
+                )
+              ),
+            validRequest =>
+              try {
+                val calculationResult =
+                  LevyCalculator.getLevyCalculation(
+                    validRequest.lowLitres,
+                    validRequest.highLitres,
+                    validRequest.returnPeriod
+                  )
+
+                val response =
+                  LevyCalculationResponse(
+                    calculationResult.lowLevy,
+                    calculationResult.highLevy,
+                    calculationResult.total,
+                    calculationResult.totalRoundedDown
+                  )
+
+                Future.successful(Ok(Json.toJson(response)))
+              } catch {
+                case e: IllegalArgumentException =>
                   Future.successful(
                     BadRequest(
                       Json.obj(
                         "code"    -> "INVALID_REQUEST",
-                        "message" -> "Invalid request payload",
-                        "details" -> JsError.toJson(errors)
+                        "message" -> e.getMessage
                       )
                     )
-                  ),
-                validRequest =>
-                  try {
-                    val calculationResult =
-                      LevyCalculator.getLevyCalculation(
-                        validRequest.lowLitres,
-                        validRequest.highLitres,
-                        validRequest.returnPeriod
-                      )
-
-                    val response =
-                      LevyCalculationResponse(
-                        calculationResult.lowLevy,
-                        calculationResult.highLevy,
-                        calculationResult.total,
-                        calculationResult.totalRoundedDown
-                      )
-
-                    Future.successful(Ok(Json.toJson(response)))
-                  } catch {
-                    case e: IllegalArgumentException =>
-                      Future.successful(BadRequest(Json.obj("code" -> "INVALID_REQUEST", "message" -> e.getMessage)))
-                  }
-              )
-
-        }
-      }
-      .recover {
-        case _: MissingBearerToken =>
-          Unauthorized(Json.obj("code" -> "UNAUTHORIZED", "message" -> "Bearer token not supplied"))
-
-        case _: AuthorisationException =>
-          Forbidden(Json.obj("code" -> "FORBIDDEN", "message" -> "Not authorised"))
-      }
+                  )
+              }
+          )
+    }
   }
-
 }

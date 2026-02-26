@@ -33,10 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAfterEach {
   implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
-  val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
   private val cc = Helpers.stubControllerComponents()
-  private val controller = new LevyCalculationController(cc, mockAuthConnector)
+  private val controller = new LevyCalculationController(cc)
 
   private def calculateLevyRequest(actionBody: JsValue): Future[Result] =
     controller.calculateLevy.apply(
@@ -44,16 +43,6 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
         .withHeaders(CONTENT_TYPE -> "application/json")
         .withBody(AnyContentAsJson(actionBody))
     )
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-    when(
-      mockAuthConnector.authorise[Unit](eqTo(AuthProviders(GovernmentGateway)), any())(using
-        any[HeaderCarrier],
-        any[ExecutionContext]
-      )
-    ).thenReturn(Future.successful(()))
-  }
 
   "LevyCalculationController.calculateLevy" should {
 
@@ -140,25 +129,6 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
       val levyCalculationResponse = contentAsJson(result)
       (levyCalculationResponse \ "code").as[String] shouldBe "INVALID_REQUEST"
       (levyCalculationResponse \ "message").as[String] must include("No band rates found for tax year")
-    }
-
-    "return 401 Unauthorized when the request is not authenticated" in {
-      when(
-        mockAuthConnector.authorise(
-          eqTo(AuthProviders(GovernmentGateway)),
-          any()
-        )(using any[HeaderCarrier], any[ExecutionContext])
-      ).thenReturn(Future.failed(MissingBearerToken()))
-
-      val levyCalculationRequestJson = Json.obj(
-        "lowLitres"    -> 1000,
-        "highLitres"   -> 500,
-        "returnPeriod" -> Json.obj("year" -> 2025, "quarter" -> 0)
-      )
-
-      val result = calculateLevyRequest(levyCalculationRequestJson)
-
-      status(result) shouldBe UNAUTHORIZED
     }
   }
 }
