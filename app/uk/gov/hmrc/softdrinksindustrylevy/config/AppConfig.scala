@@ -16,21 +16,13 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import com.google.inject.AbstractModule
-import com.typesafe.config.Config
+import javax.inject.{Inject, Singleton}
+import java.time.LocalDate
 
-import java.time.Clock
+@Singleton
+final class AppConfig @Inject() (sdilBandRatesConfig: SdilBandRatesConfig) {
 
-class ApplicationModule(config: Config) extends AbstractModule {
-  override def configure(): Unit = {
-
-    bind(classOf[AppConfigInitialiser]).asEagerSingleton()
-
-    if (config.getBoolean("create-internal-auth-token-on-start")) {
-      bind(classOf[InternalAuthTokenInitialiser]).to(classOf[InternalAuthTokenInitialiserImpl]).asEagerSingleton()
-    } else {
-      bind(classOf[InternalAuthTokenInitialiser]).to(classOf[NoOpInternalAuthTokenInitialiser]).asEagerSingleton()
-    }
-    bind(classOf[Clock]).toInstance(Clock.systemDefaultZone())
-  }
+  // Tax year starts 1 April
+  def bandRatesForTaxYear(taxYear: Int): BandRates =
+    sdilBandRatesConfig.bandRatesFor(LocalDate.of(taxYear, 4, 1))
 }
