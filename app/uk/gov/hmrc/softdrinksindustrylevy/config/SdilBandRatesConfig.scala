@@ -16,40 +16,32 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.config
 
-import com.typesafe.config.{Config, ConfigObject}
-import javax.inject.{Inject, Singleton}
+import play.api.Configuration
 
 import java.time.LocalDate
-import scala.jdk.CollectionConverters.*
+import java.time.format.DateTimeParseException
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-final class SdilBandRatesConfig @Inject() (config: Config) {
+final class SdilBandRatesConfig @Inject() (configuration: Configuration) {
 
   private final case class RatePeriod(
     startDate: LocalDate,
     endDate: Option[LocalDate],
     rates: BandRates
-  ) {
-    def contains(date: LocalDate): Boolean =
-      !date.isBefore(startDate) && endDate.forall(end => !date.isAfter(end))
-  }
+  )
 
+  // Reads the list once, validates, then sorts newest-first
   private val periods: List[RatePeriod] = {
-
-    val raw: List[ConfigObject] =
-      config.getObjectList("sdil.bandRates").asScala.toList
+    val raw: Seq[Configuration] = configuration.get[Seq[Configuration]]("sdil.bandRates")
 
     val parsed: List[RatePeriod] =
-      raw.map { obj =>
-        val c = obj.toConfig
+      raw.toList.map { c =>
+        val start = readLocalDate(c, "startDate")
+        val end = readOptionalLocalDate(c, "endDate")
 
-        val start = LocalDate.parse(c.getString("startDate"))
-        val end =
-          if (c.hasPath("endDate")) Some(LocalDate.parse(c.getString("endDate")))
-          else None
-
-        val lower = BigDecimal(c.getString("lowerBandCostPerLitre"))
-        val higher = BigDecimal(c.getString("higherBandCostPerLitre"))
+        val lower = BigDecimal(c.get[String]("lowerBandCostPerLitre"))
+        val higher = BigDecimal(c.get[String]("higherBandCostPerLitre"))
 
         RatePeriod(
           startDate = start,
@@ -58,13 +50,65 @@ final class SdilBandRatesConfig @Inject() (config: Config) {
         )
       }
 
-    parsed.sortBy(_.startDate)
+    validate(parsed)
+
+    parsed.sortBy(_.startDate)(using Ordering[LocalDate].reverse)
   }
 
+  /** Find rates for a given date: startDate <= date AND (endDate absent OR date <= endDate) */
   def bandRatesFor(date: LocalDate): BandRates =
-    periods.find(_.contains(date)).map(_.rates).getOrElse {
+    periods
+      .find(p => !date.isBefore(p.startDate) && p.endDate.forall(e => !date.isAfter(e)))
+      .map(_.rates)
+      .getOrElse {
+        throw new IllegalArgumentException(
+          s"No SDIL band rates configured for date $date. Check sdil.bandRates start/end dates."
+        )
+      }
+
+  private def validate(ps: List[RatePeriod]): Unit = {
+    if (ps.isEmpty)
+      throw new IllegalArgumentException("sdil.bandRates must contain at least one rate period")
+
+    val openEndedCount = ps.count(_.endDate.isEmpty)
+    if (openEndedCount > 1)
       throw new IllegalArgumentException(
-        s"No SDIL band rates configured for date $date. Check sdil.bandRates start/end dates."
+        s"Invalid sdil.bandRates: found $openEndedCount open-ended periods (endDate missing). Only one is allowed."
       )
+
+    val asc = ps.sortBy(_.startDate)
+    asc.zip(asc.drop(1)).foreach { case (a, b) =>
+      a.endDate match {
+        case None =>
+          throw new IllegalArgumentException(
+            s"Invalid sdil.bandRates: open-ended period starting ${a.startDate} overlaps period starting ${b.startDate}"
+          )
+        case Some(aEnd) =>
+          if (!b.startDate.isAfter(aEnd)) {
+            throw new IllegalArgumentException(
+              s"Invalid sdil.bandRates: overlapping periods. " +
+                s"Period ${a.startDate}..$aEnd overlaps ${b.startDate}..${b.endDate.map(_.toString).getOrElse("open-ended")}"
+            )
+          }
+      }
+    }
+  }
+
+  private def readLocalDate(c: Configuration, key: String): LocalDate = {
+    val raw = c.get[String](key)
+    try LocalDate.parse(raw)
+    catch {
+      case _: DateTimeParseException =>
+        throw new IllegalArgumentException(s"Invalid date for sdil.bandRates.$key: '$raw' (expected yyyy-MM-dd)")
+    }
+  }
+
+  private def readOptionalLocalDate(c: Configuration, key: String): Option[LocalDate] =
+    c.getOptional[String](key).map { raw =>
+      try LocalDate.parse(raw)
+      catch {
+        case _: DateTimeParseException =>
+          throw new IllegalArgumentException(s"Invalid date for sdil.bandRates.$key: '$raw' (expected yyyy-MM-dd)")
+      }
     }
 }

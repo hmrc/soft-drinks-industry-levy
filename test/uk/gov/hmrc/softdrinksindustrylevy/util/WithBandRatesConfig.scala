@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.util
 
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
+import play.api.Configuration
 import uk.gov.hmrc.softdrinksindustrylevy.config.{AppConfig, AppConfigHolder, SdilBandRatesConfig}
 
 trait WithBandRatesConfig extends BeforeAndAfterAll { self: org.scalatest.Suite =>
@@ -25,7 +26,7 @@ trait WithBandRatesConfig extends BeforeAndAfterAll { self: org.scalatest.Suite 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
 
-    val conf = ConfigFactory.parseString("""
+    val rawConfig = ConfigFactory.parseString("""
       sdil {
         bandRates = [
           {
@@ -43,7 +44,8 @@ trait WithBandRatesConfig extends BeforeAndAfterAll { self: org.scalatest.Suite 
       }
     """)
 
-    val bandRatesConfig = new SdilBandRatesConfig(conf)
+    val playConfig: Configuration = Configuration(rawConfig)
+    val bandRatesConfig = new SdilBandRatesConfig(playConfig)
     val appConfig = new AppConfig(bandRatesConfig)
 
     AppConfigHolder.set(appConfig)
