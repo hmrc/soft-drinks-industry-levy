@@ -23,9 +23,6 @@ import java.time.Clock
 
 class ApplicationModule(config: Config) extends AbstractModule {
   override def configure(): Unit = {
-
-    bind(classOf[AppConfigInitialiser]).asEagerSingleton()
-
     if (config.getBoolean("create-internal-auth-token-on-start")) {
       bind(classOf[InternalAuthTokenInitialiser]).to(classOf[InternalAuthTokenInitialiserImpl]).asEagerSingleton()
     } else {

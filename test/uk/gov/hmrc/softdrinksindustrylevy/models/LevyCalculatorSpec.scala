@@ -17,20 +17,16 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import org.scalacheck.Gen
-import com.typesafe.config.ConfigFactory
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import sdil.models.ReturnPeriod
-import uk.gov.hmrc.softdrinksindustrylevy.config.{AppConfig, AppConfigHolder, BandRates, SdilBandRatesConfig}
 import uk.gov.hmrc.softdrinksindustrylevy.models.LevyCalculator.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil.*
-import uk.gov.hmrc.softdrinksindustrylevy.util.WithBandRatesConfig
 
 import java.time.LocalDate
 
-class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with WithBandRatesConfig {
+class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
 
   "getTaxYear" should {
     (2018 to 2024).foreach { year =>

@@ -24,10 +24,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil._
 import uk.gov.hmrc.softdrinksindustrylevy.models.UkAddress
-import uk.gov.hmrc.softdrinksindustrylevy.util.WithBandRatesConfig
 
-class ReturnSpec
-    extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar with WithBandRatesConfig {
+class ReturnSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks with MockitoSugar {
 
   "A ReturnPeriod" should {
     val lowPosInts = Gen.choose(0, 1000)

@@ -18,9 +18,13 @@ package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import play.api.Logging
 import sdil.models.ReturnPeriod
-import uk.gov.hmrc.softdrinksindustrylevy.config.{AppConfigHolder, BandRates}
+import uk.gov.hmrc.softdrinksindustrylevy.config.SdilBandRatesConfig
 
-final case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
+import java.time.LocalDate
+
+case class BandRates(lowerBandCostPerLitre: BigDecimal, higherBandCostPerLitre: BigDecimal)
+
+case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
   lazy val lowLevy = low.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val highLevy = high.setScale(2, BigDecimal.RoundingMode.HALF_UP)
   lazy val total = (low + high).setScale(2, BigDecimal.RoundingMode.HALF_UP)
@@ -29,22 +33,28 @@ final case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
 
 object LevyCalculator extends Logging {
 
-  private[models] def getTaxYear(returnPeriod: ReturnPeriod): Int =
+  def getTaxYear(returnPeriod: ReturnPeriod): Int =
     returnPeriod.quarter match {
       case 0 => returnPeriod.year - 1
       case _ => returnPeriod.year
     }
 
-  private[models] def getBandRates(taxYear: Int): BandRates =
-    AppConfigHolder.get.bandRatesForTaxYear(taxYear)
+  def getBandRates(taxYear: Int): BandRates = {
+    val effectiveDate = LocalDate.of(taxYear, 4, 1)
+    val entry = SdilBandRatesConfig.rateFor(effectiveDate)
+    BandRates(entry.lowerBandCostPerLitre, entry.higherBandCostPerLitre)
+  }
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
     val taxYear = getTaxYear(returnPeriod)
-    val bandRates = getBandRates(taxYear)
-    val lowLevy = lowLitres * bandRates.lowerBandCostPerLitre
-    val highLevy = highLitres * bandRates.higherBandCostPerLitre
+    val rates = getBandRates(taxYear)
+
+    val lowLevy = BigDecimal(lowLitres) * rates.lowerBandCostPerLitre
+    val highLevy = BigDecimal(highLitres) * rates.higherBandCostPerLitre
+
     logger.info(
-      s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} using bandRates lower ${bandRates.lowerBandCostPerLitre} higher ${bandRates.higherBandCostPerLitre}"
+      s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} " +
+        s"taxYear=$taxYear using bandRates lower=${rates.lowerBandCostPerLitre} higher=${rates.higherBandCostPerLitre}"
     )
     LevyCalculation(lowLevy, highLevy)
   }
