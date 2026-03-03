@@ -108,8 +108,9 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
       details must include("must be non-negative")
     }
 
-    "return 400 BadRequest when tax year is unsupported" in {
-      val levyCalculationRequestJson = Json.parse("""
+    "return 200 OK for future years when the latest band rates are open-ended (e.g. 2099)" in {
+      val levyCalculationRequestJson = Json.parse(
+        """
         {
           "lowLitres": 1,
           "highLitres": 1,
@@ -119,18 +120,23 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
 
       val result = calculateLevyRequest(levyCalculationRequestJson)
 
-      status(result) shouldBe BAD_REQUEST
+      status(result) shouldBe OK
+      contentType(result) shouldBe Some("application/json")
+
       val levyCalculationResponse = contentAsJson(result)
-      (levyCalculationResponse \ "code").as[String] shouldBe "INVALID_REQUEST"
-      (levyCalculationResponse \ "message").as[String] must include("Unsupported tax year")
+      (levyCalculationResponse \ "lowBandLevy").as[BigDecimal] shouldBe a[BigDecimal]
+      (levyCalculationResponse \ "highBandLevy").as[BigDecimal] shouldBe a[BigDecimal]
+      (levyCalculationResponse \ "totalLevy").as[BigDecimal] shouldBe a[BigDecimal]
+      (levyCalculationResponse \ "totalRoundedDown").as[BigDecimal] shouldBe a[BigDecimal]
     }
 
-    "return 400 BadRequest when band rates are missing for a supported year (e.g. Year2026 not configured)" in {
-      val levyCalculationRequestJson = Json.parse("""
+    "return 400 BadRequest when returnPeriod year is before supported minimum (year must be >= 2018)" in {
+      val levyCalculationRequestJson = Json.parse(
+        """
         {
           "lowLitres": 1,
           "highLitres": 1,
-          "returnPeriod": { "year": 2026, "quarter": 1 }
+          "returnPeriod": { "year": 2016, "quarter": 1 }
         }
       """)
 
@@ -139,7 +145,10 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
       status(result) shouldBe BAD_REQUEST
       val levyCalculationResponse = contentAsJson(result)
       (levyCalculationResponse \ "code").as[String] shouldBe "INVALID_REQUEST"
-      (levyCalculationResponse \ "message").as[String] must include("No band rates found for tax year")
+      (levyCalculationResponse \ "message").as[String] shouldBe "Invalid request payload"
+
+      val details = (levyCalculationResponse \ "details").toString
+      details must include("Invalid returnPeriod - year must be >= 2018")
     }
 
     "return 401 Unauthorized when the request is not authenticated" in {
