@@ -27,74 +27,28 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil.*
 import java.time.LocalDate
 
 class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
-
-  "getTaxYear" should {
-    (2018 to 2024).foreach { year =>
-      s"return $year when in April - December $year" in {
-        forAll(aprToDecInt) { month =>
-          val returnPeriod = ReturnPeriod(LocalDate.of(year, month, 1))
-          getTaxYear(returnPeriod) shouldBe year
-        }
-      }
-
-      s"return $year when in January - March ${year + 1}" in {
-        forAll(janToMarInt) { month =>
-          val returnPeriod = ReturnPeriod(LocalDate.of(year + 1, month, 1))
-          getTaxYear(returnPeriod) shouldBe year
-        }
-      }
-    }
-
-    "return 2025 when in April - December 2025" in {
-      forAll(aprToDecInt) { month =>
-        val returnPeriod = ReturnPeriod(LocalDate.of(2025, month, 1))
-        getTaxYear(returnPeriod) shouldBe 2025
-      }
-    }
-
-    "return 2025 when in January - March 2026" in {
-      forAll(janToMarInt) { month =>
-        val returnPeriod = ReturnPeriod(LocalDate.of(2026, month, 1))
-        getTaxYear(returnPeriod) shouldBe 2025
-      }
-    }
-
-    "return 2026 when in April - December 2026" in {
-      forAll(aprToDecInt) { month =>
-        val returnPeriod = ReturnPeriod(LocalDate.of(2026, month, 1))
-        getTaxYear(returnPeriod) shouldBe 2026
-      }
-    }
-
-    "return 2026 when in January - March 2027" in {
-      forAll(janToMarInt) { month =>
-        val returnPeriod = ReturnPeriod(LocalDate.of(2027, month, 1))
-        getTaxYear(returnPeriod) shouldBe 2026
-      }
-    }
-  }
-
+  
   "getBandRates" should {
 
     (2018 to 2024).foreach { taxYear =>
       s"return 0.18 for lower band when tax year is $taxYear" in {
-        val bandRates: BandRates = getBandRates(taxYear)
+        val bandRates: BandRates = getBandRates(ReturnPeriod(taxYear, 1))
         bandRates.lowerBandCostPerLitre shouldBe BigDecimal("0.18")
       }
 
       s"return 0.24 for higher band when tax year is $taxYear" in {
-        val bandRates: BandRates = getBandRates(taxYear)
+        val bandRates: BandRates = getBandRates(ReturnPeriod(taxYear, 1)) 
         bandRates.higherBandCostPerLitre shouldBe BigDecimal("0.24")
       }
     }
 
     "return 0.194 for lower band when tax year is 2025" in {
-      val bandRates: BandRates = getBandRates(2025)
+      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1)) 
       bandRates.lowerBandCostPerLitre shouldBe BigDecimal("0.194")
     }
 
     "return 0.259 for higher band when tax year is 2025" in {
-      val bandRates: BandRates = getBandRates(2025)
+      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1)) 
       bandRates.higherBandCostPerLitre shouldBe BigDecimal("0.259")
     }
   }
@@ -278,9 +232,6 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
           }
         }
       }
-
     }
-
   }
-
 }

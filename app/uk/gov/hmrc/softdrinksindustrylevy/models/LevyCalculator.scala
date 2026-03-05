@@ -33,28 +33,21 @@ case class LevyCalculation(low: BigDecimal, high: BigDecimal) {
 
 object LevyCalculator extends Logging {
 
-  def getTaxYear(returnPeriod: ReturnPeriod): Int =
-    returnPeriod.quarter match {
-      case 0 => returnPeriod.year - 1
-      case _ => returnPeriod.year
-    }
-
-  def getBandRates(taxYear: Int): BandRates = {
-    val effectiveDate = LocalDate.of(taxYear, 4, 1)
+  def getBandRates(returnPeriod: ReturnPeriod): BandRates = {
+    val effectiveDate = returnPeriod.start
     val entry = SdilBandRatesConfig.rateFor(effectiveDate)
     BandRates(entry.lowerBandCostPerLitre, entry.higherBandCostPerLitre)
   }
 
   def getLevyCalculation(lowLitres: Long, highLitres: Long, returnPeriod: ReturnPeriod): LevyCalculation = {
-    val taxYear = getTaxYear(returnPeriod)
-    val rates = getBandRates(taxYear)
+    val rates = getBandRates(returnPeriod)
 
     val lowLevy = BigDecimal(lowLitres) * rates.lowerBandCostPerLitre
     val highLevy = BigDecimal(highLitres) * rates.higherBandCostPerLitre
 
     logger.info(
-      s"getLevyCalculation called with returnPeriod year ${returnPeriod.year} quarter ${returnPeriod.quarter} " +
-        s"taxYear=$taxYear using bandRates lower=${rates.lowerBandCostPerLitre} higher=${rates.higherBandCostPerLitre}"
+      s"getLevyCalculation called with returnPeriod year=${returnPeriod.year} quarter=${returnPeriod.quarter} " +
+        s"effectiveDate=${returnPeriod.start} using lower=${rates.lowerBandCostPerLitre} higher=${rates.higherBandCostPerLitre}"
     )
     LevyCalculation(lowLevy, highLevy)
   }
