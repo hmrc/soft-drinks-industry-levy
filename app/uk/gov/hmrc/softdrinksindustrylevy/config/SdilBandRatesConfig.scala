@@ -21,20 +21,22 @@ import com.typesafe.config.{Config, ConfigFactory}
 import java.time.LocalDate
 
 final case class BandRateEntry(
-  startDate: LocalDate,
-  endDate: Option[LocalDate],
-  lowerBandCostPerLitre: BigDecimal,
-  higherBandCostPerLitre: BigDecimal
-)
+                                startDate: LocalDate,
+                                endDate: Option[LocalDate],
+                                lowerBandCostPerLitre: BigDecimal,
+                                higherBandCostPerLitre: BigDecimal
+                              )
 
 object SdilBandRatesConfig {
 
   private val path = "sdil.bandRates"
   private lazy val config: Config = ConfigFactory.load()
 
-  lazy val bandRates: Seq[BandRateEntry] = parseBandRates(config)
-
-  def rateFor(date: LocalDate): BandRateEntry = rateFor(date, bandRates)
+  lazy val bandRates: Seq[BandRateEntry] = {
+    val parsed = parseBandRates(config)
+    validateNoOverlaps(parsed)
+    parsed
+  }
 
   private[config] def parseBandRates(conf: Config): Seq[BandRateEntry] = {
     if (!conf.hasPath(path)) {
@@ -43,34 +45,28 @@ object SdilBandRatesConfig {
 
     import scala.jdk.CollectionConverters._
 
-    val parsed = conf
-      .getConfigList(path)
-      .asScala
-      .zipWithIndex
-      .map { case (c, idx) =>
-        val startDateStr = c.getString("startDate")
-        val startDate = parseDate(startDateStr, s"$path[$idx].startDate")
+    val parsed = conf.getConfigList(path).asScala.zipWithIndex.map { case (c, idx) =>
+      val startDateStr = c.getString("startDate")
+      val startDate = parseDate(startDateStr, s"$path[$idx].startDate")
 
-        val endDate =
-          if (c.hasPath("endDate")) Some(parseDate(c.getString("endDate"), s"$path[$idx].endDate"))
-          else None
+      val endDate =
+        if (c.hasPath("endDate")) Some(parseDate(c.getString("endDate"), s"$path[$idx].endDate"))
+        else None
 
-        val lowerRate = BigDecimal(c.getString("lowerBandCostPerLitre"))
-        val higherRate = BigDecimal(c.getString("higherBandCostPerLitre"))
+      val lowerRate = BigDecimal(c.getString("lowerBandCostPerLitre"))
+      val higherRate = BigDecimal(c.getString("higherBandCostPerLitre"))
 
-        if (endDate.exists(_.isBefore(startDate))) {
-          throw new IllegalStateException(s"Invalid date range in '$path[$idx]': endDate is before startDate")
-        }
-
-        BandRateEntry(
-          startDate = startDate,
-          endDate = endDate,
-          lowerBandCostPerLitre = lowerRate,
-          higherBandCostPerLitre = higherRate
-        )
+      if (endDate.exists(_.isBefore(startDate))) {
+        throw new IllegalStateException(s"Invalid date range in '$path[$idx]': endDate is before startDate")
       }
-      .toSeq
-      .sortBy(_.startDate)
+
+      BandRateEntry(
+        startDate = startDate,
+        endDate = endDate,
+        lowerBandCostPerLitre = lowerRate,
+        higherBandCostPerLitre = higherRate
+      )
+    }.toSeq.sortBy(_.startDate)
 
     if (parsed.isEmpty) {
       throw new IllegalStateException(s"'$path' must contain at least one entry")
@@ -79,13 +75,36 @@ object SdilBandRatesConfig {
     parsed
   }
 
-  private[config] def rateFor(date: LocalDate, rates: Seq[BandRateEntry]): BandRateEntry = {
-    val matches = rates.filter { entry =>
+  private[config] def validateNoOverlaps(rates: Seq[BandRateEntry]): Unit = {
+    rates.sliding(2).zipWithIndex.foreach {
+      case (Seq(current, next), idx) =>
+        current.endDate match {
+          case Some(currentEnd) =>
+            if (!next.startDate.isAfter(currentEnd)) {
+              throw new IllegalStateException(
+                s"Overlapping SDIL band rates found between '$path[$idx]' and '$path[${idx + 1}]': " +
+                  s"[${current.startDate}..$currentEnd] overlaps with " +
+                  s"[${next.startDate}..${next.endDate.getOrElse("open")}]"
+              )
+            }
+          case None =>
+            throw new IllegalStateException(
+              s"Invalid SDIL band rate configuration: '$path[$idx]' is open-ended " +
+                s"but a later entry '$path[${idx + 1}]' also exists"
+            )
+        }
+
+      case _ => ()
+    }
+  }
+
+  def rateFor(date: LocalDate): BandRateEntry = {
+    val matches = bandRates.filter { entry =>
       !date.isBefore(entry.startDate) && entry.endDate.forall(!date.isAfter(_))
     }
 
     matches.lastOption.getOrElse {
-      val available = rates.map(e => s"[${e.startDate}..${e.endDate.getOrElse("open")}]").mkString(", ")
+      val available = bandRates.map(e => s"[${e.startDate}..${e.endDate.getOrElse("open")}]").mkString(", ")
       throw new IllegalArgumentException(
         s"No SDIL band rate config found for effective date $date. Available: $available"
       )
