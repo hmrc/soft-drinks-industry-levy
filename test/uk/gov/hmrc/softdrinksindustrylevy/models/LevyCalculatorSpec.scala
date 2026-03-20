@@ -27,7 +27,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.TaxRateUtil.*
 import java.time.LocalDate
 
 class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckPropertyChecks {
-  
+
   "getBandRates" should {
 
     (2018 to 2024).foreach { taxYear =>
@@ -37,18 +37,18 @@ class LevyCalculatorSpec extends AnyWordSpec with Matchers with ScalaCheckProper
       }
 
       s"return 0.24 for higher band when tax year is $taxYear" in {
-        val bandRates: BandRates = getBandRates(ReturnPeriod(taxYear, 1)) 
+        val bandRates: BandRates = getBandRates(ReturnPeriod(taxYear, 1))
         bandRates.higherBandCostPerLitre shouldBe BigDecimal("0.24")
       }
     }
 
     "return 0.194 for lower band when tax year is 2025" in {
-      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1)) 
+      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1))
       bandRates.lowerBandCostPerLitre shouldBe BigDecimal("0.194")
     }
 
     "return 0.259 for higher band when tax year is 2025" in {
-      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1)) 
+      val bandRates: BandRates = getBandRates(ReturnPeriod(2025, 1))
       bandRates.higherBandCostPerLitre shouldBe BigDecimal("0.259")
     }
   }

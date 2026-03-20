@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
-import play.api.libs.json.{Format, JsError, JsSuccess, Json, JsonValidationError, OFormat, OWrites, Reads, __}
-import play.api.libs.functional.syntax._
 import sdil.models.ReturnPeriod
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, JsError, JsSuccess, Json, OFormat, OWrites, Reads, __}
 
 final case class LevyCalculationRequest(
   lowLitres: Long,
@@ -44,12 +44,9 @@ object LevyCalculationRequest {
 
   private implicit val returnPeriodWrites: OWrites[ReturnPeriod] = Json.writes[ReturnPeriod]
 
-  private val nonNegative: Reads[Long] =
-    Reads.of[Long].filter(JsonValidationError("must be non-negative"))(_ >= 0L)
-
   implicit val reads: Reads[LevyCalculationRequest] = (
-    (__ \ "lowLitres").read[Long](using nonNegative) and
-      (__ \ "highLitres").read[Long](using nonNegative) and
+    (__ \ "lowLitres").read[Long] and
+      (__ \ "highLitres").read[Long] and
       (__ \ "returnPeriod").read[ReturnPeriod]
   )(LevyCalculationRequest.apply)
 
