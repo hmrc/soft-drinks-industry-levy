@@ -20,8 +20,6 @@ import play.api.Logging
 import sdil.models.ReturnPeriod
 import uk.gov.hmrc.softdrinksindustrylevy.config.SdilBandRatesConfig
 
-import java.time.LocalDate
-
 case class BandRates(lowerBandCostPerLitre: BigDecimal, higherBandCostPerLitre: BigDecimal)
 
 case class LevyCalculation(low: BigDecimal, high: BigDecimal) {

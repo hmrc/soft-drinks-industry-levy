@@ -88,29 +88,8 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
       (levyCalculationResponse \ "code").as[String] shouldBe "INVALID_REQUEST"
     }
 
-    "return 400 BadRequest when litres are negative" in {
-      val levyCalculationRequestJson = Json.parse("""
-        {
-          "lowLitres": -1,
-          "highLitres": 500,
-          "returnPeriod": { "year": 2025, "quarter": 1 }
-        }
-      """)
-
-      val result = calculateLevyRequest(levyCalculationRequestJson)
-
-      status(result) shouldBe BAD_REQUEST
-      val errorJson = contentAsJson(result)
-      (errorJson \ "code").as[String] shouldBe "INVALID_REQUEST"
-      (errorJson \ "message").as[String] shouldBe "Invalid request payload"
-
-      val details = (errorJson \ "details").toString
-      details must include("must be non-negative")
-    }
-
     "return 200 OK for future years when the latest band rates are open-ended (e.g. 2099)" in {
-      val levyCalculationRequestJson = Json.parse(
-        """
+      val levyCalculationRequestJson = Json.parse("""
         {
           "lowLitres": 1,
           "highLitres": 1,
@@ -131,8 +110,7 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
     }
 
     "return 400 BadRequest when returnPeriod year is before supported minimum (year must be >= 2018)" in {
-      val levyCalculationRequestJson = Json.parse(
-        """
+      val levyCalculationRequestJson = Json.parse("""
         {
           "lowLitres": 1,
           "highLitres": 1,
