@@ -109,8 +109,7 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
     }
 
     "return 200 OK for future years when the latest band rates are open-ended (e.g. 2099)" in {
-      val levyCalculationRequestJson = Json.parse(
-        """
+      val levyCalculationRequestJson = Json.parse("""
         {
           "lowLitres": 1,
           "highLitres": 1,
@@ -131,8 +130,7 @@ class LevyCalculationControllerSpec extends FakeApplicationSpec with BeforeAndAf
     }
 
     "return 400 BadRequest when returnPeriod year is before supported minimum (year must be >= 2018)" in {
-      val levyCalculationRequestJson = Json.parse(
-        """
+      val levyCalculationRequestJson = Json.parse("""
         {
           "lowLitres": 1,
           "highLitres": 1,

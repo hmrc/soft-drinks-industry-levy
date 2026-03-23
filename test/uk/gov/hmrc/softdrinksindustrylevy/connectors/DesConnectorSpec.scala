@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.BeforeAndAfterEach
@@ -26,11 +27,13 @@ import play.api.http.Status
 import play.api.http.Status.*
 import play.api.libs.json.*
 import play.api.libs.json.Format.GenericFormat
+import play.api.test.Helpers.AUTHORIZATION
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import sdil.models.des.FinancialTransaction.responseFormatter
 import sdil.models.des.{FinancialTransaction, FinancialTransactionResponse}
 import sdil.models.{ReturnPeriod, SdilReturn, SmallProducer, des}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, HttpResponse, RequestId, SessionId, UpstreamErrorResponse}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.softdrinksindustrylevy.controllers.{activity, sub}
 import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.connectors.{arbActivity, arbAddress, arbContact, arbDisplayDirectDebitResponse, arbSubRequest}
@@ -190,6 +193,35 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper with WireMockMethod
       response.failed.futureValue shouldBe a[uk.gov.hmrc.http.UpstreamErrorResponse]
     }
 
+    "preserve correlation ids and strip custom headers for subscription lookups" in {
+      implicit val hcWithCorrelation: HeaderCarrier = HeaderCarrier(
+        authorization = Some(Authorization("Bearer incoming-token")),
+        sessionId = Some(SessionId("session-id-1")),
+        requestId = Some(RequestId("request-id-1")),
+        otherHeaders = Seq("X-Test-Header" -> "should-not-forward")
+      )
+
+      when(GET, "/soft-drinks/subscription/details/utr/11111111121")
+        .thenReturn(NOT_FOUND)
+
+      await(
+        desConnector.retrieveSubscriptionDetails("utr", "11111111121")
+      ) shouldBe None
+
+      com.github.tomakehurst.wiremock.client.WireMock.verify(
+        1,
+        getRequestedFor(urlMatching("/soft-drinks/subscription/details/utr/11111111121"))
+          .withHeader(AUTHORIZATION, equalTo("Bearer token"))
+          .withHeader("X-Request-ID", equalTo("request-id-1"))
+          .withHeader("X-Session-ID", equalTo("session-id-1"))
+      )
+      com.github.tomakehurst.wiremock.client.WireMock.verify(
+        0,
+        getRequestedFor(urlMatching("/soft-drinks/subscription/details/utr/11111111121"))
+          .withHeader("X-Test-Header", matching(".*"))
+      )
+    }
+
     "return: 5xxUpstreamResponse when DES returns 429 for too many requests for financial data" in {
       when(GET, "/enterprise/financial-data/ZSDL/utr/ZSDL").thenReturn(
         body = "Too many requests",
@@ -256,6 +288,9 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper with WireMockMethod
 
       when(GET, "/enterprise/financial-data/ZSDL/utr/ZSDL")
         .thenReturn(Status.OK, Some(financialData))
+      org.mockito.Mockito
+        .when(mockAuditConnector.sendExtendedEvent(any())(using any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
       val response = await(desConnector.retrieveFinancialData("utr", Some(year)))
 
@@ -336,6 +371,9 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper with WireMockMethod
 
       when(method = GET, uri = "/enterprise/financial-data/ZSDL/utr/ZSDL", headers = expectedHeaders.toMap)
         .thenReturn(OK, Some(financialData))
+      org.mockito.Mockito
+        .when(mockAuditConnector.sendExtendedEvent(any())(using any(), any()))
+        .thenReturn(Future.successful(AuditResult.Success))
 
       val year = 2023
 
