@@ -87,20 +87,12 @@ To run tests coverage and generate a report use:
 sbt clean coverage test it:test coverageReport
 ```
 
-## Adding 2026 rates
+## Adding new rates
 
-1. Make sure you have your NEW_LOWER_BAND_VALUE and NEW_HIGHER_BAND_VALUE band rate values for 2026 tax year
-2. Do a global find for `(2025 to 2025)` in Scala files and replace with `(2025 to 2026)`
-3. Add `val lowerBandCostPerLitrePostApril2026String: String = NEW_LOWER_BAND_VALUE` in `Rates.scala`
-4. Add `val higherBandCostPerLitrePostApril2026String: String = NEW_HIGHER_BAND_VALUE` in `Rates.scala`
-5. Add `val lowerBandCostPerLitrePostApril2026: BigDecimal = BigDecimal(lowerBandCostPerLitrePostApril2026String)` in `Rates.scala`
-6. Add `val higherBandCostPerLitrePostApril2026: BigDecimal = BigDecimal(higherBandCostPerLitrePostApril2026String)` in `Rates.scala`
-7. Add `Year2026 -> BandRates(lowerBandCostPerLitrePostApril2026, higherBandCostPerLitrePostApril2026)` to `LevyCalculator.bandRatesByTaxYear` function in `LevyCalculator.scala`
-8. Add `2026 -> Year2026` to `TaxYear.fromYear` function in `LevyCalculator.scala`
-9. Add `2026 -> BigDecimal(NEW_LOWER_BAND_VALUE)` to `lowerBandCostPerLitreMap` function in `TaxRateUtil.scala`
-10. Add `2026 -> BigDecimal(NEW_HIGHER_BAND_VALUE)` to `higherBandCostPerLitreMap` function in `TaxRateUtil.scala`
-11. Test the behaviour out and make sure it works!
-12. When happy with the changes, update these instructions for 'Adding 2027 rates'
+1. Make sure you have your NEW_LOWER_BAND_VALUE and NEW_HIGHER_BAND_VALUE band rate values for respective tax year
+2. Add a new band entry in conf file `sdil_band_rates.conf` with the new `startDate`, `lowerBandCostPerLitre`, and `higherBandCostPerLitre` values.
+3. Add an `endDate` to the previous band so it closes the day before the new band begins.
+
 
 ## How to test Dms submission
 

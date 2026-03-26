@@ -24,35 +24,21 @@ import java.time.LocalDate
 
 class SdilBandRatesConfigSpec extends AnyWordSpec with Matchers {
 
-  private val pre2025Entry = BandRateEntry(
-    startDate = LocalDate.parse("2016-04-01"),
-    endDate = Some(LocalDate.parse("2025-03-31")),
-    lowerBandCostPerLitre = BigDecimal("0.18"),
-    higherBandCostPerLitre = BigDecimal("0.24")
-  )
+  private val configRates =
+    SdilBandRatesConfig.parseBandRates(ConfigFactory.load("sdil_band_rates.conf"))
 
-  private val post2025Entry = BandRateEntry(
-    startDate = LocalDate.parse("2025-04-01"),
-    endDate = None,
-    lowerBandCostPerLitre = BigDecimal("0.194"),
-    higherBandCostPerLitre = BigDecimal("0.259")
-  )
+  private val pre2025Entry = configRates(0)
+  private val post2025Entry = configRates(1)
+  private val post2026Entry = configRates(2)
 
   "parseBandRates" should {
 
     "parse valid config entries and sort by startDate" in {
-      val conf = ConfigFactory.parseString(
-        """
-          |sdil.bandRates = [
-          |  { startDate="2025-04-01", lowerBandCostPerLitre="0.194", higherBandCostPerLitre="0.259" },
-          |  { startDate="2016-04-01", endDate="2025-03-31", lowerBandCostPerLitre="0.18", higherBandCostPerLitre="0.24" }
-          |]
-          |""".stripMargin
-      )
+      val conf = ConfigFactory.load("sdil_band_rates.conf")
 
       val rates = SdilBandRatesConfig.parseBandRates(conf)
 
-      rates shouldBe Seq(pre2025Entry, post2025Entry)
+      rates shouldBe Seq(pre2025Entry, post2025Entry, post2026Entry)
     }
 
     "throw when sdil.bandRates path is missing" in {
@@ -200,7 +186,7 @@ class SdilBandRatesConfigSpec extends AnyWordSpec with Matchers {
     }
 
     "allow a single open-ended final period" in {
-      val rates = Seq(pre2025Entry, post2025Entry)
+      val rates = Seq(pre2025Entry, post2025Entry, post2026Entry)
 
       noException shouldBe thrownBy {
         SdilBandRatesConfig.validateNoOverlaps(rates)
@@ -217,9 +203,8 @@ class SdilBandRatesConfigSpec extends AnyWordSpec with Matchers {
     }
 
     "return the matching entry when date equals endDate (end inclusive)" in {
-      val entry = SdilBandRatesConfig.rateFor(LocalDate.parse("2025-03-31"))
-
-      entry shouldBe pre2025Entry
+      SdilBandRatesConfig.rateFor(LocalDate.parse("2025-03-31")) shouldBe pre2025Entry
+      SdilBandRatesConfig.rateFor(LocalDate.parse("2026-03-31")) shouldBe post2025Entry
     }
 
     "return the earlier entry for a date within the bounded range" in {
@@ -231,7 +216,7 @@ class SdilBandRatesConfigSpec extends AnyWordSpec with Matchers {
     "return the open-ended entry for dates after its startDate" in {
       val entry = SdilBandRatesConfig.rateFor(LocalDate.parse("2030-01-01"))
 
-      entry shouldBe post2025Entry
+      entry shouldBe post2026Entry
     }
 
     "throw when no entry matches the effective date" in {
