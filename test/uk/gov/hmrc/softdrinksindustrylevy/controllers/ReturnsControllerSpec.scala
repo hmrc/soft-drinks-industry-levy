@@ -217,5 +217,16 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       contentAsString(response) must include("year")
       contentAsString(response) must include("quarter")
     }
+
+    "return an empty list when no subscription exists" in {
+      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(None)
+      )
+
+      val response = testReturnsContoller.pending("missingUtr")(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) mustBe "[]"
+    }
   }
 }
