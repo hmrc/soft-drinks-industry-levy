@@ -27,8 +27,8 @@ object TaxRateUtil {
   val lowerBandCostPerLitre: BigDecimal = BigDecimal("0.18")
   val higherBandCostPerLitre: BigDecimal = BigDecimal("0.24")
 
-  val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"))
-  val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"))
+  val lowerBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.194"), 2026 -> BigDecimal("0.208"))
+  val higherBandCostPerLitreMap: Map[Int, BigDecimal] = Map(2025 -> BigDecimal("0.259"), 2026 -> BigDecimal("0.278"))
 
   def calculateLevy(litres: (Long, Long), taxYear: Int): BigDecimal = {
     val bandRates: (BigDecimal, BigDecimal) = taxYear match {
