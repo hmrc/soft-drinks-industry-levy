@@ -16,28 +16,33 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import play.api.libs.json._
+import play.api.libs.json.*
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import com.google.inject.{Inject, Singleton}
 import org.mongodb.scala.model.{Filters, FindOneAndReplaceOptions, IndexModel, IndexOptions, Indexes, ReturnDocument}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap.*
 
-import java.time._
+import java.time.*
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
+
+import scala.concurrent.duration.SECONDS
 
 case class SubscriptionWrap(
   utr: String,
   subscription: Subscription,
-  retrievalTime: LocalDateTime = LocalDateTime.now()
+  retrievalTime: Instant = Instant.now()
 )
 object SubscriptionWrap {
-
-  val subsWrapperFormat = Json.format[SubscriptionWrap]
+  implicit val subsWrapperFormat: OFormat[SubscriptionWrap] = {
+    implicit val instantFmt: Format[Instant] = MongoJavatimeFormats.instantFormat
+    Json.format[SubscriptionWrap]
+  }
 }
 
 case class ReturnsWrapper(
@@ -59,11 +64,19 @@ class SdilMongoPersistence @Inject() (
       mongoComponent = mongoComponent,
       domainFormat = subsWrapperFormat,
       indexes = Seq(
-        IndexModel(Indexes.ascending("utr"))
+        IndexModel(
+          Indexes.ascending("retrievalTime"),
+          IndexOptions()
+            .name("sdil-subscription-cache-expiry")
+            .expireAfter((30 * 24 * 60 * 60).toLong, SECONDS)
+        ),
+        IndexModel(
+          Indexes.ascending("utr")
+        )
       )
     ) {
 
-  override lazy val requiresTtlIndex: Boolean = false
+  override lazy val requiresTtlIndex: Boolean = true
 
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def findAll(): Future[Seq[SubscriptionWrap]] = collection.find().toFuture()
