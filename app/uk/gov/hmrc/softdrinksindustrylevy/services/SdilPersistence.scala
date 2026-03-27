@@ -16,28 +16,38 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import play.api.libs.json._
+import play.api.libs.json.*
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.softdrinksindustrylevy.models._
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import com.google.inject.{Inject, Singleton}
+import com.mongodb.ErrorCategory
+import org.bson.BsonType
+import org.mongodb.scala.{MongoCollection, MongoWriteException}
+import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, FindOneAndReplaceOptions, IndexModel, IndexOptions, Indexes, ReturnDocument}
+import play.api.Logging
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrap.*
 
-import java.time._
+import java.time.*
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.ReturnsWrapper.returnsWrapperFormat
+
+import scala.concurrent.duration.SECONDS
 
 case class SubscriptionWrap(
   utr: String,
   subscription: Subscription,
-  retrievalTime: LocalDateTime = LocalDateTime.now()
+  retrievalTime: Instant = Instant.now()
 )
 object SubscriptionWrap {
-
-  val subsWrapperFormat = Json.format[SubscriptionWrap]
+  implicit val subsWrapperFormat: OFormat[SubscriptionWrap] = {
+    implicit val instantFmt: Format[Instant] = MongoJavatimeFormats.instantFormat
+    Json.format[SubscriptionWrap]
+  }
 }
 
 case class ReturnsWrapper(
@@ -59,11 +69,102 @@ class SdilMongoPersistence @Inject() (
       mongoComponent = mongoComponent,
       domainFormat = subsWrapperFormat,
       indexes = Seq(
-        IndexModel(Indexes.ascending("utr"))
-      )
-    ) {
+        IndexModel(
+          Indexes.ascending("retrievalTime"),
+          IndexOptions()
+            .name("sdil-subscription-cache-expiry")
+            .expireAfter((30 * 24 * 60 * 60).toLong, SECONDS)
+        ),
+        IndexModel(
+          Indexes.ascending("utr")
+        )
+      ),
+      replaceIndexes = true
+    ) with Logging {
 
-  override lazy val requiresTtlIndex: Boolean = false
+  private val lockCollection: MongoCollection[Document] =
+    mongoComponent.database.getCollection("locks")
+
+  private val lockId = "sdil-subscription-migration-lock"
+  
+  private def ensureLockTtlIndex(): Future[Unit] =
+    lockCollection
+      .createIndex(
+        Indexes.ascending("createdAt"),
+        IndexOptions()
+          .name("lock-ttl-index")
+          .expireAfter(3600, SECONDS)
+          .background(true)
+      )
+      .toFuture()
+      .map(_ => ())
+      .recover { case ex =>
+        logger.warn("[SDIL] Failed to create TTL index on locks collection", ex)
+      }
+  
+  private def acquireLock(): Future[Boolean] = {
+    val lockDoc = Document("_id" -> lockId, "createdAt" -> java.util.Date.from(Instant.now()))
+
+    lockCollection
+      .insertOne(lockDoc)
+      .toFuture()
+      .map(_ => true)
+      .recover {
+        case ex: MongoWriteException if ex.getError.getCategory == ErrorCategory.DUPLICATE_KEY =>
+          logger.info("[SDIL] Migration lock already acquired. Skipping.")
+          false
+        case ex =>
+          logger.error("[SDIL] Error acquiring migration lock", ex)
+          false
+      }
+  }
+  
+  private def releaseLock(): Future[Unit] =
+    lockCollection
+      .deleteOne(Filters.equal("_id", lockId))
+      .toFuture()
+      .map(_ => logger.info("[SDIL] Lock released"))
+      .recover { case ex =>
+        logger.warn("[SDIL] Failed to release lock", ex)
+      }
+  
+  private def migrateOldRecords(): Future[Unit] =
+    ensureLockTtlIndex().flatMap { _ =>
+      acquireLock().flatMap {
+        case true =>
+          logger.info("[SDIL] Lock acquired. Starting migration.")
+
+          val filterOldFormat = Filters.`type`("retrievalTime", BsonType.STRING)
+
+          val updatePipeline = List(
+            Document(
+              "$set" -> Document(
+                "retrievalTime" -> Document("$toDate" -> "$retrievalTime")
+              )
+            )
+          )
+
+          collection
+            .updateMany(filterOldFormat, updatePipeline)
+            .toFuture()
+            .map { result =>
+              logger.info(
+                s"[SDIL] Migration completed: ${result.getModifiedCount} documents updated."
+              )
+            }
+            .flatMap(_ => releaseLock())
+            .recoverWith { case ex =>
+              logger.error("[SDIL] Migration failed", ex)
+              releaseLock().flatMap(_ => Future.failed(ex))
+            }
+
+        case false =>
+          logger.info("[SDIL] Migration already completed or in progress — skipping.")
+          Future.unit
+      }
+    }
+
+  private val _ = migrateOldRecords()
 
   // queries and updates can now be implemented with the available `collection: org.mongodb.scala.MongoCollection`
   def findAll(): Future[Seq[SubscriptionWrap]] = collection.find().toFuture()
