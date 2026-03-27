@@ -212,6 +212,7 @@ class DesConnectorSpecBehavioural extends HttpClientV2Helper with WireMockMethod
         1,
         getRequestedFor(urlMatching("/soft-drinks/subscription/details/utr/11111111121"))
           .withHeader(AUTHORIZATION, equalTo("Bearer token"))
+          .withHeader("CorrelationId", equalTo("request-id-1"))
           .withHeader("X-Request-ID", equalTo("request-id-1"))
           .withHeader("X-Session-ID", equalTo("session-id-1"))
       )
