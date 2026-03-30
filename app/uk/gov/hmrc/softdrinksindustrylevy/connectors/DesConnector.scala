@@ -17,11 +17,11 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import com.google.inject.{Inject, Singleton}
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Json, OWrites, Reads}
 import play.api.{Logger, Mode}
 import sdil.models._
 import sdil.models.des.FinancialTransactionResponse
-import uk.gov.hmrc.http.HttpReads.Implicits.{readFromJson, readRaw}
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -34,6 +34,7 @@ import java.net.URLEncoder.encode
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.stm.TMap
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 @Singleton
@@ -51,6 +52,37 @@ class DesConnector @Inject() (
   val desDirectDebitUrl: String = servicesConfig.baseUrl("des-direct-debit")
   val serviceURL: String = "soft-drinks"
   val cache: TMap[String, (Option[Subscription], LocalDateTime)] = TMap[String, (Option[Subscription], LocalDateTime)]()
+
+  private class RawHttpReads extends HttpReads[HttpResponse] {
+    override def read(method: String, url: String, response: HttpResponse): HttpResponse = response
+  }
+
+  private val rawHttpReads = new RawHttpReads
+
+  private def outboundHeaderCarrier(hc: HeaderCarrier): HeaderCarrier =
+    HeaderCarrier(
+      requestId = hc.requestId,
+      sessionId = hc.sessionId
+    )
+
+  private def desContext(
+    operation: String,
+    status: Option[Int] = None,
+    startTime: Option[Long] = None,
+    errorClass: Option[String] = None
+  ): String =
+    Seq(
+      Some(s"operation=$operation"),
+      status.map(st => s"status=$st"),
+      startTime.map(st => s"durationMs=${System.currentTimeMillis() - st}"),
+      errorClass.map(name => s"errorClass=$name")
+    ).flatten.mkString(" ")
+
+  private def parseResponse[A: Reads](response: HttpResponse): A =
+    response.json.as[A]
+
+  private def upstreamError(operation: String, status: Int): UpstreamErrorResponse =
+    UpstreamErrorResponse(s"Received $status from DES during $operation", status, status)
 
   // DES return 503 in the event of no subscription for the UTR, we are expected to treat as 404, hence this override
   implicit def HttpReads[A](implicit rds: HttpReads[A]): HttpReads[Option[A]] = new HttpReads[Option[A]] {
@@ -86,15 +118,42 @@ class DesConnector @Inject() (
     )
 
     JsonSchemaChecker[Subscription](request, "des-create-subscription")
-    val subscriptionUrl = s"$desURL/$serviceURL/subscription/$idType/$idNumber"
+    val path = s"/$serviceURL/subscription/$idType/$idNumber"
+    val operation = "createSubscription"
+    val subscriptionUrl = s"$desURL$path"
+    val startTime = System.currentTimeMillis()
+    val desHc = outboundHeaderCarrier(hc)
+    logger.info(s"DES request ${desContext(operation)}")
     http
-      .post(url"$subscriptionUrl")
-      .transform(_.addHttpHeaders(desHeaders*))
+      .post(url"$subscriptionUrl")(using desHc)
+      .transform(_.addHttpHeaders(desHeaders(desHc)*))
       .withBody(Json.toJson(submission))
-      .execute[CreateSubscriptionResponse]
-      .recover { case UpstreamErrorResponse(_, 429, _, _) =>
-        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+      .execute[HttpResponse](using rawHttpReads, executionContext)
+      .map { response =>
+        logger.info(
+          s"DES response ${desContext(operation, status = Some(response.status), startTime = Some(startTime))}"
+        )
+        response.status match {
+          case 429 =>
+            throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+          case status if status >= 200 && status < 300 =>
+            parseResponse[CreateSubscriptionResponse](response)
+          case status =>
+            throw upstreamError(operation, status)
+        }
+      }
+      .recoverWith {
+        case e @ UpstreamErrorResponse(_, status, _, _) =>
+          logger.error(
+            s"DES failure ${desContext(operation, status = Some(status), startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}"
+          )
+          Future.failed(e)
+        case NonFatal(e) =>
+          logger.error(
+            s"DES failure ${desContext(operation, startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}",
+            e
+          )
+          Future.failed(e)
       }
   }
 
@@ -107,10 +166,40 @@ class DesConnector @Inject() (
 
     def getSubscriptionFromDES(subscriptionUrl: String)(implicit hc: HeaderCarrier): Future[Option[Subscription]] = {
       import json.des.get._
+      val operation = "retrieveSubscriptionDetails"
+      val startTime = System.currentTimeMillis()
+      val desHc = outboundHeaderCarrier(hc)
+      logger.info(s"DES request ${desContext(operation)}")
       http
-        .get(url"$subscriptionUrl")
-        .transform(_.addHttpHeaders(desHeaders*))
-        .execute[Option[Subscription]]
+        .get(url"$subscriptionUrl")(using desHc)
+        .transform(_.addHttpHeaders(desHeaders(desHc)*))
+        .execute[HttpResponse](using rawHttpReads, executionContext)
+        .map { response =>
+          logger.info(
+            s"DES response ${desContext(operation, status = Some(response.status), startTime = Some(startTime))}"
+          )
+          response.status match {
+            case 204 | 404 | 503 | 403 => None
+            case 429 => throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+            case status if status >= 200 && status < 300 =>
+              Some(parseResponse[Subscription](response))
+            case status =>
+              throw upstreamError(operation, status)
+          }
+        }
+        .recoverWith {
+          case e @ UpstreamErrorResponse(_, status, _, _) =>
+            logger.error(
+              s"DES failure ${desContext(operation, status = Some(status), startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}"
+            )
+            Future.failed(e)
+          case NonFatal(e) =>
+            logger.error(
+              s"DES failure ${desContext(operation, startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}",
+              e
+            )
+            Future.failed(e)
+        }
     }
 
     for {
@@ -128,15 +217,35 @@ class DesConnector @Inject() (
     hc: HeaderCarrier,
     period: ReturnPeriod
   ): Future[HttpResponse] = {
-    val returnUrl = s"$desURL/$serviceURL/$sdilRef/return"
+    val path = s"/$serviceURL/$sdilRef/return"
+    val operation = "submitReturn"
+    val returnUrl = s"$desURL$path"
+    val startTime = System.currentTimeMillis()
+    val desHc = outboundHeaderCarrier(hc)
+    logger.info(s"DES request ${desContext(operation)}")
     http
-      .post(url"$returnUrl")
-      .transform(_.addHttpHeaders(desHeaders*))
+      .post(url"$returnUrl")(using desHc)
+      .transform(_.addHttpHeaders(desHeaders(desHc)*))
       .withBody(Json.toJson(returnsRequest))
-      .execute[HttpResponse]
-      .recover { case UpstreamErrorResponse(_, 429, _, _) =>
-        logger.error("[RATE LIMITED] Received 429 from DES - converting to 503")
-        throw UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503)
+      .execute[HttpResponse](using readRaw, executionContext)
+      .map { response =>
+        logger.info(
+          s"DES response ${desContext(operation, status = Some(response.status), startTime = Some(startTime))}"
+        )
+        response
+      }
+      .recoverWith {
+        case e @ UpstreamErrorResponse(_, status, _, _) =>
+          logger.error(
+            s"DES failure ${desContext(operation, status = Some(status), startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}"
+          )
+          Future.failed(e)
+        case NonFatal(e) =>
+          logger.error(
+            s"DES failure ${desContext(operation, startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}",
+            e
+          )
+          Future.failed(e)
       }
   }
 
@@ -180,24 +289,82 @@ class DesConnector @Inject() (
           encodePair
         }
         .mkString("&")
+    val operation = "retrieveFinancialData"
+    val startTime = System.currentTimeMillis()
+    val desHc = outboundHeaderCarrier(hc)
+    logger.info(s"DES request ${desContext(operation)}")
     http
-      .get(url"$uri")
-      .transform(_.addHttpHeaders(desHeaders*))
-      .execute[Option[des.FinancialTransactionResponse]]
-      .flatMap { x =>
-        x.map { y =>
-          auditing.sendExtendedEvent(buildAuditEvent(y, uri, sdilRef))
+      .get(url"$uri")(using desHc)
+      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .execute[HttpResponse](using rawHttpReads, executionContext)
+      .flatMap { response =>
+        logger.info(
+          s"DES response ${desContext(operation, status = Some(response.status), startTime = Some(startTime))}"
+        )
+        response.status match {
+          case 204 | 404 | 503 | 403 =>
+            Future.successful(None)
+          case 429 =>
+            Future.failed(UpstreamErrorResponse("429 received from DES - converted to 503", 503, 503))
+          case status if status >= 200 && status < 300 =>
+            val financialTransactionResponse = parseResponse[des.FinancialTransactionResponse](response)
+            auditing.sendExtendedEvent(buildAuditEvent(financialTransactionResponse, uri, sdilRef)).map { _ =>
+              Some(financialTransactionResponse)
+            }
+          case status =>
+            Future.failed(upstreamError(operation, status))
         }
-        Future(x)
+      }
+      .recoverWith {
+        case e @ UpstreamErrorResponse(_, status, _, _) =>
+          logger.error(
+            s"DES failure ${desContext(operation, status = Some(status), startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}"
+          )
+          Future.failed(e)
+        case NonFatal(e) =>
+          logger.error(
+            s"DES failure ${desContext(operation, startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}",
+            e
+          )
+          Future.failed(e)
       }
   }
 
   def displayDirectDebit(sdilRef: String)(implicit hc: HeaderCarrier): Future[DisplayDirectDebitResponse] = {
-    val uri = s"$desDirectDebitUrl/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
+    val path = s"/cross-regime/direct-debits/zsdl/zsdl/$sdilRef"
+    val operation = "displayDirectDebit"
+    val uri = s"$desDirectDebitUrl$path"
+    val startTime = System.currentTimeMillis()
+    val desHc = outboundHeaderCarrier(hc)
+    logger.info(s"DES request ${desContext(operation)}")
     http
-      .get(url"$uri")
-      .transform(_.addHttpHeaders(desHeaders*))
-      .execute[DisplayDirectDebitResponse]
+      .get(url"$uri")(using desHc)
+      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .execute[HttpResponse](using rawHttpReads, executionContext)
+      .map { response =>
+        logger.info(
+          s"DES response ${desContext(operation, status = Some(response.status), startTime = Some(startTime))}"
+        )
+        response.status match {
+          case status if status >= 200 && status < 300 =>
+            parseResponse[DisplayDirectDebitResponse](response)
+          case status =>
+            throw upstreamError(operation, status)
+        }
+      }
+      .recoverWith {
+        case e @ UpstreamErrorResponse(_, status, _, _) =>
+          logger.error(
+            s"DES failure ${desContext(operation, status = Some(status), startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}"
+          )
+          Future.failed(e)
+        case NonFatal(e) =>
+          logger.error(
+            s"DES failure ${desContext(operation, startTime = Some(startTime), errorClass = Some(e.getClass.getSimpleName))}",
+            e
+          )
+          Future.failed(e)
+      }
   }
 
   private def buildAuditEvent(body: FinancialTransactionResponse, path: String, subscriptionId: String)(implicit

@@ -158,22 +158,21 @@ class ReturnsController @Inject() (
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
       desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
-        val start = subscription match {
-          case Some(x) => x.liabilityDate
+        subscription match {
+          case Some(value) =>
+            val all = {
+              ReturnPeriod(value.liabilityDate).count to ReturnPeriod(LocalDate.now()).count
+            }.map {
+              ReturnPeriod.apply
+            }.filter {
+              _.end.isBefore(LocalDate.now())
+            }
+            returns.list(utr).map { (posted: Map[ReturnPeriod, SdilReturn]) =>
+              Ok(Json.toJson(all.toList diff posted.keys.toList))
+            }
           case None =>
-            logger.error(s"Error occurred while retrieving subscriptionDetails for utr =  $utr")
-            throw new NoSuchElementException(s"No subscription details found for the user utr= $utr")
-        }
-
-        val all = {
-          ReturnPeriod(start).count to ReturnPeriod(LocalDate.now()).count
-        }.map {
-          ReturnPeriod.apply
-        }.filter {
-          _.end.isBefore(LocalDate.now())
-        }
-        returns.list(utr).map { (posted: Map[ReturnPeriod, SdilReturn]) =>
-          Ok(Json.toJson(all.toList diff posted.keys.toList))
+            logger.warn("No subscription details found while retrieving pending returns")
+            Future.successful(Ok(Json.toJson(List.empty[ReturnPeriod])))
         }
       }
     }
