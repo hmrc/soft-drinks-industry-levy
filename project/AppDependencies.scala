@@ -22,8 +22,6 @@ object AppDependencies {
     "uk.gov.hmrc"               %% "stub-data-generator"           % "1.6.0",
     "uk.gov.hmrc.mongo"         %% s"hmrc-mongo-test-$playVersion" % hmrcMongoVersion,
     "org.wiremock"               % "wiremock"                      % "3.13.2",
-    "com.fasterxml.jackson.core" % "jackson-core"                  % "2.21.1",
-    "com.fasterxml.jackson.core" % "jackson-databind"              % "2.21.1",
     "org.jsoup"                  % "jsoup"                         % "1.22.1",
     "org.scalatest"             %% "scalatest-funsuite"            % "3.2.19",
     "org.scalatestplus"         %% "mockito-5-18"                  % "3.2.19.0",
