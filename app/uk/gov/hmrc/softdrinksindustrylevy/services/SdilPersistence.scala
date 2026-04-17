@@ -86,7 +86,7 @@ class SdilMongoPersistence @Inject() (
     mongoComponent.database.getCollection("locks")
 
   private val lockId = "sdil-subscription-migration-lock"
-  
+
   private def ensureLockTtlIndex(): Future[Unit] =
     lockCollection
       .createIndex(
@@ -101,7 +101,7 @@ class SdilMongoPersistence @Inject() (
       .recover { case ex =>
         logger.warn("[SDIL] Failed to create TTL index on locks collection", ex)
       }
-  
+
   private def acquireLock(): Future[Boolean] = {
     val lockDoc = Document("_id" -> lockId, "createdAt" -> java.util.Date.from(Instant.now()))
 
@@ -118,7 +118,7 @@ class SdilMongoPersistence @Inject() (
           false
       }
   }
-  
+
   private def releaseLock(): Future[Unit] =
     lockCollection
       .deleteOne(Filters.equal("_id", lockId))
@@ -127,7 +127,7 @@ class SdilMongoPersistence @Inject() (
       .recover { case ex =>
         logger.warn("[SDIL] Failed to release lock", ex)
       }
-  
+
   private def migrateOldRecords(): Future[Unit] =
     ensureLockTtlIndex().flatMap { _ =>
       acquireLock().flatMap {
