@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, postRequestedFor, urlMatching, verify}
 import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
-import uk.gov.hmrc.http.{HeaderCarrier, RequestId, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.softdrinksindustrylevy.models.{RosmRegisterRequest, RosmRegisterResponse, RosmResponseAddress, RosmResponseContactDetails}
 import uk.gov.hmrc.softdrinksindustrylevy.util.WireMockMethods
 
@@ -72,20 +71,5 @@ class RosmConnectorSpec extends HttpClientV2Helper with WireMockMethods {
       .thenReturn(Status.OK, Json.toJson(res).toString())
 
     await(connector.retrieveROSMDetails("1234567890", req)) shouldBe Some(res)
-  }
-
-  "should include correlation id header when request id is present" in {
-    implicit val hcWithRequestId: HeaderCarrier = HeaderCarrier(requestId = Some(RequestId("request-id-2")))
-
-    when(POST, "/registration/organisation/utr/1234567891")
-      .thenReturn(Status.OK, Json.toJson(res).toString())
-
-    await(connector.retrieveROSMDetails("1234567891", req)) shouldBe Some(res)
-
-    verify(
-      1,
-      postRequestedFor(urlMatching("/registration/organisation/utr/1234567891"))
-        .withHeader("CorrelationId", equalTo("request-id-2"))
-    )
   }
 }

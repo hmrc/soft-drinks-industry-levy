@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -26,24 +25,11 @@ abstract class DesHelpers(servicesConfig: ServicesConfig) {
 
   val serviceKey: String = s"Bearer ${servicesConfig.getConfString("des.token", "")}"
   val serviceEnvironment: String = servicesConfig.getConfString("des.environment", "")
-  private val desCorrelationIdHeaderName: String =
-    servicesConfig.getConfString("des.correlationIdHeaderName", "CorrelationId")
-  private val rosmCorrelationIdHeaderName: String =
-    servicesConfig.getConfString("des.rosmCorrelationIdHeaderName", desCorrelationIdHeaderName)
 
-  private def correlationIdHeader(hc: HeaderCarrier, headerName: String): Seq[(String, String)] =
-    hc.requestId.map(requestId => headerName -> requestId.value).toSeq
+  protected def desHeaders: Seq[(String, String)] =
+    Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
 
-  protected def desHeaders(hc: HeaderCarrier): Seq[(String, String)] =
-    Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey) ++ correlationIdHeader(
-      hc,
-      desCorrelationIdHeaderName
-    )
-
-  protected def rosmHeaders(hc: HeaderCarrier): Seq[(String, String)] =
-    Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey) ++ correlationIdHeader(
-      hc,
-      rosmCorrelationIdHeaderName
-    )
+  protected def rosmHeaders: Seq[(String, String)] =
+    Seq("Environment" -> serviceEnvironment, "Authorization" -> serviceKey)
 
 }
