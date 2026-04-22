@@ -126,7 +126,7 @@ class DesConnector @Inject() (
     logger.info(s"DES request ${desContext(operation)}")
     http
       .post(url"$subscriptionUrl")(using desHc)
-      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .transform(_.addHttpHeaders(desHeaders*))
       .withBody(Json.toJson(submission))
       .execute[HttpResponse](using rawHttpReads, executionContext)
       .map { response =>
@@ -172,7 +172,7 @@ class DesConnector @Inject() (
       logger.info(s"DES request ${desContext(operation)}")
       http
         .get(url"$subscriptionUrl")(using desHc)
-        .transform(_.addHttpHeaders(desHeaders(desHc)*))
+        .transform(_.addHttpHeaders(desHeaders*))
         .execute[HttpResponse](using rawHttpReads, executionContext)
         .map { response =>
           logger.info(
@@ -225,7 +225,7 @@ class DesConnector @Inject() (
     logger.info(s"DES request ${desContext(operation)}")
     http
       .post(url"$returnUrl")(using desHc)
-      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .transform(_.addHttpHeaders(desHeaders*))
       .withBody(Json.toJson(returnsRequest))
       .execute[HttpResponse](using readRaw, executionContext)
       .map { response =>
@@ -295,7 +295,7 @@ class DesConnector @Inject() (
     logger.info(s"DES request ${desContext(operation)}")
     http
       .get(url"$uri")(using desHc)
-      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .transform(_.addHttpHeaders(desHeaders*))
       .execute[HttpResponse](using rawHttpReads, executionContext)
       .flatMap { response =>
         logger.info(
@@ -339,7 +339,7 @@ class DesConnector @Inject() (
     logger.info(s"DES request ${desContext(operation)}")
     http
       .get(url"$uri")(using desHc)
-      .transform(_.addHttpHeaders(desHeaders(desHc)*))
+      .transform(_.addHttpHeaders(desHeaders*))
       .execute[HttpResponse](using rawHttpReads, executionContext)
       .map { response =>
         logger.info(
