@@ -111,7 +111,7 @@ class SdilMongoPersistence @Inject() (
       .map(_ => true)
       .recover {
         case ex: MongoWriteException if ex.getError.getCategory == ErrorCategory.DUPLICATE_KEY =>
-          logger.info("[SDIL] Migration lock already acquired. Skipping.")
+          logger.warn("[SDIL] Migration lock already acquired. Skipping.")
           false
         case ex =>
           logger.error("[SDIL] Error acquiring migration lock", ex)
@@ -123,7 +123,7 @@ class SdilMongoPersistence @Inject() (
     lockCollection
       .deleteOne(Filters.equal("_id", lockId))
       .toFuture()
-      .map(_ => logger.info("[SDIL] Lock released"))
+      .map(_ => logger.warn("[SDIL] Lock released"))
       .recover { case ex =>
         logger.warn("[SDIL] Failed to release lock", ex)
       }
@@ -132,7 +132,7 @@ class SdilMongoPersistence @Inject() (
     ensureLockTtlIndex().flatMap { _ =>
       acquireLock().flatMap {
         case true =>
-          logger.info("[SDIL] Lock acquired. Starting migration.")
+          logger.warn("[SDIL] Lock acquired. Starting migration.")
 
           val filterOldFormat = Filters.`type`("retrievalTime", BsonType.STRING)
 
@@ -148,7 +148,7 @@ class SdilMongoPersistence @Inject() (
             .updateMany(filterOldFormat, updatePipeline)
             .toFuture()
             .map { result =>
-              logger.info(
+              logger.warn(
                 s"[SDIL] Migration completed: ${result.getModifiedCount} documents updated."
               )
             }
@@ -159,7 +159,7 @@ class SdilMongoPersistence @Inject() (
             }
 
         case false =>
-          logger.info("[SDIL] Migration already completed or in progress — skipping.")
+          logger.warn("[SDIL] Migration already completed or in progress — skipping.")
           Future.unit
       }
     }
