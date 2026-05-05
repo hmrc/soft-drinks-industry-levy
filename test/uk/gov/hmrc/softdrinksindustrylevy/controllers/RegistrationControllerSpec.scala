@@ -18,38 +18,37 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import com.mongodb.DuplicateKeyException
 import com.mongodb.client.result.DeleteResult
-
-import java.time.LocalDate
-import org.mockito.ArgumentMatchers.{any, eq => matching}
+import org.mockito.ArgumentMatchers.{any, eq as matching}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mongodb.scala.WriteConcernException
 import org.mongodb.scala.bson.BsonDocument
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsString, Json}
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import uk.gov.hmrc.audit.serialiser.{AuditSerialiser, AuditSerialiserLike}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilMongoPersistence, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
-import play.api.mvc.ControllerComponents
-import uk.gov.hmrc.audit.serialiser.{AuditSerialiser, AuditSerialiserLike}
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class RegistrationControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   val mockTaxEnrolmentConnector: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
-  val mockDesConnector: DesConnector = mock[DesConnector]
+  val mockDesConnector: SdilConnector = mock[RoutingSdilConnector]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
@@ -85,7 +84,7 @@ class RegistrationControllerSpec
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
-      import json.des.create._
+      import json.des.create.*
 
       val sdilSubscriionEvent = new SdilSubscriptionEvent(
         "request.uri",

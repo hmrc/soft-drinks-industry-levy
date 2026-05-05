@@ -28,6 +28,7 @@ import play.api.{Application, Configuration, inject}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.test.WireMockSupport
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{RoutingSdilConnector, SdilConnector}
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
 
 trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with MockitoSugar with WireMockSupport {
@@ -44,6 +45,13 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
          |      port     = $wireMockPort
          |    }
          |    des {
+         |      protocol = http
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      token = token
+         |      environment = environment
+         |    }
+         |    hip {
          |      protocol = http
          |      host = $wireMockHost
          |      port = $wireMockPort
@@ -73,10 +81,17 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
          |
          |  }
          |}
+         |features {
+         |  hip {
+         |    subscription = true
+         |    returns = true
+         |  }
+         |}
          |""".stripMargin
     )
   )
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
+  val mockSdilConnector: SdilConnector = mock[RoutingSdilConnector]
 
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .overrides(inject.bind[AuditConnector].toInstance(mockAuditConnector))

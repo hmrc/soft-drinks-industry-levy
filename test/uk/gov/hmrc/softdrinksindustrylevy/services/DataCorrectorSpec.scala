@@ -24,7 +24,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import sdil.models.{ReturnPeriod, SdilReturn}
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, Subscription}
 import uk.gov.hmrc.softdrinksindustrylevy.services.DataCorrector.ReturnsCorrection
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
@@ -35,9 +34,8 @@ import scala.concurrent.Future
 
 class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
-  val mockDesConnector = mock[DesConnector]
   override def beforeEach(): Unit =
-    reset(mockDesConnector)
+    reset(mockSdilConnector)
 
   "ReturnsCorrection" should {
     val testSdilRef = Some("123")
@@ -70,11 +68,11 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
   "ReturnsCorrectorWorker getUtrFromSdil" should {
     implicit val system = ActorSystem()
     val testSdilRef = "someSdilRef"
-    val testReturnsCorrector = TestActorRef(new ReturnsCorrectorWorker(mockDesConnector, mock[ReturnsPersistence]))
+    val testReturnsCorrector = TestActorRef(new ReturnsCorrectorWorker(mockSdilConnector, mock[ReturnsPersistence]))
 
     "getUtrFromSdil with None" in {
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(
           None
         )
@@ -90,7 +88,7 @@ class DataCorrectorSpec extends FakeApplicationSpec with MockitoSugar with Scala
 
     "getUtrFromSdil with Some" in {
       val testUtr = "someTestUtr"
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(
           Some(
             Subscription(

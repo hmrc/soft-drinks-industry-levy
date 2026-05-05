@@ -21,13 +21,13 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.SdilConnector
 import com.google.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 @Singleton
 class DirectDebitController @Inject() (
-  desConnector: DesConnector,
+  sdilConnector: SdilConnector,
   val cc: ControllerComponents,
   val authConnector: AuthConnector
 )(implicit ec: ExecutionContext)
@@ -35,7 +35,7 @@ class DirectDebitController @Inject() (
 
   def checkDirectDebitStatus(sdilRef: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
-      desConnector.displayDirectDebit(sdilRef).map(response => Ok(Json.toJson(response)))
+      sdilConnector.displayDirectDebit(sdilRef).map(response => Ok(Json.toJson(response)))
     }
   }
 }

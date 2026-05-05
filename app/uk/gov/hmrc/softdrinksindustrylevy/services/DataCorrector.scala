@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import org.apache.pekko.actor._
-import cats.implicits._
+import org.apache.pekko.actor.*
+import cats.implicits.*
 import play.api.Logger
-import sdil.models._
+import sdil.models.*
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.SdilConnector
 import com.google.inject.{Inject, Singleton}
+
 import scala.language.postfixOps
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 
 /** Actor which creates/updates missing/erroneous SdilReturns in mongo
@@ -36,7 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ReturnsCorrectorWorker @Inject() (
-  connector: DesConnector,
+  sdilConnector: SdilConnector,
   returns: ReturnsPersistence
 )(implicit ec: ExecutionContext)
     extends Actor {
@@ -45,7 +46,7 @@ class ReturnsCorrectorWorker @Inject() (
   val logger = Logger("DataCorrector")
 
   def getUtrFromSdil(sdilRef: String): Future[String] =
-    connector.retrieveSubscriptionDetails("sdil", sdilRef).map {
+    sdilConnector.retrieveSubscriptionDetails("sdil", sdilRef).map {
       case Some(x) =>
         logger.info(s"found UTR of ${x.utr} for SDIL ref $sdilRef")
         x.utr
@@ -80,7 +81,7 @@ class ReturnsCorrectorWorker @Inject() (
 class DataCorrector(
   system: ActorSystem,
   returnsPersistence: ReturnsPersistence,
-  connector: DesConnector
+  sdilConnector: SdilConnector
 )(implicit ec: ExecutionContext) {
   import DataCorrector._
 
@@ -96,7 +97,7 @@ class DataCorrector(
     // worker threads
     val worker = context.actorOf(
       Props(
-        new ReturnsCorrectorWorker(connector, returnsPersistence)
+        new ReturnsCorrectorWorker(sdilConnector, returnsPersistence)
       ),
       name = "worker"
     )

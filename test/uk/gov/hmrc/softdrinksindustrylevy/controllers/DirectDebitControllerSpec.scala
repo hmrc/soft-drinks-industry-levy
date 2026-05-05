@@ -18,19 +18,17 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import play.api.test.Helpers._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.{ControllerComponents, Result}
 import play.api.test.FakeRequest
+import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
+import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.softdrinksindustrylevy.models.DisplayDirectDebitResponse
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import uk.gov.hmrc.http.NotFoundException
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -38,28 +36,27 @@ import scala.concurrent.Future
 class DirectDebitControllerSpec
     extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
-  val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
 
   val cc = app.injector.instanceOf[ControllerComponents]
-  val testDirectDebitController = new DirectDebitController(mockDesConnector, cc, mockAuthConnector)
+  val testDirectDebitController = new DirectDebitController(mockSdilConnector, cc, mockAuthConnector)
 
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
   override def beforeEach(): Unit =
-    reset(mockDesConnector)
+    reset(mockSdilConnector)
 
   when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any())).thenReturn(Future.successful(()))
 
   "DirectDebitController" should {
     "return an OK with a DirectDebitResponse" in {
-      when(mockDesConnector.displayDirectDebit(any())(using any()))
+      when(mockSdilConnector.displayDirectDebit(any())(using any()))
         .thenReturn(Future.successful(DisplayDirectDebitResponse(true)))
 
       val response = testDirectDebitController.checkDirectDebitStatus("XMSDIL000000001")(FakeRequest())
 
       status(response) mustBe OK
-      verify(mockDesConnector, times(1)).displayDirectDebit(any())(using any())
+      verify(mockSdilConnector, times(1)).displayDirectDebit(any())(using any())
       contentAsJson(response) mustBe Json.parse("""{
                                                   |   "directDebitMandateFound" : true
                                                   |}""".stripMargin)
@@ -68,13 +65,13 @@ class DirectDebitControllerSpec
     "fail with NotFoundException when des connector fails with NotFoundException" in {
       val mockedException = Future.failed(new NotFoundException(""))
 
-      when(mockDesConnector.displayDirectDebit(any())(using any())).thenReturn(mockedException)
+      when(mockSdilConnector.displayDirectDebit(any())(using any())).thenReturn(mockedException)
 
       val result: Future[Result] = testDirectDebitController.checkDirectDebitStatus("XMSDIL000000001")(FakeRequest())
       val exception: Throwable = result.failed.futureValue
 
       exception mustBe a[uk.gov.hmrc.http.NotFoundException]
-      verify(mockDesConnector, times(1)).displayDirectDebit(any())(using any())
+      verify(mockSdilConnector, times(1)).displayDirectDebit(any())(using any())
     }
 
   }
