@@ -42,7 +42,7 @@ import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
 class RegistrationController @Inject() (
   val authConnector: AuthConnector,
   taxEnrolmentConnector: TaxEnrolmentConnector,
-  desConnector: DesConnector,
+  subscriptionConnector: SubscriptionConnector,
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   auditing: AuditConnector,
@@ -58,7 +58,7 @@ class RegistrationController @Inject() (
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[Subscription] { data =>
           (for {
-            res <- desConnector.createSubscription(data, idType, idNumber)
+            res <- subscriptionConnector.createSubscription(data, idType, idNumber)
             _   <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _   <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _   <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
@@ -105,7 +105,7 @@ class RegistrationController @Inject() (
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        sub  <- subscriptionConnector.retrieveSubscriptionDetails(idType, idNumber)
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
@@ -120,7 +120,7 @@ class RegistrationController @Inject() (
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async {
     implicit request =>
       authorised(AuthProviders(GovernmentGateway)) {
-        desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+        subscriptionConnector.retrieveSubscriptionDetails(idType, idNumber).map {
           case Some(s) => Ok(Json.toJson(s))
           case None    => NotFound
         }
@@ -130,7 +130,7 @@ class RegistrationController @Inject() (
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
       logger.info("checking des for a registration with utr: " + utr)
-      desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
+      subscriptionConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
         case Some(s) if !s.isDeregistered =>
           logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
           logger.info("isDeregistered for subscription is " + s.isDeregistered)

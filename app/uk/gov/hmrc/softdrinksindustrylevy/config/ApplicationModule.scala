@@ -18,6 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.config
 
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, HipConnector, SubscriptionConnector}
 
 import java.time.Clock
 
@@ -29,5 +30,10 @@ class ApplicationModule(config: Config) extends AbstractModule {
       bind(classOf[InternalAuthTokenInitialiser]).to(classOf[NoOpInternalAuthTokenInitialiser]).asEagerSingleton()
     }
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone())
+    if (config.getBoolean("features.hip-switch")) {
+      bind(classOf[SubscriptionConnector]).to(classOf[HipConnector])
+    } else {
+      bind(classOf[SubscriptionConnector]).to(classOf[DesConnector])
+    }
   }
 }

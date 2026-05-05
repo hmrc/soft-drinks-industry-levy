@@ -41,7 +41,7 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
     "parse Returns as expected" in {
       val mapper = new ObjectMapper()
 
-      val stream = getClass.getResourceAsStream("/test/des-return.schema.json")
+      val stream = getClass.getResourceAsStream("/test/return.schema.json")
       val schemaText = scala.io.Source.fromInputStream(stream).mkString
       stream.close()
 
