@@ -17,10 +17,10 @@
 package uk.gov.hmrc.softdrinksindustrylevy.models
 
 import cats.implicits.catsSyntaxSemigroup
-
+import com.networknt.schema.{SchemaRegistry, SpecificationVersion}
 import java.time.{Clock, LocalDate, LocalDateTime, ZoneId}
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+import com.fasterxml.jackson.databind.ObjectMapper
+import scala.jdk.CollectionConverters._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -39,17 +39,22 @@ class ReturnsConversionSpec extends AnyWordSpec with ScalaCheckPropertyChecks wi
 
   "ReturnsConversion" should {
     "parse Returns as expected" in {
-      val validator = JsonSchemaFactory.byDefault.getValidator
+      val mapper = new ObjectMapper()
 
       val stream = getClass.getResourceAsStream("/test/des-return.schema.json")
-      val schemaText = scala.io.Source.fromInputStream(stream).getLines().mkString
-      stream.close
-      val schema = JsonLoader.fromString(schemaText)
+      val schemaText = scala.io.Source.fromInputStream(stream).mkString
+      stream.close()
+
+      val schemaNode = mapper.readTree(schemaText)
+      val schemaRegistry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4)
+      val schema = schemaRegistry.getSchema(schemaNode)
+
       implicit val clock: Clock = Clock.systemDefaultZone()
+
       forAll { (r: ReturnsRequest) =>
-        val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
-        val report = validator.validate(schema, json)
-        assert(report.isSuccess, report)
+        val jsonNode = mapper.readTree(Json.stringify(Json.toJson(r)))
+        val errors = schema.validate(jsonNode).asScala
+        assert(errors.isEmpty, errors.mkString(", "))
       }
     }
 

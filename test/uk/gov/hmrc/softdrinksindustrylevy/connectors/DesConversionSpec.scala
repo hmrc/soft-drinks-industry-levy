@@ -17,8 +17,7 @@
 package uk.gov.hmrc.softdrinksindustrylevy.connectors
 
 import java.time.LocalDate
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.main._
+
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -35,12 +34,9 @@ class DesConversionSpec
 
   "DesConversion" should {
     "parse Subscription as expected" in {
-      val validator = JsonSchemaFactory.byDefault.getValidator
-      val schema = JsonSchemaChecker.retrieveSchema("des-create-subscription")
       forAll { (r: Subscription) =>
-        val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(r)))
-        val report = validator.validate(schema, json)
-        assert(report.isSuccess, report)
+        val errors = JsonSchemaChecker.validate(r, "des-create-subscription")
+        assert(errors.isEmpty, errors.mkString(", "))
       }
     }
 

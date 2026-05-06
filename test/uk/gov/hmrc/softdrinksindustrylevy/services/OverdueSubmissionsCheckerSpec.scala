@@ -52,11 +52,11 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
     }
 
     "overduePeriod correct" in {
-      overdueSubmissionsCheckerMock.overduePeriod.getStandardMinutes mustBe minutesTestVal
+      overdueSubmissionsCheckerMock.overduePeriod.toMinutes mustBe minutesTestVal
     }
 
     "jobInterval correct" in {
-      overdueSubmissionsCheckerMock.jobInterval.getStandardMinutes mustBe minutesTestVal
+      overdueSubmissionsCheckerMock.jobInterval.toMinutes mustBe minutesTestVal
     }
   }
 
@@ -173,8 +173,8 @@ class OverdueSubmissionsCheckerSpec extends FakeApplicationSpec with MockitoSuga
 
         overdueSubmissionsCheckerMock.jobEnabled mustBe true
         overdueSubmissionsCheckerMock.jobStartDelay.toMinutes mustBe minutesTestVal
-        overdueSubmissionsCheckerMock.overduePeriod.getStandardMinutes mustBe minutesTestVal
-        overdueSubmissionsCheckerMock.jobInterval.getStandardMinutes mustBe minutesTestVal
+        overdueSubmissionsCheckerMock.overduePeriod.toMinutes mustBe minutesTestVal
+        overdueSubmissionsCheckerMock.jobInterval.toMinutes mustBe minutesTestVal
 
         actorSystemMock.terminate()
       }

@@ -16,37 +16,61 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.services
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.github.fge.jackson.JsonLoader
-import com.github.fge.jsonschema.core.report.ProcessingReport
-import com.github.fge.jsonschema.main.JsonSchemaFactory
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.networknt.schema.{Schema, SchemaRegistry, SpecificationVersion}
 import play.api.Logger
 import play.api.libs.json.{Format, Json}
 
+import scala.io.Source
+import scala.jdk.CollectionConverters._
+
 object JsonSchemaChecker {
 
-  lazy val logger = Logger(this.getClass)
+  lazy val logger: Logger = Logger(this.getClass)
 
-  def retrieveSchema(file: String): JsonNode = schema(s"/test/$file.schema.json")
+  private val objectMapper: ObjectMapper = new ObjectMapper()
 
-  private def schema(path: String): JsonNode = {
+  private val schemaRegistry: SchemaRegistry =
+    SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_4)
+
+  def retrieveSchema(file: String): Schema =
+    loadSchema(s"/test/$file.schema.json")
+
+  private def loadSchema(path: String): Schema = {
     val stream = getClass.getResourceAsStream(path)
-    val schemaText = scala.io.Source.fromInputStream(stream).getLines().mkString
+    val schemaText = Source.fromInputStream(stream).mkString
     stream.close()
-    JsonLoader.fromString(schemaText)
+
+    val schemaNode = objectMapper.readTree(schemaText)
+    schemaRegistry.getSchema(schemaNode)
   }
 
   def apply[A](model: A, file: String)(implicit format: Format[A]): Unit = {
     val schema = retrieveSchema(file)
-    val validator = JsonSchemaFactory.byDefault.getValidator
-    val json = JsonLoader.fromString(Json.prettyPrint(Json.toJson(model)))
-    val processingReport: ProcessingReport = validator.validate(schema, json)
-    if (!processingReport.isSuccess) processingReport.forEach { x =>
-      logger.warn(
-        s"failed to validate against json schema, schema: ${x.asJson().get("schema")}, " +
-          s"instance: ${x.asJson().get("instance")}, problem: ${x.asJson().get("keyword")}"
-      )
+
+    val jsonStr = Json.prettyPrint(Json.toJson(model))
+    val jsonNode: JsonNode = objectMapper.readTree(jsonStr)
+
+    val errors = schema.validate(jsonNode)
+
+    if (!errors.isEmpty) {
+      errors.asScala.foreach { x =>
+        logger.warn(
+          s"failed to validate against json schema $file, " +
+            s"schema: ${x.getSchemaLocation}, " +
+            s"instance: ${x.getInstanceLocation}, " +
+            s"problem: ${x.getKeyword}"
+        )
+      }
     }
   }
 
+  def validate[A](model: A, file: String)(implicit format: Format[A]) = {
+    val schema = retrieveSchema(file)
+
+    val jsonStr = Json.prettyPrint(Json.toJson(model))
+    val jsonNode: JsonNode = objectMapper.readTree(jsonStr)
+
+    schema.validate(jsonNode).asScala.toList
+  }
 }

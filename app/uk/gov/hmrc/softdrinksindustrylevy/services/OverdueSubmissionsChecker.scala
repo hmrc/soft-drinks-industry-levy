@@ -18,7 +18,7 @@ package uk.gov.hmrc.softdrinksindustrylevy.services
 
 import org.apache.pekko.actor.{ActorSystem, Cancellable}
 import com.google.inject.{Inject, Singleton}
-import org.joda.time.Duration
+import java.time.Duration
 import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.lock.{LockRepository, MongoLockRepository, TimePeriodLockService}
@@ -55,21 +55,21 @@ class OverdueSubmissionsChecker @Inject() (
 
   val overduePeriod: Duration =
     config.getOptional[Long](s"$jobName.overduePeriodMinutes") match {
-      case Some(d) => Duration.standardMinutes(d)
+      case Some(d) => Duration.ofMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.overduePeriodMinutes")
     }
 
   val jobInterval: Duration =
     config.getOptional[Long](s"$jobName.jobIntervalMinutes") match {
-      case Some(d) => Duration.standardMinutes(d)
+      case Some(d) => Duration.ofMinutes(d)
       case None    => throw MissingConfiguration(s"$jobName.jobIntervalMinutes")
     }
 
   protected def runJob()(implicit ec: ExecutionContext): Future[Unit] =
     for {
-      subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.getStandardMinutes, ChronoUnit.MINUTES))
+      subs <- mongoBufferService.findOverdue(Instant.now.minus(overduePeriod.toMinutes, ChronoUnit.MINUTES))
       _    <- handleOverdueSubmissions(subs)
-    } yield logger.info(s"job $jobName complete; rerunning in ${jobInterval.getStandardMinutes} minutes")
+    } yield logger.info(s"job $jobName complete; rerunning in ${jobInterval.toMinutes} minutes")
 
   private def handleOverdueSubmissions(submissions: Seq[SubscriptionWrapper])(implicit ec: ExecutionContext) =
     Future.sequence(
@@ -92,7 +92,7 @@ class OverdueSubmissionsChecker @Inject() (
   val lock: TimePeriodLockService = new TimePeriodLockService {
     override val lockRepository: LockRepository = mongoLockRepository
     override val lockId: String = jobName
-    override val ttl: duration.Duration = FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
+    override val ttl: duration.Duration = FiniteDuration(jobInterval.toMinutes, MINUTES)
   }
 
   private def run()(implicit ec: ExecutionContext): Unit = {
@@ -113,7 +113,7 @@ class OverdueSubmissionsChecker @Inject() (
   def start()(implicit ec: ExecutionContext): Cancellable =
     actorSystem.scheduler.scheduleWithFixedDelay(
       jobStartDelay,
-      FiniteDuration(jobInterval.getStandardMinutes, MINUTES)
+      FiniteDuration(jobInterval.toMinutes, MINUTES)
     )(() => run())
 }
 

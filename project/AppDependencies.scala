@@ -11,7 +11,7 @@ object AppDependencies {
     ws,
     "uk.gov.hmrc"            %% s"bootstrap-backend-$playVersion" % bootstrapVersion,
     "uk.gov.hmrc.mongo"      %% s"hmrc-mongo-$playVersion"        % hmrcMongoVersion,
-    "com.github.fge"          % "json-schema-validator"           % "2.2.6",
+    "com.networknt"          % "json-schema-validator"            % "2.0.1" exclude ("com.fasterxml.jackson.core", "jackson-databind"),
     "org.typelevel"          %% "cats-core"                       % "2.13.0",
     "org.scala-stm"          %% "scala-stm"                       % "0.11.1",
     "io.github.openhtmltopdf" % "openhtmltopdf-pdfbox"            % "1.1.31"
