@@ -16,28 +16,32 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.google.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthProvider.GovernmentGateway
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models._
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, HipConnector}
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.returns.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.{ReturnsPersistence, SdilMongoPersistence}
 
-import java.time._
+import java.time.*
 import scala.concurrent.{ExecutionContext, Future}
-import com.google.inject.{Inject, Singleton}
 
 @Singleton
 class ReturnsController @Inject() (
   val authConnector: AuthConnector,
   desConnector: DesConnector,
+  hipConnector: HipConnector,
+  configuration: ServicesConfig,
   val persistence: SdilMongoPersistence,
   val returns: ReturnsPersistence,
   auditing: AuditConnector,
@@ -46,6 +50,28 @@ class ReturnsController @Inject() (
     extends BackendController(cc) with AuthorisedFunctions {
 
   lazy val logger = Logger(this.getClass)
+
+  private def useHipIntegration: Boolean = configuration.getBoolean("features.hip.integration")
+
+  private def withDownstream[A](hip: => Future[A], des: => Future[A]): Future[A] =
+    if (useHipIntegration) hip else des
+
+  private def retrieveSubscription(idType: String, idNumber: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Subscription]] =
+    withDownstream(
+      hipConnector.retrieveSubscriptionDetails(idType, idNumber),
+      desConnector.retrieveSubscriptionDetails(idType, idNumber)
+    )
+
+  private def submitReturn(sdilRef: String, returnsRequest: ReturnsRequest)(implicit
+    hc: HeaderCarrier,
+    period: ReturnPeriod
+  ): Future[HttpResponse] =
+    withDownstream(
+      hipConnector.submitReturn(sdilRef, returnsRequest),
+      desConnector.submitReturn(sdilRef, returnsRequest)
+    )
 
   def checkSmallProducerStatus(
     idType: String,
@@ -56,7 +82,7 @@ class ReturnsController @Inject() (
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        sub  <- retrieveSubscription(idType, idNumber)
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
@@ -101,14 +127,14 @@ class ReturnsController @Inject() (
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[SdilReturn] { sdilReturn =>
-          logger.info("SDIL return submission sent to DES")
+          logger.info("SDIL return submission sent downstream")
           implicit val period: ReturnPeriod = ReturnPeriod(year, quarter)
 
           val returnsReq = ReturnsRequest(sdilReturn)
           (for {
-            subscription <- desConnector.retrieveSubscriptionDetails("utr", utr)
+            subscription <- retrieveSubscription("utr", utr)
             ref = subscription.get.sdilRef.get
-            _ <- desConnector.submitReturn(ref, returnsReq)
+            _ <- submitReturn(ref, returnsReq)
             _ <- auditing.sendExtendedEvent(
                    new SdilReturnEvent(
                      request.uri,
@@ -157,7 +183,7 @@ class ReturnsController @Inject() (
 
   def pending(utr: String): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector.retrieveSubscriptionDetails("utr", utr).flatMap { subscription =>
+      retrieveSubscription("utr", utr).flatMap { subscription =>
         subscription match {
           case Some(value) =>
             val all = {

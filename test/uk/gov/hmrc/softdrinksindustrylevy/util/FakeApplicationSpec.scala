@@ -50,6 +50,13 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
          |      token = token
          |      environment = environment
          |    }
+         |    hip {
+         |      protocol = http
+         |      host = $wireMockHost
+         |      port = $wireMockPort
+         |      token = token
+         |      environment = environment
+         |    }
          |    email {
          |      protocol = http
          |      host     = $wireMockHost
@@ -71,6 +78,11 @@ trait FakeApplicationSpec extends PlaySpec with GuiceOneServerPerSuite with Mock
          |      port     = $wireMockPort
          |    }
          |
+         |  }
+         |}
+         |features {
+         |  hip {
+         |    integration = false
          |  }
          |}
          |""".stripMargin

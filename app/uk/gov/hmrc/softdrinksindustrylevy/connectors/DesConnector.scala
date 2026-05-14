@@ -117,7 +117,7 @@ class DesConnector @Inject() (
       productionSites = formattedProductionSites
     )
 
-    JsonSchemaChecker[Subscription](request, "des-create-subscription")
+    JsonSchemaChecker[Subscription](request, "create-subscription")
     val path = s"/$serviceURL/subscription/$idType/$idNumber"
     val operation = "createSubscription"
     val subscriptionUrl = s"$desURL$path"
