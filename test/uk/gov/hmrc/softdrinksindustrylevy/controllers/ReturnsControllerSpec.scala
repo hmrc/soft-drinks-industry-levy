@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.mockito.ArgumentMatchers.{any, eq => matching}
+import org.mockito.ArgumentMatchers.{any, eq as matching}
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -24,13 +24,12 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsNull
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
 import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
@@ -40,19 +39,19 @@ import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuditing: AuditConnector = mock[AuditConnector]
 
   val cc = app.injector.instanceOf[ControllerComponents]
 
   implicit def mockClock: Clock = Clock.systemDefaultZone()
+
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
   val testReturnsContoller =
-    new ReturnsController(mockAuthConnector, mockDesConnector, subscriptions, returns, mockAuditing, cc)
+    new ReturnsController(mockAuthConnector, mockSdilConnector, subscriptions, returns, mockAuditing, cc)
 
   override def beforeEach(): Unit =
-    reset(mockDesConnector)
+    reset(mockSdilConnector)
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
@@ -92,7 +91,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testYear = 2018
       val testQuarter = 1
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(
           None
         )
@@ -112,7 +111,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val testSdilRef = "someSdilRef"
       when(subscriptions.list(any())(using any())).thenReturn(Future(List.empty))
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(
           Some(
             Subscription(
@@ -188,7 +187,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val startDate = LocalDate.of(2018, 1, 1)
       val liabilityDate = startDate
 
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(
           Some(
             Subscription(
@@ -219,7 +218,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     }
 
     "return an empty list when no subscription exists" in {
-      when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+      when(mockSdilConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(None)
       )
 

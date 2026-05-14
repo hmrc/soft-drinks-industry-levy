@@ -16,36 +16,36 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import java.time._
-import cats.implicits._
+import cats.implicits.*
+import com.google.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json._
-import play.api.mvc._
-import sdil.models._
-import sdil.models.des._
+import play.api.libs.json.*
+import play.api.mvc.*
+import sdil.models.*
+import sdil.models.des.*
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import com.google.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.SdilConnector
 
-import scala.concurrent._
+import java.time.*
+import scala.concurrent.*
 import scala.util.Random
 
 @Singleton
 class BalanceController @Inject() (
   val authConnector: AuthConnector,
-  desConnector: DesConnector,
+  val sdilConnector: SdilConnector,
   val cc: ControllerComponents,
   val configuration: ServicesConfig
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) with AuthorisedFunctions {
 
-  import BalanceController._
+  import BalanceController.*
 
   def balance(sdilRef: String, withAssessment: Boolean = true): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector
+      sdilConnector
         .retrieveFinancialData(sdilRef, None)
         .map {
           case Some(r) =>
@@ -72,10 +72,10 @@ class BalanceController @Inject() (
   def balanceHistoryAll(sdilRef: String, withAssessment: Boolean): Action[AnyContent] =
     Action.async { implicit request =>
       val r: Future[List[FinancialLineItem]] = for {
-        subscription <- desConnector.retrieveSubscriptionDetails("sdil", sdilRef).map(_.get)
+        subscription <- sdilConnector.retrieveSubscriptionDetails("sdil", sdilRef).map(_.get)
         years = (subscription.liabilityDate.getYear to LocalDate.now.getYear).toList
         responses <- years.map { y =>
-                       desConnector.retrieveFinancialData(sdilRef, y.some)
+                       sdilConnector.retrieveFinancialData(sdilRef, y.some)
                      }.sequence
       } yield deduplicatePayments(
         if (withAssessment)
@@ -91,7 +91,7 @@ class BalanceController @Inject() (
 
   def balanceHistory(sdilRef: String, year: Int): Action[AnyContent] =
     Action.async { implicit request =>
-      desConnector.retrieveFinancialData(sdilRef, Some(year)).map { r =>
+      sdilConnector.retrieveFinancialData(sdilRef, Some(year)).map { r =>
         val data: List[FinancialLineItem] = r.fold(List.empty[FinancialLineItem])(convert)
         Ok(JsArray(data.map(Json.toJson(_))))
       }
@@ -202,6 +202,7 @@ object BalanceController {
         deep(OfficerAssessment(dueDate(in), amount(in)), in) ++ interest(OfficerAsstInterest.apply, in.accruedInterest)
       case _ => handleUnrecognisedFinancialTransaction(in, Some(mainTransaction), Some(1540))
     }
+
   private def convertInterestFinancialTransaction(
     in: FinancialTransaction,
     mainTransaction: Int
