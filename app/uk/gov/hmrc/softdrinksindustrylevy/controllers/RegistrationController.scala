@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
+import com.google.inject.{Inject, Singleton}
+import org.mongodb.scala.DuplicateKeyException
 import play.api.Logger
 import play.api.libs.json.*
 import play.api.mvc.*
@@ -26,23 +28,24 @@ import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions}
 import uk.gov.hmrc.http.{HeaderCarrier, NotFoundException}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.des.create.createSubscriptionResponseFormat
+import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
 import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.*
 
 import scala.concurrent.{ExecutionContext, Future}
-import com.google.inject.{Inject, Singleton}
-import org.mongodb.scala.DuplicateKeyException
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.TaxEnrolmentsSubscription
-import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal
 
 @Singleton
 class RegistrationController @Inject() (
   val authConnector: AuthConnector,
   taxEnrolmentConnector: TaxEnrolmentConnector,
   desConnector: DesConnector,
+  hipConnector: HipConnector,
+  configuration: ServicesConfig,
   buffer: MongoBufferService,
   emailConnector: EmailConnector,
   auditing: AuditConnector,
@@ -53,12 +56,33 @@ class RegistrationController @Inject() (
 
   lazy val logger = Logger(this.getClass)
 
+  private def useHipIntegration: Boolean = configuration.getBoolean("features.hip.integration")
+
+  private def withDownstream[A](hip: => Future[A], des: => Future[A]): Future[A] =
+    if (useHipIntegration) hip else des
+
+  private def createSubscription(data: Subscription, idType: String, idNumber: String)(implicit
+    hc: HeaderCarrier
+  ): Future[CreateSubscriptionResponse] =
+    withDownstream(
+      hipConnector.createSubscription(data, idType, idNumber),
+      desConnector.createSubscription(data, idType, idNumber)
+    )
+
+  private def retrieveSubscription(idType: String, idNumber: String)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Subscription]] =
+    withDownstream(
+      hipConnector.retrieveSubscriptionDetails(idType, idNumber),
+      desConnector.retrieveSubscriptionDetails(idType, idNumber)
+    )
+
   def submitRegistration(idType: String, idNumber: String, safeId: String): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       authorised(AuthProviders(GovernmentGateway)).retrieve(credentials) { creds =>
         withJsonBody[Subscription] { data =>
           (for {
-            res <- desConnector.createSubscription(data, idType, idNumber)
+            res <- createSubscription(data, idType, idNumber)
             _   <- buffer.insert(SubscriptionWrapper(safeId, data, res.formBundleNumber))
             _   <- taxEnrolmentConnector.subscribe(safeId, res.formBundleNumber)
             _   <- emailConnector.sendSubmissionReceivedEmail(data.contact.email, data.orgName)
@@ -69,7 +93,7 @@ class RegistrationController @Inject() (
                    )
                  )
           } yield {
-            logger.info("SDIL Subscription submission successfully sent to DES")
+            logger.info("SDIL Subscription submission successfully sent downstream")
             Ok(Json.toJson(res))
           }) recoverWith {
             case _: DuplicateKeyException =>
@@ -105,7 +129,7 @@ class RegistrationController @Inject() (
     authorised(AuthProviders(GovernmentGateway)) {
       val period = ReturnPeriod(year, quarter)
       for {
-        sub  <- desConnector.retrieveSubscriptionDetails(idType, idNumber)
+        sub  <- retrieveSubscription(idType, idNumber)
         subs <- sub.fold(Future(List.empty[Subscription]))(s => persistence.list(s.utr))
         byRef = sub.fold(subs)(x => subs.filter(_.sdilRef == x.sdilRef))
         isSmallProd = byRef.nonEmpty && byRef.forall(b =>
@@ -120,7 +144,7 @@ class RegistrationController @Inject() (
   def retrieveSubscriptionDetails(idType: String, idNumber: String): Action[AnyContent] = Action.async {
     implicit request =>
       authorised(AuthProviders(GovernmentGateway)) {
-        desConnector.retrieveSubscriptionDetails(idType, idNumber).map {
+        retrieveSubscription(idType, idNumber).map {
           case Some(s) => Ok(Json.toJson(s))
           case None    => NotFound
         }
@@ -129,10 +153,10 @@ class RegistrationController @Inject() (
 
   def checkEnrolmentStatus(utr: String): Action[AnyContent] = Action.async { implicit request =>
     authorised(AuthProviders(GovernmentGateway)) {
-      logger.info("checking des for a registration with utr: " + utr)
-      desConnector.retrieveSubscriptionDetails("utr", utr) flatMap {
+      logger.info("checking downstream for a registration with utr: " + utr)
+      retrieveSubscription("utr", utr) flatMap {
         case Some(s) if !s.isDeregistered =>
-          logger.info("got a subscription from DES with endDate " + s.endDate.fold("NONE")(x => x.toString))
+          logger.info("got a subscription from downstream with endDate " + s.endDate.fold("NONE")(x => x.toString))
           logger.info("isDeregistered for subscription is " + s.isDeregistered)
 
           buffer
@@ -187,7 +211,7 @@ class RegistrationController @Inject() (
     formBundleNumber: Option[String],
     outcome: String
   )(implicit hc: HeaderCarrier): JsValue = {
-    import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal._
+    import uk.gov.hmrc.softdrinksindustrylevy.models.json.internal.*
     implicit val activityMapFormat: Writes[Activity] = new Writes[Activity] {
       def writes(activity: Activity): JsValue = activity match {
         case InternalActivity(a, lg) =>

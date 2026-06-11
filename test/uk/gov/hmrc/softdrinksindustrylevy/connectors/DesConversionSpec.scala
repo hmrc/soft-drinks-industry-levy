@@ -35,7 +35,7 @@ class DesConversionSpec
   "DesConversion" should {
     "parse Subscription as expected" in {
       forAll { (r: Subscription) =>
-        val errors = JsonSchemaChecker.validate(r, "des-create-subscription")
+        val errors = JsonSchemaChecker.validate(r, "create-subscription")
         assert(errors.isEmpty, errors.mkString(", "))
       }
     }

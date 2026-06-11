@@ -21,6 +21,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.Future
 import scala.concurrent.stm.TMap
 
@@ -53,6 +54,33 @@ class MemoizedWithSTMSpec extends AsyncWordSpec with Matchers {
       } yield (a, b)
       x.map { y =>
         assert(y._1 != y._2)
+      }
+    }
+  }
+
+  "Memoized function" should {
+    "only cache values that satisfy the cache predicate" in {
+      val calls = new AtomicInteger(0)
+      val cache: TMap[String, (Option[Int], LocalDateTime)] = TMap[String, (Option[Int], LocalDateTime)]()
+      val memoized = Memoized.memoizedCacheWhen[Future, String, Option[Int]](cache, 60 * 60)(_.isDefined) { key =>
+        Future.successful {
+          val call = calls.incrementAndGet()
+          if (key == "none") None else Some(call)
+        }
+      }
+
+      val result = for {
+        firstNone  <- memoized("none")
+        secondNone <- memoized("none")
+        firstSome  <- memoized("some")
+        secondSome <- memoized("some")
+      } yield (firstNone, secondNone, firstSome, secondSome)
+
+      result.map { case (firstNone, secondNone, firstSome, secondSome) =>
+        firstNone shouldBe None
+        secondNone shouldBe None
+        firstSome shouldBe secondSome
+        calls.get() shouldBe 3
       }
     }
   }
