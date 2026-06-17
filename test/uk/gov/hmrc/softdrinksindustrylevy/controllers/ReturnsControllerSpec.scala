@@ -16,22 +16,23 @@
 
 package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
-import org.mockito.ArgumentMatchers.{any, eq => matching}
-import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentMatchers.{any, eq as matching}
+import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.JsNull
+import play.api.libs.json.{JsNull, Json}
 import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import sdil.models.{ReturnPeriod, SdilReturn}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.softdrinksindustrylevy.connectors.DesConnector
-import uk.gov.hmrc.softdrinksindustrylevy.models.{Activity, Address, Contact, ReturnsImporting, ReturnsPackaging, ReturnsRequest, SmallProducerVolume, Subscription}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.softdrinksindustrylevy.connectors.{DesConnector, HipConnector}
+import uk.gov.hmrc.softdrinksindustrylevy.models.*
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
 
 import java.time.{Clock, LocalDate, LocalDateTime, OffsetDateTime}
@@ -40,19 +41,33 @@ import scala.concurrent.Future
 
 class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val mockDesConnector: DesConnector = mock[DesConnector]
   val mockAuditing: AuditConnector = mock[AuditConnector]
+  val mockDesConnector: DesConnector = mock[DesConnector]
+  val mockHipConnector: HipConnector = mock[HipConnector]
+  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
 
   val cc = app.injector.instanceOf[ControllerComponents]
 
   implicit def mockClock: Clock = Clock.systemDefaultZone()
+
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
   val testReturnsContoller =
-    new ReturnsController(mockAuthConnector, mockDesConnector, subscriptions, returns, mockAuditing, cc)
+    new ReturnsController(
+      mockAuthConnector,
+      mockDesConnector,
+      mockHipConnector,
+      mockServicesConfig,
+      subscriptions,
+      returns,
+      mockAuditing,
+      cc
+    )
 
-  override def beforeEach(): Unit =
-    reset(mockDesConnector)
+  override def beforeEach(): Unit = {
+    reset(mockDesConnector, mockHipConnector, mockServicesConfig)
+    when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(false)
+  }
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
@@ -103,6 +118,24 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
 
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
+    }
+
+    "use HIP retrieve subscription details when HIP integration is enabled" in {
+      val testYear = 2018
+      val testQuarter = 1
+
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(None)
+      )
+
+      val response =
+        testReturnsContoller.checkSmallProducerStatus("testIdType", "1234", testYear, testQuarter)(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) mustBe "false"
+      verify(mockHipConnector, times(1)).retrieveSubscriptionDetails(any[String], any[String])(using any())
+      verify(mockDesConnector, never()).retrieveSubscriptionDetails(any[String], any[String])(using any())
     }
 
     "Subscription returned by desConnector.retrieveSubscriptionDetails" in {
@@ -158,6 +191,51 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
     "400 returned for blank body" in {
       val response = testReturnsContoller.post("", 2018, 1)(FakeRequest().withBody(JsNull))
       status(response) mustBe BAD_REQUEST
+    }
+
+    "use HIP submit return when HIP integration is enabled" in {
+      val utr = "testUtr"
+      val sdilRef = "XKSDIL000000022"
+      val period = ReturnPeriod(2024, 1)
+      val sdilReturn = SdilReturn(submittedOn = None)
+
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(
+          Some(
+            Subscription(
+              utr,
+              Some(sdilRef),
+              "someOrgName",
+              None,
+              mock[Address],
+              mock[Activity],
+              LocalDate.now,
+              Nil,
+              Nil,
+              mock[Contact],
+              None,
+              None
+            )
+          )
+        )
+      )
+      when(mockHipConnector.submitReturn(any[String], any[ReturnsRequest])(using any(), any()))
+        .thenReturn(Future.successful(HttpResponse(CREATED, "")))
+      when(mockAuditing.sendExtendedEvent(any())(using any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(returns.update(any[String], any[ReturnPeriod], any[SdilReturn])(using any())).thenReturn(
+        Future.successful(())
+      )
+
+      val response = testReturnsContoller.post(utr, period.year, period.quarter)(
+        FakeRequest().withBody(Json.toJson(sdilReturn))
+      )
+
+      status(response) mustBe OK
+      verify(mockHipConnector, times(1)).retrieveSubscriptionDetails(any[String], any[String])(using any())
+      verify(mockHipConnector, times(1)).submitReturn(any[String], any[ReturnsRequest])(using any(), any())
+      verify(mockDesConnector, never()).retrieveSubscriptionDetails(any[String], any[String])(using any())
+      verify(mockDesConnector, never()).submitReturn(any[String], any[ReturnsRequest])(using any(), any())
     }
   }
 
@@ -218,6 +296,20 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       contentAsString(response) must include("quarter")
     }
 
+    "use HIP retrieve subscription details when HIP integration is enabled" in {
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
+        Future.successful(None)
+      )
+
+      val response = testReturnsContoller.pending("missingUtr")(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsJson(response) mustBe Json.arr()
+      verify(mockHipConnector, times(1)).retrieveSubscriptionDetails(any[String], any[String])(using any())
+      verify(mockDesConnector, never()).retrieveSubscriptionDetails(any[String], any[String])(using any())
+    }
+
     "return an empty list when no subscription exists" in {
       when(mockDesConnector.retrieveSubscriptionDetails(any[String], any[String])(using any())).thenReturn(
         Future.successful(None)
@@ -226,7 +318,7 @@ class ReturnsControllerSpec extends FakeApplicationSpec with MockitoSugar with B
       val response = testReturnsContoller.pending("missingUtr")(FakeRequest())
 
       status(response) mustBe OK
-      contentAsString(response) mustBe "[]"
+      contentAsJson(response) mustBe Json.arr()
     }
   }
 }

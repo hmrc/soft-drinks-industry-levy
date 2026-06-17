@@ -18,31 +18,31 @@ package uk.gov.hmrc.softdrinksindustrylevy.controllers
 
 import com.mongodb.DuplicateKeyException
 import com.mongodb.client.result.DeleteResult
-
-import java.time.LocalDate
-import org.mockito.ArgumentMatchers.{any, eq => matching}
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.ArgumentMatchers.{any, eq as matching}
+import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.mongodb.scala.WriteConcernException
 import org.mongodb.scala.bson.BsonDocument
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsString, Json}
+import play.api.mvc.ControllerComponents
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import uk.gov.hmrc.audit.serialiser.{AuditSerialiser, AuditSerialiserLike}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, EmptyRetrieval}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.softdrinksindustrylevy.connectors.*
 import uk.gov.hmrc.softdrinksindustrylevy.models.*
+import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 import uk.gov.hmrc.softdrinksindustrylevy.services.SubscriptionWrapper.*
 import uk.gov.hmrc.softdrinksindustrylevy.services.{MongoBufferService, SdilMongoPersistence, SubscriptionWrapper}
 import uk.gov.hmrc.softdrinksindustrylevy.util.FakeApplicationSpec
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
-import play.api.mvc.ControllerComponents
-import uk.gov.hmrc.audit.serialiser.{AuditSerialiser, AuditSerialiserLike}
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.softdrinksindustrylevy.models.TaxEnrolments.{Identifier, TaxEnrolmentsSubscription}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class RegistrationControllerSpec
@@ -50,6 +50,8 @@ class RegistrationControllerSpec
 
   val mockTaxEnrolmentConnector: TaxEnrolmentConnector = mock[TaxEnrolmentConnector]
   val mockDesConnector: DesConnector = mock[DesConnector]
+  val mockHipConnector: HipConnector = mock[HipConnector]
+  val mockServicesConfig: ServicesConfig = mock[ServicesConfig]
   val mockBuffer: MongoBufferService = mock[MongoBufferService]
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val mockEmailConnector: EmailConnector = mock[EmailConnector]
@@ -61,6 +63,8 @@ class RegistrationControllerSpec
     mockAuthConnector,
     mockTaxEnrolmentConnector,
     mockDesConnector,
+    mockHipConnector,
+    mockServicesConfig,
     mockBuffer,
     mockEmailConnector,
     mockAuditing,
@@ -71,8 +75,10 @@ class RegistrationControllerSpec
   implicit val hc: HeaderCarrier = new HeaderCarrier
   implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-  override def beforeEach(): Unit =
-    reset(mockDesConnector)
+  override def beforeEach(): Unit = {
+    reset(mockDesConnector, mockHipConnector, mockServicesConfig)
+    when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(false)
+  }
 
   when(mockAuthConnector.authorise[Option[Credentials]](any(), any())(using any(), any()))
     .thenReturn(Future.successful(Option(Credentials("cred-id", "GovernmentGateway"))))
@@ -85,7 +91,7 @@ class RegistrationControllerSpec
 
   "SdilController" should {
     "return Status: OK Body: CreateSubscriptionResponse for successful valid subscription" in {
-      import json.des.create._
+      import json.des.create.*
 
       val sdilSubscriionEvent = new SdilSubscriptionEvent(
         "request.uri",
@@ -111,6 +117,27 @@ class RegistrationControllerSpec
       status(response) mustBe OK
       verify(mockDesConnector, times(1)).createSubscription(any(), any(), any())(using any())
       contentAsJson(response) mustBe Json.toJson(validSubscriptionResponse)
+    }
+
+    "use HIP create subscription when HIP integration is enabled" in {
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.createSubscription(any(), any(), any())(using any()))
+        .thenReturn(Future.successful(validSubscriptionResponse))
+
+      when(mockBuffer.insert(any()))
+        .thenReturn(Future.successful(()))
+      when(mockTaxEnrolmentConnector.subscribe(any(), any())(using any(), any()))
+        .thenReturn(Future.successful(HttpResponse(418)))
+      when(mockAuditing.sendExtendedEvent(any())(using any(), any())).thenReturn(Future.successful(AuditResult.Success))
+
+      val response = testSdilController.submitRegistration("UTR", "0000222200", "foobar")(
+        FakeRequest()
+          .withBody(validCreateSubscriptionRequest)
+      )
+
+      status(response) mustBe OK
+      verify(mockHipConnector, times(1)).createSubscription(any(), any(), any())(using any())
+      verify(mockDesConnector, never()).createSubscription(any(), any(), any())(using any())
     }
 
     "return Status: BAD_REQUEST for invalid request" in {
@@ -371,6 +398,19 @@ class RegistrationControllerSpec
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.toJson(validCreateSubscriptionRequest)
     }
+
+    "use HIP retrieve subscription details when HIP integration is enabled" in {
+      val subscription = Json.fromJson[Subscription](validCreateSubscriptionRequest).get
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.retrieveSubscriptionDetails(any(), any())(using any()))
+        .thenReturn(Future successful Some(subscription))
+
+      val response = testSdilController.retrieveSubscriptionDetails("", "123")(FakeRequest())
+
+      status(response) mustBe OK
+      verify(mockHipConnector, times(1)).retrieveSubscriptionDetails(any(), any())(using any())
+      verify(mockDesConnector, never()).retrieveSubscriptionDetails(any(), any())(using any())
+    }
   }
 
   "checkSmallProducerStatus" should {
@@ -381,6 +421,19 @@ class RegistrationControllerSpec
       val response = testSdilController.checkSmallProducerStatus("123", "123", 2018, 1)(FakeRequest())
       status(response) mustBe OK
       contentAsString(response) mustBe "false"
+    }
+
+    "use HIP retrieve subscription details when HIP integration is enabled" in {
+      when(mockServicesConfig.getBoolean("features.hip.integration")).thenReturn(true)
+      when(mockHipConnector.retrieveSubscriptionDetails(any(), any())(using any()))
+        .thenReturn(Future successful None)
+
+      val response = testSdilController.checkSmallProducerStatus("123", "123", 2018, 1)(FakeRequest())
+
+      status(response) mustBe OK
+      contentAsString(response) mustBe "false"
+      verify(mockHipConnector, times(1)).retrieveSubscriptionDetails(any(), any())(using any())
+      verify(mockDesConnector, never()).retrieveSubscriptionDetails(any(), any())(using any())
     }
 
     /*"retrieveSubscriptionDetails returning Some of non-small producer" in {

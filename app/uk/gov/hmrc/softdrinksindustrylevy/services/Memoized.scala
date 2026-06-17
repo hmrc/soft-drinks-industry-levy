@@ -57,6 +57,16 @@ object Memoized {
     secondsToCache: Long
   )(
     f: A => F[B]
+  ): A => F[B] =
+    memoizedCacheWhen[F, A, B](underlyingCache, secondsToCache)(_ => true)(f)
+
+  def memoizedCacheWhen[F[_]: Monad, A, B](
+    underlyingCache: TMap[A, (B, LocalDateTime)],
+    secondsToCache: Long
+  )(
+    shouldCache: B => Boolean
+  )(
+    f: A => F[B]
   ): A => F[B] = {
 
     def read(k: A): F[Option[(B, LocalDateTime)]] =
@@ -65,7 +75,11 @@ object Memoized {
       }.pure[F]
 
     def write(key: A, value: (B, LocalDateTime)): F[Unit] =
-      atomic(implicit t => underlyingCache.put(key, value)).map(_ => ()).getOrElse(()).pure[F]
+      if (shouldCache(value._1)) {
+        atomic(implicit t => underlyingCache.put(key, value)).map(_ => ()).getOrElse(()).pure[F]
+      } else {
+        ().pure[F]
+      }
 
     memoized(
       read,
