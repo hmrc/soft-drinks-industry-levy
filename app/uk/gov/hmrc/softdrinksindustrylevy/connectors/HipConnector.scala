@@ -52,7 +52,7 @@ class HipConnector @Inject() (
   private val hipBaseURL: String = servicesConfig.baseUrl("hip")
   private val hipClientId: String = servicesConfig.getString("microservice.services.hip.clientId")
   private val hipClientSecret: String = servicesConfig.getString("microservice.services.hip.clientSecret")
-  private val hipApiRoot: String = "RESTAdapter/soft-drinks"
+  private val hipApiRoot: String = "etmp/RESTAdapter/soft-drinks"
   private val hipIdNotFoundCode: String = "002"
   private val hipObligationAlreadyFulfilledCode: String = "044"
 
