@@ -47,7 +47,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
 
   private val HIP_AUTHORIZATION: String = "Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ="
 
-  private val HIP_API_ROOT: String = "/RESTAdapter/soft-drinks"
+  private val HIP_API_ROOT: String = "/etmp/RESTAdapter/soft-drinks"
 
   val hipConnector: HipConnector = app.injector.instanceOf[HipConnector]
 
