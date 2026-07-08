@@ -30,7 +30,7 @@ import scala.util.control.NonFatal
 abstract class ConnectorHelpers(servicesConfig: ServicesConfig, clock: Clock) {
 
   protected val hipBaseURL: String = servicesConfig.baseUrl("hip")
-  protected val softDrinksApiRoot: String = "soft-drinks"
+  protected val softDrinksApiRoot: String = "etmp/soft-drinks"
 
   protected def hipHeaders: Seq[(String, String)] =
     Seq(
