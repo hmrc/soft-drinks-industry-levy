@@ -263,7 +263,7 @@ class HipConnector @Inject() (
       )
 
     for {
-      sub  <- memoized(s"$hipBaseURL/$hipApiRoot/subscription/details/$idType/$idNumber")
+      sub  <- memoized(s"$hipBaseURL/$hipApiRoot/subscription/$idType/$idNumber")
       subs <- sub.fold(Future.successful(List.empty[Subscription]))(s => persistence.list(s.utr))
       _ <- sub.fold(Future.successful(())) { x =>
              if (!subs.contains(x)) persistence.insert(x.utr, x)

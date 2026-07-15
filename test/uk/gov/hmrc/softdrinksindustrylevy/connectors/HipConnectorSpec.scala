@@ -334,7 +334,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
       )
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678910"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678910"))
           .withHeader(
             CORRELATION_ID_KEY,
             matching(
@@ -377,7 +377,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
       )
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/$idNumber"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/$idNumber"))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -405,7 +405,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
 
     "not cache retrieveSubscriptionDetails responses that return None" in {
       val idNumber = "12345678923"
-      val url = s"$HIP_API_ROOT/subscription/details/utr/$idNumber"
+      val url = s"$HIP_API_ROOT/subscription/utr/$idNumber"
       val responseJson = hipRetrieveSubscriptionDetailsResponse(utr = Some(idNumber))
 
       stubFor(
@@ -453,7 +453,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
       )
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678922"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678922"))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -486,7 +486,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
       )
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/sdil/$sdilRef"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/sdil/$sdilRef"))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -549,7 +549,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
       )
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678917"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678917"))
           .willReturn(
             aResponse()
               .withStatus(OK)
@@ -600,7 +600,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
     "throw an UpstreamErrorResponse when retrieveSubscriptionDetails returns an internal server error" in {
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678911"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678911"))
           .withHeader(
             CORRELATION_ID_KEY,
             matching(
@@ -628,7 +628,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
     "return None when retrieveSubscriptionDetails returns a HIP ID not found validation error" in {
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678919"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678919"))
           .willReturn(
             aResponse()
               .withStatus(UNPROCESSABLE_ENTITY)
@@ -645,7 +645,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
     "throw an UpstreamErrorResponse when retrieveSubscriptionDetails returns another HIP validation error" in {
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678920"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678920"))
           .willReturn(
             aResponse()
               .withStatus(UNPROCESSABLE_ENTITY)
@@ -671,7 +671,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
         FORBIDDEN           -> "12345678916"
       ).foreach { case (status, idNumber) =>
         stubFor(
-          get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/$idNumber"))
+          get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/$idNumber"))
             .willReturn(
               aResponse()
                 .withStatus(status)
@@ -688,7 +688,7 @@ class HipConnectorSpec extends FakeApplicationSpec with HttpClientV2Helper with 
     "throw an UpstreamErrorResponse when retrieveSubscriptionDetails returns an unlisted error status" in {
 
       stubFor(
-        get(urlEqualTo(s"$HIP_API_ROOT/subscription/details/utr/12345678912"))
+        get(urlEqualTo(s"$HIP_API_ROOT/subscription/utr/12345678912"))
           .willReturn(
             aResponse()
               .withStatus(TOO_MANY_REQUESTS)
