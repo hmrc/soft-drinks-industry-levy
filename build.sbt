@@ -27,8 +27,8 @@ PlayKeys.playDefaultPort := 8701
 libraryDependencies ++= AppDependencies.all
 
 dependencyOverrides ++= Seq(
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.0",
-  "com.fasterxml.jackson.core" % "jackson-core"     % "2.15.0"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.22.3",
+  "com.fasterxml.jackson.core" % "jackson-core"     % "2.22.3"
 )
 
 // ================================================================================
